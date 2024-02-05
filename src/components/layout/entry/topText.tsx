@@ -16,7 +16,7 @@ export const TopText = (props: propsTopText) => {
           {props.title}
         </h1>
         {props.right && (
-          <h1 className="scroll-m-20 text-6xl font-extrabold leading-[normal] text-white">
+          <h1 className="scroll-m-20 text-6xl font-extrabold leading-[normal]">
             2024
           </h1>
         )}

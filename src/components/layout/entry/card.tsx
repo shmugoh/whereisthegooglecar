@@ -11,17 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-
 import { TopText } from "~/components/layout/entry/topText";
-
-type cardProps = {
-  date: string;
-  town: string;
-  countryEmoji: string;
-  imageUrl: string;
-  sourceUrl: string;
-  locationUrl?: string;
-};
+import { Button } from "~/components/ui/button";
 
 export const GoogleCard = (props: cardProps) => {
   return (
@@ -33,7 +24,10 @@ export const GoogleCard = (props: cardProps) => {
               <h2 className="text-3xl font-semibold">{props.date}</h2>
               <span
                 dangerouslySetInnerHTML={{
-                  __html: twemoji.parse(props.countryEmoji),
+                  __html: twemoji.parse(props.countryEmoji, {
+                    folder: "svg",
+                    ext: ".svg",
+                  }),
                 }}
                 className="w-full md:w-[36px]"
               />
@@ -56,53 +50,49 @@ export const GoogleCard = (props: cardProps) => {
             </AspectRatio>
           </div>
         </CardContent>
-        <CardFooter className="gap-2">
-          <a
-            href={props.locationUrl}
-            className="text-sm font-medium text-slate-500 underline underline-offset-4 hover:cursor-pointer hover:text-slate-400"
-          >
-            Source
-          </a>
-          {props.locationUrl && (
+        <CardFooter className="flex justify-between">
+          <div className="flex gap-2">
             <a
-              href={props.locationUrl}
+              href={props.sourceUrl}
               className="text-sm font-medium text-slate-500 underline underline-offset-4 hover:cursor-pointer hover:text-slate-400"
             >
-              Location
+              Source
             </a>
-          )}
+            {props.locationUrl && (
+              <a
+                href={props.locationUrl}
+                className="text-sm font-medium text-slate-500 underline underline-offset-4 hover:cursor-pointer hover:text-slate-400"
+              >
+                Location
+              </a>
+            )}
+          </div>
+          <div className="flex items-center md:w-1/2">
+            <Button className="flex h-full w-full items-center">Info</Button>
+          </div>
         </CardFooter>
       </Card>
     </div>
   );
 };
 
-export const CardSet = () => {
+export const CardSet = (props: cardSetProps) => {
   return (
     <div className="flex w-full flex-col gap-4">
-      <TopText title="February" right="2024" />
+      <TopText title={props.month} right={props.year} />
       <div className="flex flex-wrap gap-x-16 gap-y-6">
-        <GoogleCard
-          date="February 1st, 2023"
-          town="Bogota, Colombia"
-          countryEmoji="🇨🇴"
-          imageUrl="https://cdn.discordapp.com/attachments/774703077172838430/1189837268148568194/28_12_2023.png"
-          sourceUrl="#"
-        />
-        <GoogleCard
-          date="February 1st, 2023"
-          town="Bogota, Colombia"
-          countryEmoji="🇨🇴"
-          imageUrl="https://cdn.discordapp.com/attachments/774703077172838430/1169141068843991100/image.png?ex=65cc4af8&is=65b9d5f8&hm=8824a7b577de07b393094e62a38686ac66ce012243ce8bed27c242ff80577b42&"
-          sourceUrl="#"
-        />
-        <GoogleCard
-          date="February 1st, 2023"
-          town="Bogota, Colombia"
-          countryEmoji="🇨🇴"
-          imageUrl="https://cdn.discordapp.com/attachments/774703077172838430/1189837268148568194/28_12_2023.png"
-          sourceUrl="#"
-        />
+        {props.info.map((item: cardProps, index) => (
+          <GoogleCard
+            id={item.id}
+            key={index}
+            date={item.date}
+            town={item.town}
+            countryEmoji={item.countryEmoji}
+            imageUrl={item.imageUrl}
+            sourceUrl={item.sourceUrl}
+            locationUrl={item.locationUrl}
+          />
+        ))}
       </div>
     </div>
   );
