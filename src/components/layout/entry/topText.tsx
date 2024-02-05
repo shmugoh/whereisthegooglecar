@@ -12,7 +12,7 @@ export const TopText = () => {
         <h1 className="scroll-m-20 text-6xl font-extrabold leading-[normal] text-white">
           2024
         </h1>
-        <p>emote</p>
+        {/* <p>emote</p> */}
       </div>
 
       <Separator />

@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { AspectRatio } from "~/components/ui/aspect-ratio";
+
 import twemoji from "twemoji";
 
 import {
@@ -43,14 +45,15 @@ export const GoogleCard = (props: cardProps) => {
         </CardHeader>
         <CardContent>
           <div className="">
-            <div className="relative aspect-video">
+            <AspectRatio ratio={16 / 9} className="bg-muted">
               <Image
                 layout={"fill"}
                 objectFit={"contain"}
                 src={props.imageUrl}
                 alt={`Picture of a Google Car spotted in ${props.town} on ${props.date}.`}
+                className="rounded-md object-cover"
               />
-            </div>
+            </AspectRatio>
           </div>
         </CardContent>
         <CardFooter className="gap-2">
@@ -90,7 +93,7 @@ export const CardSet = () => {
           date="February 1st, 2023"
           town="Bogota, Colombia"
           countryEmoji="🇨🇴"
-          imageUrl="https://cdn.discordapp.com/attachments/774703077172838430/1189837268148568194/28_12_2023.png"
+          imageUrl="https://cdn.discordapp.com/attachments/774703077172838430/1169141068843991100/image.png?ex=65cc4af8&is=65b9d5f8&hm=8824a7b577de07b393094e62a38686ac66ce012243ce8bed27c242ff80577b42&"
           sourceUrl="#"
         />
         <GoogleCard

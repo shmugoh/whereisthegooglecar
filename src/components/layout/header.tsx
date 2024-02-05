@@ -4,6 +4,8 @@ import { Separator } from "../ui/separator";
 
 import { Github } from "lucide-react";
 
+import { MdOutlineStreetview } from "react-icons/md";
+
 const links = [
   {
     href: "https://github.com/shmugoh/whentoplayvideo",
@@ -16,23 +18,27 @@ export const Header = () => {
     <div>
       <header className="bg-[white]">
         <div className="container flex flex-col flex-wrap items-center gap-4 py-4 md:flex-row md:gap-8">
-          <div>
-            <Link href="/" className="text-xl font-bold">
-              whereisthegooglecar.com
-            </Link>
-          </div>
+          <Link href="/" className="flex items-center gap-2 text-xl font-bold">
+            <MdOutlineStreetview size={36} />
+            whereisthegooglecar.com
+          </Link>
 
           <nav className="flex items-center">
-            {/* icon here */}
-
-            <ul className="flex gap-6 leading-[normal]">
+            {/* TODO: get active page */}
+            <ul className="font-regular flex gap-16 text-2xl leading-[normal] md:gap-5 md:text-base">
               <li>
-                <Link href="/" className="">
+                <Link
+                  href="/"
+                  className="hover:text-foreground/80 text-foreground/60"
+                >
                   Home
                 </Link>
               </li>
               <li>
-                <Link href="/about" className="">
+                <Link
+                  href="/about"
+                  className="hover:text-foreground/80 text-foreground/60"
+                >
                   About
                 </Link>
               </li>
