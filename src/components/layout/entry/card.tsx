@@ -80,7 +80,7 @@ export const GoogleCard = (props: cardProps) => {
 export const CardSet = () => {
   return (
     <div className="flex w-full flex-col gap-4">
-      <TopText />
+      <TopText title="February" right="2024" />
       <div className="flex flex-wrap gap-x-16 gap-y-6">
         <GoogleCard
           date="February 1st, 2023"
