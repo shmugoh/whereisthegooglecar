@@ -10,6 +10,8 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 
+import { TopText } from "~/components/layout/topText";
+
 type cardProps = {
   date: string;
   town: string;
@@ -68,6 +70,37 @@ export const GoogleCard = (props: cardProps) => {
           )}
         </CardFooter>
       </Card>
+    </div>
+  );
+};
+
+export const CardSet = () => {
+  return (
+    <div className="flex w-full flex-col gap-4">
+      <TopText />
+      <div className="flex flex-wrap gap-x-16 gap-y-6">
+        <GoogleCard
+          date="February 1st, 2023"
+          town="Bogota, Colombia"
+          countryEmoji="🇨🇴"
+          imageUrl="https://cdn.discordapp.com/attachments/774703077172838430/1189837268148568194/28_12_2023.png"
+          sourceUrl="#"
+        />
+        <GoogleCard
+          date="February 1st, 2023"
+          town="Bogota, Colombia"
+          countryEmoji="🇨🇴"
+          imageUrl="https://cdn.discordapp.com/attachments/774703077172838430/1189837268148568194/28_12_2023.png"
+          sourceUrl="#"
+        />
+        <GoogleCard
+          date="February 1st, 2023"
+          town="Bogota, Colombia"
+          countryEmoji="🇨🇴"
+          imageUrl="https://cdn.discordapp.com/attachments/774703077172838430/1189837268148568194/28_12_2023.png"
+          sourceUrl="#"
+        />
+      </div>
     </div>
   );
 };
