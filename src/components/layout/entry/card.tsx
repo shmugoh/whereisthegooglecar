@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 
-import { TopText } from "~/components/layout/topText";
+import { TopText } from "~/components/layout/entry/topText";
 
 type cardProps = {
   date: string;

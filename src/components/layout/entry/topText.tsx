@@ -1,8 +1,5 @@
 import React from "react";
-
-const Separator = () => {
-  return <div className="h-px self-stretch border border-white"></div>;
-};
+import { Separator } from "~/components/ui/separator";
 
 export const TopText = () => {
   return (
