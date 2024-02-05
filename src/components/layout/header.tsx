@@ -25,7 +25,7 @@ export const Header = () => {
 
           <nav className="flex items-center">
             {/* TODO: get active page */}
-            <ul className="font-regular flex gap-16 text-2xl leading-[normal] md:gap-5 md:text-base">
+            <ul className="font-regular flex gap-16 text-lg leading-[normal] md:gap-5 md:text-base">
               <li>
                 <Link
                   href="/"
