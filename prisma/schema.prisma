@@ -10,11 +10,25 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    @@index([name])
+model Spotting {
+    id              Int      @id @default(autoincrement()) @unique
+    date            DateTime
+    town            String
+    country         String
+    countryEmoji    String
+    imageUrl        String
+    sourceUrl       String
+    locationUrl     String?
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt @default(now())
+    
+    @@index([id])
 }
+
+// id: 4,
+// date: "February 1, 2024",
+// town: "Bogota, Colombia",
+// countryEmoji: "🇨🇴",
+// imageUrl:
+// sourceUrl: "#",
+// locationUrl: "https://example.com/location",
