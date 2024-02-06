@@ -13,7 +13,6 @@ import {
 } from "~/components/ui/card";
 import { TopText } from "~/components/layout/entry/topText";
 import { Button } from "~/components/ui/button";
-import { type Key } from "react";
 
 export const GoogleCard = (props: cardProps) => {
   const date = props.date.toLocaleDateString(undefined, {
@@ -87,7 +86,7 @@ export const CardSet = (props: cardSetProps) => {
   return (
     <div className="flex w-full flex-col gap-4">
       <TopText title={props.month} right={props.year} />
-      <div className="flex flex-wrap gap-x-16 gap-y-6">
+      <div className="flex flex-wrap justify-center gap-x-16 gap-y-6 lg:justify-evenly">
         {props.info.map((item: cardProps) => (
           <GoogleCard
             id={item.id}

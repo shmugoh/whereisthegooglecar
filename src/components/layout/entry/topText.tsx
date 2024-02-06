@@ -1,4 +1,5 @@
 import React from "react";
+import twemoji from "twemoji";
 import { Separator } from "~/components/ui/separator";
 
 type propsTopText = {
@@ -11,8 +12,8 @@ export const TopText = (props: propsTopText) => {
   return (
     <div className="flex flex-col gap-2">
       <Separator />
-      <div className="textContainer flex flex-wrap md:flex-nowrap">
-        <h1 className="w-full scroll-m-20 text-6xl font-extrabold leading-[normal]">
+      <div className="textContainer md: flex flex-wrap justify-normal justify-center md:flex-nowrap">
+        <h1 className="w-full scroll-m-20 text-center text-5xl font-bold leading-[normal] md:text-left">
           {props.title}
         </h1>
         {props.right && (
@@ -20,7 +21,17 @@ export const TopText = (props: propsTopText) => {
             {props.right}
           </h1>
         )}
-        {/* <p>emote</p> */}
+        {props.emote && (
+          <span
+            dangerouslySetInnerHTML={{
+              __html: twemoji.parse(props.emote, {
+                folder: "svg",
+                ext: ".svg",
+              }),
+            }}
+            className="flex w-16"
+          />
+        )}
       </div>
 
       <Separator />
