@@ -1,7 +1,5 @@
 import Image from "next/image";
-import { AspectRatio } from "~/components/ui/aspect-ratio";
-
-import twemoji from "twemoji";
+import Link from "next/link";
 
 import {
   Card,
@@ -13,6 +11,9 @@ import {
 } from "~/components/ui/card";
 import { TopText } from "~/components/layout/entry/topText";
 import { Button } from "~/components/ui/button";
+import { AspectRatio } from "~/components/ui/aspect-ratio";
+
+import twemoji from "twemoji";
 
 export const GoogleCard = (props: cardProps) => {
   const date = props.date.toLocaleDateString(undefined, {
@@ -73,8 +74,10 @@ export const GoogleCard = (props: cardProps) => {
               </a>
             )}
           </div>
-          <div className="flex items-center md:w-1/2">
-            <Button className="flex h-full w-full items-center">Info</Button>
+          <div className="flex items-center md:w-1/3">
+            <Button className="flex h-full w-full items-center" asChild>
+              <Link href={`/${props.id}`}>Info</Link>
+            </Button>
           </div>
         </CardFooter>
       </Card>

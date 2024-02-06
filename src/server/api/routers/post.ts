@@ -38,4 +38,12 @@ export const postRouter = createTRPCRouter({
       orderBy: { date: "desc" },
     });
   }),
+
+  getById: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .query(({ input }) => {
+      return db.spotting.findUnique({
+        where: { id: input.id },
+      });
+    }),
 });
