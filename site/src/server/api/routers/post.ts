@@ -17,7 +17,7 @@ export const postRouter = createTRPCRouter({
     // await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-    return db.spotting.create({
+    return db.spottings.create({
       data: {
         date: new Date(),
         town: "Bogota, Colombias",
@@ -34,7 +34,7 @@ export const postRouter = createTRPCRouter({
   }),
 
   getLatest: publicProcedure.query(({ ctx }) => {
-    return ctx.db.spotting.findMany({
+    return ctx.db.spottings.findMany({
       orderBy: { date: "desc" },
     });
   }),
@@ -42,7 +42,7 @@ export const postRouter = createTRPCRouter({
   getById: publicProcedure
     .input(z.object({ id: z.number() }))
     .query(({ input }) => {
-      return db.spotting.findUnique({
+      return db.spottings.findUnique({
         where: { id: input.id },
       });
     }),

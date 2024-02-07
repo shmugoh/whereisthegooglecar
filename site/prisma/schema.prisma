@@ -10,7 +10,7 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Spotting {
+model spottings {
     id              Int      @id @default(autoincrement()) @unique
     date            DateTime
     town            String
@@ -19,10 +19,19 @@ model Spotting {
     imageUrl        String
     sourceUrl       String
     locationUrl     String?
+    company         String @default("google")
     createdAt       DateTime @default(now())
     updatedAt       DateTime @updatedAt @default(now())
+    channelId       Int
+    channel         channel @relation(fields: [channelId], references: [id])
     
     @@index([id])
+}
+
+model channel {
+    id       Int      @id @unique
+    type     String
+    spottings spottings[]
 }
 
 // id: 4,

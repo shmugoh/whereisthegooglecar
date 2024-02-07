@@ -13,7 +13,7 @@ import platform
 import random
 import sys
 
-import aiosqlite
+import asyncpg
 import discord
 from discord.ext import commands, tasks
 from discord.ext.commands import Context
@@ -139,15 +139,20 @@ class DiscordBot(commands.Bot):
         self.config = config
         self.database = None
 
-    # async def init_db(self) -> None:
-    #     async with aiosqlite.connect(
-    #         f"{os.path.realpath(os.path.dirname(__file__))}/database/database.db"
-    #     ) as db:
-    #         with open(
-    #             f"{os.path.realpath(os.path.dirname(__file__))}/database/schema.sql"
-    #         ) as file:
-    #             await db.executescript(file.read())
-    #         await db.commit()
+    async def init_db(self) -> None:
+            """
+            Initializes the database connection pool.
+
+            This method creates a connection pool to the PostgreSQL database using the
+            environment variables for the connection details. It then assigns the pool to
+            `self.database` so that it can be accessed from anywhere in the bot using `self.database`.
+            """
+            try:
+                connection_string = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_IP')}/{os.getenv('POSTGRES_DB')}"
+                self.database = await asyncpg.create_pool(dsn=connection_string)
+                self.logger.info("Database connection pool created.")
+            except Exception as e:
+                self.logger.error(f"Error connecting to DB: {e}")
 
     async def load_cogs(self) -> None:
         """
@@ -194,10 +199,7 @@ class DiscordBot(commands.Bot):
 
         await self.load_cogs()
         self.status_task.start()
-        
-        # TODO: Connect PostgreSQL Database and sync schema
-        # await self.init_db()
-        # self.database = await asyncpg.create_pool(dsn=config["pg_dsn"])
+        await self.init_db()
 
     async def on_message(self, message: discord.Message) -> None:
         """
