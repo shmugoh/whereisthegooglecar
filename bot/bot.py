@@ -14,6 +14,8 @@ import random
 import sys
 
 import asyncpg
+from database import DatabaseManager
+
 import discord
 from discord.ext import commands, tasks
 from discord.ext.commands import Context
@@ -149,7 +151,7 @@ class DiscordBot(commands.Bot):
             """
             try:
                 connection_string = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_IP')}/{os.getenv('POSTGRES_DB')}"
-                self.database = await asyncpg.create_pool(dsn=connection_string)
+                self.database = DatabaseManager(connection=await asyncpg.create_pool(dsn=connection_string))
                 self.logger.info("Database connection pool created.")
             except Exception as e:
                 self.logger.error(f"Error connecting to DB: {e}")

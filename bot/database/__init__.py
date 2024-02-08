@@ -1,8 +1,14 @@
 import asyncpg
 
 class DatabaseManager:
-    def __init__(self, *, database: asyncpg.Connection) -> None:
-        self.database = database
+    def __init__(self, *, connection: asyncpg.Connection) -> None:
+        self.database = connection
+    
+    async def add_channel(self, id: int, type: str) -> None:
+        await self.database.execute("INSERT INTO channel (id, type) VALUES ($1, $2)", id, type)
+        
+    async def remove_channel(self, id: int) -> None:
+        await self.database.execute("DELETE FROM channel WHERE id=$1", id)
 
     # async def add_warn(
     #     self, user_id: int, server_id: int, moderator_id: int, reason: str
