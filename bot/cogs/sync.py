@@ -23,7 +23,7 @@ class Sync(commands.Cog, name="sync"):
       channel: discord.TextChannel = None, 
       thread: discord.Thread = None, 
       sync: bool = True,
-      company: str = "google" # used for syncing spottings
+      company: str = "google"
       ) -> None:
       
       # if no channel or thread is provided
@@ -45,7 +45,7 @@ class Sync(commands.Cog, name="sync"):
 
       # adds the channel or thread to the database
       try:
-        await self.bot.database.add_channel(target.id, target_string)
+        await self.bot.database.add_channel(target.id, target_string, company)
       except ps.UniqueViolationError:
         await context.send(f"Failed to add {target} - already exists in the database.")
         return
@@ -66,7 +66,7 @@ class Sync(commands.Cog, name="sync"):
     @app_commands.describe(
       channel="The channel to remove", 
       thread="The thread to remove", 
-      sync="Whether to sync the content to the database or not. Default: True",
+      unsync="Whether to sync the content to the database or not. Default: True",
       company="The company that the spottings are from. Default: 'Google",  
     )
     # only for server admins
@@ -74,6 +74,7 @@ class Sync(commands.Cog, name="sync"):
       channel: discord.TextChannel = None, 
       thread: discord.Thread = None, 
       unsync: bool = True,
+      company: str = "google"
       ) -> None:
       
       # if no channel or thread is provided

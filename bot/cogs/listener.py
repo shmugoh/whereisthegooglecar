@@ -7,7 +7,7 @@ from asyncpg import exceptions as ps
 from utils.spotting import spotting
 from utils.database import DatabaseManager
 
-class Listener(commands.Cog, name="sync"):
+class Listener(commands.Cog, name="listener"):
     def __init__(self, bot) -> None:
       self.bot = bot
       self.database: DatabaseManager
