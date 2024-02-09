@@ -22,8 +22,8 @@ model spottings {
     company         String @default("google")
     createdAt       DateTime @default(now())
     updatedAt       DateTime @updatedAt @default(now())
-    channelId       BigInt
-    channel         channel @relation(fields: [channelId], references: [id])
+    channel_id      BigInt
+    channel         channel @relation(fields: [channel_id], references: [id])
     
     @@index([id])
 }
@@ -32,6 +32,7 @@ model channel {
     id       BigInt      @id @unique
     type     String
     spottings spottings[]
+    company String @default("google")
 }
 
 // id: 4,
