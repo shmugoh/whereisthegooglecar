@@ -102,3 +102,39 @@ class spotting():
           return match[1]
     
     return None # optional, so that it doesn't throw an error if there's no match
+
+  def process_spotting(self, spotting: str) -> dict[str, any]:
+    """
+    Process a spotting string and extract relevant information.
+
+    Args:
+      spotting (str): The spotting string to be processed.
+
+    Returns:
+      dict: A dictionary containing the extracted information:
+        - 'country': The country of the spotting.
+        - 'service': The service associated with the spotting.
+        - 'date': The date of the spotting.
+        - 'town': The town of the spotting.
+        - 'source': The source of the spotting.
+        - 'location': The location of the spotting.
+
+    Raises:
+        IndexError: If the spotting string cannot be parsed or contains invalid information.
+
+    """
+    country = self.get_country(spotting)
+    service = self.get_service(spotting)
+    date = self.get_date(spotting)
+    town = self.get_town(spotting)
+    source = self.get_source(spotting)
+    location = self.get_location(spotting)
+    
+    return {
+      "country": country,
+      "service": service,
+      "date": date,
+      "town": town,
+      "source": source,
+      "location": location
+    }

@@ -4,10 +4,14 @@ from discord.ext import commands
 from discord.ext.commands import Context
 
 from asyncpg import exceptions as ps
+from utils.spotting import spotting
+from utils.database import DatabaseManager
 
 class Listener(commands.Cog, name="sync"):
     def __init__(self, bot) -> None:
       self.bot = bot
+      self.database: DatabaseManager
+      self.spotting = spotting()
       
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
@@ -19,9 +23,14 @@ class Listener(commands.Cog, name="sync"):
         return
       
       channels = await self.bot.database.get_channels()
-      if message.channel.id == channels['id'] or message.channel.id in channels['id']:
-        print("[NEW]: Process Spotting Here")
-        # process_spotting(message)
+      if message.channel.id == channels['id'] or message.channel.id in channels['id'] and message.attachments[0] is not None:
+        try:
+          spotting = self.spotting.process_spotting(message.content)
+          spotting_id = message.id
+          spotting_channel_id = message.channel.id
+          spotting_image = message.attachments[0].url
+        except Exception as e:
+          return
     
     @commands.Cog.listener()
     async def on_message_edit(self, before: discord.Message, after: discord.Message) -> None:
@@ -47,10 +56,9 @@ class Listener(commands.Cog, name="sync"):
       if message.author == self.bot.user or message.author.bot:
         return
       
-      channels = await self.bot.database.get_channels()
-      if message.channel.id == channels['id'] or message.channel.id in channels['id']:
-        print("[DELETE]: Delete spotting from DB here")
-        # process_spotting(message)
+      message_db = await self.bot.database.find_spotting(message.id)
+      if message_db:
+        await self.bot.database.delete_spotting(message.id)
 
 
 async def setup(bot) -> None:
