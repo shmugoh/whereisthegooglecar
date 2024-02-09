@@ -14,7 +14,7 @@ import random
 import sys
 
 import asyncpg
-from database import DatabaseManager
+from bot.utils.database import DatabaseManager
 
 import discord
 from discord.ext import commands, tasks

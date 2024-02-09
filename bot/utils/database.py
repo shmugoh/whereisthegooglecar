@@ -9,6 +9,9 @@ class DatabaseManager:
         
     async def remove_channel(self, id: int) -> None:
         await self.database.execute("DELETE FROM channel WHERE id=$1", id)
+        
+    async def get_channels(self) -> dict:
+        return await self.database.fetchrow("SELECT * FROM channel")
 
     # async def add_warn(
     #     self, user_id: int, server_id: int, moderator_id: int, reason: str
