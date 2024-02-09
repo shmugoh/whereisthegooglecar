@@ -21,7 +21,7 @@ class Owner(commands.Cog, name="owner"):
         description="Synchonizes the slash commands.",
     )
     @app_commands.describe(scope="The scope of the sync. Can be `global` or `guild`")
-    @commands.is_owner()
+    # @commands.is_owner()
     async def sync(self, context: Context, scope: str) -> None:
         """
         Synchonizes the slash commands.

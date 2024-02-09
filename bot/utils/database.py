@@ -8,7 +8,7 @@ class DatabaseManager:
         await self.database.execute("INSERT INTO channel (id, type) VALUES ($1, $2)", id, type)
         
     async def remove_channel(self, id: int) -> None:
-        await self.database.execute("DELETE FROM channel WHERE id=$1", id)
+        return await self.database.execute("DELETE FROM channel WHERE id=$1", id)
         
     async def get_channels(self) -> dict:
         return await self.database.fetchrow("SELECT * FROM channel")
