@@ -11,7 +11,7 @@ datasource db {
 }
 
 model spottings {
-    id              Int      @id @default(autoincrement()) @unique
+    id              Int         @id @default(autoincrement())
     date            DateTime
     town            String
     country         String
@@ -19,20 +19,21 @@ model spottings {
     imageUrl        String
     sourceUrl       String
     locationUrl     String?
-    company         String @default("google")
-    createdAt       DateTime @default(now())
-    updatedAt       DateTime @updatedAt @default(now())
+    company         String      @default("google")
+    createdAt       DateTime    @default(now())
+    updatedAt       DateTime    @updatedAt @default(now())
+    message_id      BigInt
     channel_id      BigInt
-    channel         channel @relation(fields: [channel_id], references: [id])
+    channel         channel     @relation(fields: [channel_id], references: [id])
     
     @@index([id])
 }
 
 model channel {
-    id       BigInt      @id @unique
-    type     String
-    spottings spottings[]
-    company String @default("google")
+    id              BigInt      @id @unique
+    type            String
+    spottings       spottings[]
+    company         String      @default("google")
 }
 
 // id: 4,

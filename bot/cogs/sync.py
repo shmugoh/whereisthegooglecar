@@ -79,7 +79,7 @@ class Sync(commands.Cog, name="sync"):
     async def remove(self, context: Context, *, 
       channel: discord.TextChannel = None, 
       thread: discord.Thread = None, 
-      unsync: bool = True,
+      unsync: bool = False,
       company: str = "google"
       ) -> None:
       

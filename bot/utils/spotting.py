@@ -1,4 +1,7 @@
 import re
+import datetime
+
+import flag
 
 class spotting():
   def __init__(self):
@@ -50,11 +53,67 @@ class spotting():
     # first spearator is for legacy spottings
     # second separator is for catching URLs after the town name; among brackets, and sometimes angle brackets
     
+  def process_spotting(self, spotting: str):
+    """
+    Process a spotting string and extract relevant information.
+
+    Args:
+      spotting (str): The spotting string to be processed.
+
+    Raises:
+      IndexError: If the spotting string cannot be parsed or contains invalid information.
+
+    Returns:
+      SpottingResult: An object containing the extracted information from the spotting string.
+      
+      Args:
+        country (dict): The country where the spotting occurred - `{"countryEmoji": "🇺🇸", "country": "United States"}`.
+        service (str): The service used for spotting.
+        date (str): The date of the spotting.
+        town (str): The town where the spotting occurred.
+        source (str): The source of the spotting information.
+        location (str): The location of the spotting.
+    """
+    
+    # basic information
+    country = self.get_country(spotting)
+    service = self.get_service(spotting)
+    town = self.get_town(spotting)
+    source = self.get_source(spotting) # source could be proccesed better here, so when theres no source it uses the discord user's name, but unittest would fail
+    location = self.get_location(spotting)
+    
+    # timestamp information
+    date_str = self.get_date(spotting)
+    date_obj = datetime.datetime.strptime(date_str, "%Y/%m/%d")
+    
+    # define the SpottingResult class
+    return {
+      "country": country,
+      "service": service,
+      "date": date_obj,
+      "town": town,
+      "source": source,
+      "location": location,
+    }
+
   def get_country(self, spotting: str) -> str:
+    """
+    Extracts the country code and country name from the given spotting string.
+
+    Args:
+      spotting (str): The spotting string.
+
+    Returns:
+      dict: A dictionary containing the country emoji and country name.
+          If the spotting string does not match the regex, the values will be None.
+          Example: {"countryEmoji": "🇺🇸", "country": "United States"}
+    """
     result = re.search(self.regex_country, spotting.strip())
     if result:
-      return result[0]
-    return None # legacy spotting
+      countryEmoji = result[0]
+      country = str(flag.dflagize(result[0])).replace(":", "") # to remove the colon
+      return {"countryEmoji": countryEmoji, "country": country}
+    return {"countryEmoji": None, "country": None} # legacy spotting
     
   def get_service(self, spotting: str) -> str:
     result = re.findall(self.regex_service, spotting.strip())
@@ -101,40 +160,4 @@ class spotting():
         elif match[1]:
           return match[1]
     
-    return None # optional, so that it doesn't throw an error if there's no match
-
-  def process_spotting(self, spotting: str) -> dict[str, any]:
-    """
-    Process a spotting string and extract relevant information.
-
-    Args:
-      spotting (str): The spotting string to be processed.
-
-    Returns:
-      dict: A dictionary containing the extracted information:
-        - 'country': The country of the spotting.
-        - 'service': The service associated with the spotting.
-        - 'date': The date of the spotting.
-        - 'town': The town of the spotting.
-        - 'source': The source of the spotting.
-        - 'location': The location of the spotting.
-
-    Raises:
-        IndexError: If the spotting string cannot be parsed or contains invalid information.
-
-    """
-    country = self.get_country(spotting)
-    service = self.get_service(spotting)
-    date = self.get_date(spotting)
-    town = self.get_town(spotting)
-    source = self.get_source(spotting)
-    location = self.get_location(spotting)
-    
-    return {
-      "country": country,
-      "service": service,
-      "date": date,
-      "town": town,
-      "source": source,
-      "location": location
-    }
+    return None # optional, so that it doesn't throw an error if there's no matc
