@@ -5,6 +5,8 @@ from discord.ext.commands import Context
 from asyncpg import exceptions as ps
 
 import os, sys, json
+import asyncio
+
 if not os.path.isfile(f"{os.path.realpath(os.path.dirname(__file__))}\\..\\config.json"):
     sys.exit("'config.json' not found! Please add it and try again.")
 else:
@@ -17,7 +19,19 @@ guild_id = int(config.get("guild_id"))
 
 class Sync(commands.Cog, name="sync"):
     def __init__(self, bot) -> None:
-      self.bot = bot
+      self.bot = bot    
+      
+      # embed colors
+      self.embed_success = 0x2BE02B
+      self.embed_orange = 0xFFA500
+      self.embed_error = 0xE02B2B
+      
+      # embed
+      self.embed = discord.Embed(
+        title="Database Sync",
+        description="Syncs channels and threads to the database.",
+        color=self.embed_orange
+      )
     
     @commands.hybrid_command(
       name="add_channel",
@@ -40,11 +54,17 @@ class Sync(commands.Cog, name="sync"):
       
       # if no channel or thread is provided
       if channel is None and thread is None:
-        await context.send("Please provide either a channel or a thread.")
+        self.embed.description="No channel or thread provided. Please provide one."
+        self.embed.color = self.embed_error
+        
+        await context.send(embed=self.embed, ephemeral=True)
         return
       # if both channel and thread are provided
       if channel and thread:
-        await context.send("Please provide either a channel or a thread, not both.")
+        self.embed.description="Please provide either a channel or a thread, not both"
+        self.embed.color = self.embed_error
+        
+        await context.send(embed=self.embed, ephemeral=True)
         return
       
       # sets the target to the channel or thread
@@ -58,18 +78,55 @@ class Sync(commands.Cog, name="sync"):
       # adds the channel or thread to the database
       try:
         await self.bot.database.add_channel(target.id, target_string, company)
+        
+        self.embed.description=f"Added <#{target.id}> to the database!"
+        self.embed.color = self.embed_success
+      
+        await context.send(embed=self.embed, ephemeral=True)
+        
       except ps.UniqueViolationError:
-        await context.send(f"Failed to add {target} - already exists in the database.")
+        self.embed.description=f"Failed to add <#{target.id}> - already exists in the database."
+        self.embed.color = self.embed_error
+        
+        await context.send(embed=self.embed, ephemeral=True)
         return
-      await context.send(f"Added {target}!")
       
       # if sync is True, sync messages from channel to the database
       if sync:
-        await context.send(f"Syncing {target}...")
-        async for message in target.history():
+        self.embed.title=f"<#{target.id}> - Database Sync"
+        self.embed.description = "Getting messages..."
+        self.embed.set_footer(text="This may take a while.")
+        self.embed.color = self.embed_orange
+
+        bot_message = await context.send(embed=self.embed, ephemeral=True)
+
+        # get messages
+        target_messages = []
+        counter = 0
+        await bot_message.edit(embed=self.embed)
+        async for message in target.history(limit=None):
           if message.attachments:
-            print(message.content)
-            print(message.attachments[0].url)
+            target_messages.append(message)
+            counter += 1
+            if counter % 10 == 0: # update every 10 messages to prevent rate limiting
+              self.embed.set_footer(text=f"This may take a while - {counter} messages obtained.")
+              await bot_message.edit(embed=self.embed)
+
+        # save messages
+        length = len(target_messages)
+        counter = 0
+        self.embed.description = "Saving messages..."
+        for msg in target_messages:
+          counter += 1
+          if counter % 10 == 0: # update every 10 messages to prevent rate limiting
+            self.embed.set_footer(text=f"This may take a while - {counter}/{length} messages saved...")
+            await bot_message.edit(embed=self.embed)
+      
+        # # success
+        self.embed.description = f"Synced <#{target.id}>!"
+        self.embed.color = self.embed_success
+        self.embed.set_footer(text=f"Synced {length} messages.")
+        await bot_message.edit(embed=self.embed)
     
     @commands.hybrid_command(
       name="remove_channel",
@@ -92,11 +149,17 @@ class Sync(commands.Cog, name="sync"):
       
       # if no channel or thread is provided
       if channel is None and thread is None:
-        await context.send("Please provide either a channel or a thread.")
+        self.embed.description="No channel or thread provided. Please provide one."
+        self.embed.color = self.embed_error
+        
+        await context.send(embed=self.embed, ephemeral=True)
         return
       # if both channel and thread are provided
       if channel and thread:
-        await context.send("Please provide either a channel or a thread, not both.")
+        self.embed.description="Please provide either a channel or a thread, not both"
+        self.embed.color = self.embed_error
+        
+        await context.send(embed=self.embed, ephemeral=True)
         return
       
       # sets the target to the channel or thread
@@ -108,15 +171,27 @@ class Sync(commands.Cog, name="sync"):
       # removes the channel or thread from the database
       try:
         await self.bot.database.remove_channel(target.id)
+        
+        self.embed.description=f"Removed <#{target.id}> from the database!"
+        self.embed.color = self.embed_success
+        await context.send(embed=self.embed, ephemeral=True)
+        
       except ps.UniqueViolationError:
-        await context.send(f"Failed to remove {target} - does not exist in the database.")
+        self.embed.description=f"Failed to remove <#{target.id}> - does not exist in the database."
+        self.embed.color = self.embed_error
+        await context.send(embed=self.embed, ephemeral=True)
         return
-      await context.send(f"Removed {target}!")
       
-      # if sync is True, sync messages from channel to the database
+      # if unsync is True, remove channel messages from the database
       if unsync:
-        await context.send(f"Removing {target} spottings from database...")
+        self.embed.title=f"<#{target.id}> - Database Unsync"
+        self.embed.description = "Removing messages..."
+        self.embed.color = self.embed_orange
+
+        bot_message = await context.send(embed=self.embed, ephemeral=True)
+
         # TODO: logic to remove spottings from the database
+        
 
 async def setup(bot) -> None:
     await bot.add_cog(Sync(bot))
