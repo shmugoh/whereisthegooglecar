@@ -19,7 +19,7 @@ class Listener(commands.Cog, name="listener"):
       The code in this event is executed every time someone sends a message within
       a channel that the bot synchronizes with.
       """
-      if message.author == self.bot.user or message.author.bot:
+      if message.author == self.bot.user or message.author.bot or message.guild.id != self.bot.guild_id:
         return
       
       channels = await self.bot.database.get_channels()
@@ -29,6 +29,7 @@ class Listener(commands.Cog, name="listener"):
           spotting_id = message.id
           spotting_channel_id = message.channel.id
           spotting_image = message.attachments[0].url
+          print(spotting, spotting_id, spotting_channel_id, spotting_image)
         except Exception as e:
           return
     
@@ -38,7 +39,7 @@ class Listener(commands.Cog, name="listener"):
       The code in this event is executed every time someone edits a message within
       a channel that the bot synchronizes with.
       """
-      if after.author == self.bot.user or after.author.bot:
+      if after.author == self.bot.user or after.author.bot or after.guild.id != self.bot.guild_id:
         return
 
       channels = await self.bot.database.get_channels()
@@ -53,7 +54,7 @@ class Listener(commands.Cog, name="listener"):
       The code in this event is executed every time someone sends a message within
       a channel that the bot synchronizes with.
       """
-      if message.author == self.bot.user or message.author.bot:
+      if message.author == self.bot.user or message.author.bot or message.guild.id != self.bot.guild_id:
         return
       
       message_db = await self.bot.database.find_spotting(message.id)

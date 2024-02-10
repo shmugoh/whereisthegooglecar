@@ -4,6 +4,10 @@ from discord.ext import commands
 from discord.ext.commands import Context
 from asyncpg import exceptions as ps
 
+# for some reason i can't seem to import the guild_id directly
+# from the bot instance within @app_comands.guilds(), so i'm hardcoding them instead
+# sorry
+
 class Sync(commands.Cog, name="sync"):
     def __init__(self, bot) -> None:
       self.bot = bot
@@ -18,7 +22,8 @@ class Sync(commands.Cog, name="sync"):
       sync="Whether to sync the content to the database or not. Default: True",
       company="The company that the spottings are from. Note that this will only be used for syncing spottings. Default: 'Google",  
     )
-    # only for server admins
+    @app_commands.guilds(discord.Object(id=977037849025204324))
+    @commands.has_guild_permissions(manage_messages=True)
     async def add(self, context: Context, *, 
       channel: discord.TextChannel = None, 
       thread: discord.Thread = None, 
@@ -69,7 +74,8 @@ class Sync(commands.Cog, name="sync"):
       unsync="Whether to sync the content to the database or not. Default: True",
       company="The company that the spottings are from. Default: 'Google",  
     )
-    # only for server admins
+    @app_commands.guilds(discord.Object(id=977037849025204324))
+    @commands.has_guild_permissions(manage_messages=True)
     async def remove(self, context: Context, *, 
       channel: discord.TextChannel = None, 
       thread: discord.Thread = None, 
