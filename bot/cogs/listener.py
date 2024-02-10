@@ -26,7 +26,11 @@ class Listener(commands.Cog, name="listener"):
       # this is used to check if message's channel is in db, and
       # to get the service name
       channels: dict = await self.bot.database.get_channels()
-      channel_index = [channel['id'] for channel in channels].index(message.channel.id)
+      
+      try:
+        channel_index = [channel['id'] for channel in channels].index(message.channel.id)
+      except ValueError:
+        return
       
       if channels[channel_index]['id'] != -1 and message.attachments:
         try:
@@ -59,7 +63,7 @@ class Listener(commands.Cog, name="listener"):
           )
           
           # log the spotting
-          self.bot.logger.info(f"Added spotting to the database: {spotting['date']} - {spotting['country']['country']} - {spotting['town']} - {spotting['service']}")
+          self.bot.logger.info(f"Added [{message.author.name} - {message.author.id}]'s spotting ({message.id}) to the database: {spotting['date']} - {spotting['town']}")
           
         except IndexError:
           # not a spotting, we skip it
@@ -68,8 +72,8 @@ class Listener(commands.Cog, name="listener"):
           
         except Exception as e:
           # log the error
-          self.bot.logger.error(f"Failed to add spotting to the database: {e}")
-          self.bot.logger.error(f"Spotting: {message.content} - {message.attachments[0].url}")
+          self.bot.logger.error(f"Failed to add the following spotting {message.id} to the database: {e}")
+          self.bot.logger.error(f"[{message.author.name} - {message.author.id}]: {message.content} - {message.attachments[0].url}")
     
     @commands.Cog.listener()
     async def on_message_edit(self, before: discord.Message, after: discord.Message) -> None:
@@ -79,33 +83,63 @@ class Listener(commands.Cog, name="listener"):
       """
       if after.author == self.bot.user or after.author.bot or after.guild.id != self.bot.guild_id:
         return
+        
+      # checks if edited message is the same as the original message
+      # usually happens when embedded is triggered
+      if before.content == after.content:
+        return
 
-      # check if the channel is in the database
-      channels = await self.bot.database.get_channels()
-      if after.channel.id == channels['id'] or after.channel.id in channels['id']:
-        # process the spotting
-        spotting = self.spotting.process_spotting(after.message)
-        
-        # get spotting meta information
-        spotting_id = after.message.id
-        spotting_channel_id = after.message.channel.id
-        spotting_image = after.message.attachments[0].url
-        
-        # edit the spotting to the database
-        # here we are assuming that everything has been edited
-        # as it is not possible to know what has been edited (it could be possible but it would be a lot of work for a small app)
-        self.database.update_spotting(
-          spotting_id, 
-          channel_id=spotting_channel_id, 
-          date=spotting.date, 
-          town=spotting.town, 
-          country=spotting.country['country'], 
-          countryEmoji=spotting.countryEmoji['countryEmoji'], 
-          imageUrl=spotting_image, 
-          sourceUrl=spotting.source, 
-          locationUrl=spotting.location, 
-          company=spotting.service
-        )
+      # checks if message has been already logged
+      try:
+        message_db = await self.bot.database.find_spotting(before.id)
+      except ValueError:
+        return
+      
+      if message_db and after.attachments:
+        try:
+          channels: dict = await self.bot.database.get_channels() # for service
+          channel_index = [channel['id'] for channel in channels].index(after.channel.id)
+          spotting = self.spotting.process_spotting(after.content)
+          
+          # get spotting meta information
+          spotting_message_id = after.id
+          spotting_image = after.attachments[0].url
+          
+          # process source
+          if spotting['source'] == None:
+            spotting['source'] = after.author.name
+            
+          # process service
+          if spotting['service'] == None:
+            spotting['service'] = channels[channel_index]['company']
+          
+          # add the spotting to the database
+          await self.bot.database.update_spotting(
+            spotting_message_id,
+            date=spotting['date'], 
+            town=spotting['town'], 
+            country=spotting['country']['country'], 
+            countryEmoji=spotting['country']['countryEmoji'], 
+            imageUrl=spotting_image, 
+            sourceUrl=spotting['source'], 
+            locationUrl=spotting['location'], 
+            company=spotting['service']
+          )
+          
+          # log the spotting
+          self.bot.logger.info(f"Edited [{after.author.name} - {after.author.id}]'s spotting ({after.id}) to the database: {spotting['date']} - {spotting['town']}")
+          
+        except IndexError:
+          self.bot.logger.error(f"Failed to parse spotting {after.id} to RegEx: {after.content}")
+          pass
+          # self.bot.logger.error(f"Failed to parse spotting: {message.content}")
+          
+        except Exception as e:
+          # log the error
+          self.bot.logger.error(f"Failed to edit spotting {after.id} to the database: {e}")
+          self.bot.logger.error(f"Before: [{before.author.name} - {before.author.id}]: {before.content} - {before.attachments[0].url}")
+          self.bot.logger.error(f"After: [{after.author.name} - {after.author.id}]: {after.content} - {after.attachments[0].url}")
+
         
     @commands.Cog.listener()
     async def on_message_delete(self, message: discord.Message) -> None:
@@ -120,7 +154,7 @@ class Listener(commands.Cog, name="listener"):
       message_db = await self.bot.database.find_spotting(message.id)
       if message_db:
         await self.bot.database.delete_spotting(message.id)
-
+        self.bot.logger.info(f"Deleted [{message.author.name} - {message.author.id}]'s spotting ({message.id}) from the database - {message.content}")
 
 async def setup(bot) -> None:
     await bot.add_cog(Listener(bot))
