@@ -4,9 +4,16 @@ from discord.ext import commands
 from discord.ext.commands import Context
 from asyncpg import exceptions as ps
 
-# for some reason i can't seem to import the guild_id directly
-# from the bot instance within @app_comands.guilds(), so i'm hardcoding them instead
-# sorry
+import os, sys, json
+if not os.path.isfile(f"{os.path.realpath(os.path.dirname(__file__))}\\..\\config.json"):
+    sys.exit("'config.json' not found! Please add it and try again.")
+else:
+    with open(f"{os.path.realpath(os.path.dirname(__file__))}\\..\\config.json") as file:
+        config = json.load(file)
+guild_id = int(config.get("guild_id"))
+# this is a very funny workaround of grabbing the guild_id from config instead of hard-coding it
+# as i can't call self.bot.guild_id within the decorator
+# i personally hate hard-coding so this is a good workaround for now, that will stay
 
 class Sync(commands.Cog, name="sync"):
     def __init__(self, bot) -> None:
@@ -22,7 +29,7 @@ class Sync(commands.Cog, name="sync"):
       sync="Whether to sync the content to the database or not. Default: True",
       company="The company that the spottings are from. Note that this will only be used for syncing spottings. Default: 'Google",  
     )
-    @app_commands.guilds(discord.Object(id=977037849025204324))
+    @app_commands.guilds(discord.Object(id=guild_id))
     @commands.has_guild_permissions(manage_messages=True)
     async def add(self, context: Context, *, 
       channel: discord.TextChannel = None, 
@@ -74,7 +81,7 @@ class Sync(commands.Cog, name="sync"):
       unsync="Whether to sync the content to the database or not. Default: True",
       company="The company that the spottings are from. Default: 'Google",  
     )
-    @app_commands.guilds(discord.Object(id=977037849025204324))
+    @app_commands.guilds(discord.Object(id=guild_id))
     @commands.has_guild_permissions(manage_messages=True)
     async def remove(self, context: Context, *, 
       channel: discord.TextChannel = None, 
