@@ -7,6 +7,9 @@ from asyncpg import exceptions as ps
 import os, sys, json
 import asyncio
 
+from utils.spotting import spotting
+from utils.database import DatabaseManager
+
 if not os.path.isfile(f"{os.path.realpath(os.path.dirname(__file__))}\\..\\config.json"):
     sys.exit("'config.json' not found! Please add it and try again.")
 else:
@@ -20,6 +23,9 @@ guild_id = int(config.get("guild_id"))
 class Sync(commands.Cog, name="sync"):
     def __init__(self, bot) -> None:
       self.bot = bot    
+      
+      self.database: DatabaseManager
+      self.spotting = spotting()
       
       # embed colors
       self.embed_success = 0x2BE02B
@@ -82,8 +88,7 @@ class Sync(commands.Cog, name="sync"):
         self.embed.description=f"Added <#{target.id}> to the database!"
         self.embed.color = self.embed_success
       
-        await context.send(embed=self.embed, ephemeral=True)
-        
+        await context.send(embed=self.embed, ephemeral=True) 
       except ps.UniqueViolationError:
         self.embed.description=f"Failed to add <#{target.id}> - already exists in the database."
         self.embed.color = self.embed_error
@@ -115,11 +120,26 @@ class Sync(commands.Cog, name="sync"):
         # save messages
         length = len(target_messages)
         counter = 0
+        minusCounter = 0
         self.embed.description = "Saving messages..."
         for msg in target_messages:
+        
+          try:
+            await self.spotting.add_spotting(msg, target, self.bot.database)
+            self.bot.logger.info(f"Synced [{msg.author.name} - {msg.author.id}]'s spotting ({msg.id}) to the database")
+          except IndexError:
+            minusCounter -= 1
+            pass
+          except Exception as e:
+            self.embed.description = f"Failed to sync <#{target.id}> - {e}"
+            self.embed.set_footer(text=f"Last Synced Message: <https://discord.com/channels/{msg.guild.id}/{target.id}/{msg.id}<>")
+            self.embed.color = self.embed_error
+            await bot_message.edit(embed=self.embed)
+            return
+            
           counter += 1
           if counter % 10 == 0: # update every 10 messages to prevent rate limiting
-            self.embed.set_footer(text=f"This may take a while - {counter}/{length} messages saved...")
+            self.embed.set_footer(text=f"This may take a while - {counter}/{length - minusCounter} messages saved...")
             await bot_message.edit(embed=self.embed)
       
         # # success

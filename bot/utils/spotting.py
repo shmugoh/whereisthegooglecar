@@ -3,6 +3,10 @@ import datetime
 
 import flag
 
+from discord import Message
+
+from utils.database import DatabaseManager
+
 class spotting():
   def __init__(self):
     # whenever a new separator is added per regex, add another if statement to the corresponding function
@@ -52,6 +56,52 @@ class spotting():
       '''.replace("\n", "").replace(" ", "").replace("in\\", "in \\") # to remove the spaces and newlines, except for the "in"
     # first spearator is for legacy spottings
     # second separator is for catching URLs after the town name; among brackets, and sometimes angle brackets
+
+  async def add_spotting(self, message: Message, channel: dict[str, any], database: DatabaseManager):
+    """
+    Adds a spotting to the database.
+
+    Args:
+      message (Message): The message containing the spotting information.
+      channel (dict[str, any]): The channel information.
+      database (DatabaseManager): The database manager.
+
+    Raises:
+      Exception: If an error occurs while adding the spotting to the database.
+        - IndexError: Invalid Spotting
+    """
+    try:
+      # process regex
+      spotting = self.spotting.process_spotting(message.content)
+
+      # get spotting meta information
+      spotting_message_id = message.id
+      spotting_channel_id = channel['id']
+      spotting_image = message.attachments[0].url
+
+      if spotting['source'] == None:
+        spotting['source'] = message.author.name
+
+      # process service
+      if spotting['service'] == None:
+        spotting['service'] = channel['company']
+
+      # add the spotting to the database
+      await database.add_spotting(
+        spotting_message_id,
+        spotting_channel_id,
+        spotting['date'],
+        spotting['town'],
+        spotting['country']['country'],
+        spotting['country']['countryEmoji'],
+        spotting_image,
+        spotting['source'],
+        spotting['location'],
+        spotting['service']
+      )
+
+    except Exception as e:
+      raise e
     
   def process_spotting(self, spotting: str):
     """

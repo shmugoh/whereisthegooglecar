@@ -34,35 +34,11 @@ class Listener(commands.Cog, name="listener"):
       
       if channels[channel_index]['id'] != -1 and message.attachments:
         try:
-          spotting = self.spotting.process_spotting(message.content)
-          
-          # get spotting meta information
-          spotting_message_id = message.id
-          spotting_channel_id = message.channel.id
-          spotting_image = message.attachments[0].url
-          
-          if spotting['source'] == None:
-            spotting['source'] = message.author.name
-            
-          # process service
-          if spotting['service'] == None:
-            spotting['service'] = channels[channel_index]['company']
-          
-          # add the spotting to the database
-          await self.bot.database.add_spotting(
-            spotting_message_id, 
-            spotting_channel_id, 
-            spotting['date'], 
-            spotting['town'], 
-            spotting['country']['country'], 
-            spotting['country']['countryEmoji'], 
-            spotting_image, 
-            spotting['source'], 
-            spotting['location'], 
-            spotting['service']
-          )
-          
-          # log the spotting
+          channel_map = {
+            "id": message.id,
+            "company": channels[channel_index]['company'] 
+          }
+          spotting = self.spotting.add_spotting(message, channel_map, self.bot.database)
           self.bot.logger.info(f"Added [{message.author.name} - {message.author.id}]'s spotting ({message.id}) to the database: {spotting['date']} - {spotting['town']}")
           
         except IndexError:
