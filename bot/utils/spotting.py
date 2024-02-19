@@ -19,22 +19,17 @@ class spotting():
     # obtained from the first line of the spotting and before the date
     # [A-Z][a-z].+? is for catching the company name among brackets
     
-    self.regex_date = r"\d{4}\/\d{2}\/\d{2}" 
+    self.regex_date = r"\d{4}(?:\/\d{2}(?:\/\d{2})?)?"
     # YYYY/MM/DD
     
-    self.regex_town = r'''
-      in 
-      (\w.+(?=\()|\w.+
-      |
-      (?:\[)(\w.+?)(?:\]))
-      '''.replace("\n", "").replace(" ", "").replace("in(", "in (") # to remove the spaces and newlines
+    self.regex_town = r"((?:in)|(?:-)) (\w.+(?=\()|\w.+(?=\/ )|\w.+|(?:\[)(\w.+?)(?:\]))"
     # first separators is for legacy spottings that have a parenthesis after the town name ( in Town Name( )
       # this is to avoid catching accidental text
     # second separator is for catching legacy spottings with no parenthesis ( in Town Name )
     # third separator is for catching town names among brackets ( in [Town Name] )
     
     self.regex_source = r'''
-      source:?.*
+      [Ss]ource:?.*
       (https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b[-a-zA-Z0-9()@:%_\+.~#?&//=]*)
       |
       (?:[0-9]\])\((?:\<|)
@@ -129,19 +124,32 @@ class spotting():
     country = self.get_country(spotting)
     service = self.get_service(spotting)
     town = self.get_town(spotting)
+    if not town:
+      raise IndexError("Invalid Spotting: Town is missing.")
     source = self.get_source(spotting) # source could be proccesed better here, so when theres no source it uses the discord user's name, but unittest would fail
+    if source:
+      source = source.replace("<", "").replace(">", "") # remove discord formatting
     location = self.get_location(spotting)
+    if location:
+      location = location.replace("<", "").replace(">", "") # remove discord formatting
     
     # timestamp information
     date_str = self.get_date(spotting)
-    date_obj = datetime.datetime.strptime(date_str, "%Y/%m/%d")
+    try:
+      date_obj = datetime.datetime.strptime(date_str, "%Y/%m/%d")
+    except ValueError:
+      try:
+        # only year
+        date_obj = datetime.datetime.strptime(date_str, "%Y")
+      except ValueError:
+        raise ValueError
     
     # define the SpottingResult class
     return {
       "country": country,
       "service": service,
       "date": date_obj,
-      "town": town,
+      "town": town.strip(),
       "source": source,
       "location": location,
     }
@@ -177,11 +185,18 @@ class spotting():
   def get_town(self, spotting: str) -> str:
     result = re.findall(self.regex_town, spotting)
     if result:
+      # print(result)
       for match in result:
+        if match[2]:
+          # match[2] is for the third separator
+          # (towns with closed square brackets)
+          return match[2]
         if match[1]:
+          # match[1] is for the second separator
+          # (towns with no brackets; legacy spottings)
           return match[1]
-        if match[0]:
-          return match[0]
+        # if match[0]:
+        #   return match[0]
     
   def get_source(self, spotting: str) -> str:
     result = re.findall(self.regex_source, spotting)

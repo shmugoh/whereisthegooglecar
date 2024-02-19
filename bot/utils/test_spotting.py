@@ -1,5 +1,9 @@
+'''
+Run by executing `python -m utils.test_spotting` from the root directory
+'''
+
 import unittest
-from spotting import spotting
+from utils.spotting import spotting
 
 class SpottingTests(unittest.TestCase):
     def setUp(self):
@@ -82,19 +86,27 @@ class SpottingTests(unittest.TestCase):
         """,
         """
         🇺🇸 2021/06/25 - Tompkins Square Park, New York, America (https://twitter.com/evgrieve/status/1408522273338888195)
-        """
+        """,
+        
+        # informal spottings
+        "🇩🇪 2015 in Wuppertal, North Rhine-Westphalia, Germany/ Source:https://www.facebook.com/photo/?fbid=1079848908707343&set=a.103161796376064",
+        "🇧🇴 2015 in Valle de la Luna, La Paz, Bolivia / Source: https://www.instagram.com/p/BftGaiAAG6n/?igshid=MjlkZjg0ZTE3YQ%3D%3D",
+        "🇩🇴 2019 in Santiago de los Caballeros, Dominican Republic / Source: https://www.facebook.com/photo/?fbid=10218963022130618&set=a.1538603549116",
+        "🇨🇴 2019 in Florencia, Caldas, Colombia / Source: https://www.facebook.com/photo?fbid=340950993251355&set=pcb.340953286584459",
+        "2011 in United Kingdom (<https://www.youtube.com/watch?app=desktop&v=gk8O7MCeI2Q>)",
+        "2007 in Sidney, Australia (https://www.flickr.com/photos/sebr/2051749701)",
+        "🇷🇼 [2022/10/17](<https://www.facebook.com/photo/?fbid=10160245152912114&set=pcb.10160245153047114>) in [Kigali, Rwanda](<https://maps.app.goo.gl/2ehvo4VVYr9b3dD49>)",
+        "🇹🇿 2014 in Gombe National Park, Tanzania / Source: https://www.vetstreet.com/our-pet-experts/google-street-view-lets-you-walk-with-jane-goodall",
+        "🇱🇹 2013 in Kaunas, Lithuania / Source: https://www.15min.lt/naujiena/aktualu/lietuva/kauno-gatves-fotografuoja-google-maps-56-363361",
+        "🇵🇪 2015 in Cuzco, Peru / Source: https://twitter.com/japonton/status/630835724703547393/photo/1"
     ]
         self.s = spotting()
 
     def test_all(self):
         for string in self.spottings:
-            print("Country:", self.s.get_country(string))
-            print("Service:", self.s.get_service(string))
-            print("Date:", self.s.get_date(string))
-            print("Town:", self.s.get_town(string))            
-            print("Source:", self.s.get_source(string))
-            print("Location:", self.s.get_location(string))
+            print(self.s.process_spotting(string))
             print("---")
-
+        # print(self.s.regex_town)
+    
 if __name__ == '__main__':
     unittest.main()
