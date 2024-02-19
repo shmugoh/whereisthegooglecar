@@ -1,7 +1,5 @@
 import Image from "next/image";
-import { AspectRatio } from "~/components/ui/aspect-ratio";
-
-import twemoji from "twemoji";
+import Link from "next/link";
 
 import {
   Card,
@@ -13,15 +11,24 @@ import {
 } from "~/components/ui/card";
 import { TopText } from "~/components/layout/entry/topText";
 import { Button } from "~/components/ui/button";
+import { AspectRatio } from "~/components/ui/aspect-ratio";
+
+import twemoji from "twemoji";
 
 export const GoogleCard = (props: cardProps) => {
+  const date = props.date.toLocaleDateString(undefined, {
+    month: "long",
+    year: "numeric",
+    day: "numeric",
+  });
+
   return (
     <div>
       <Card className="w-full -space-y-4">
         <CardHeader>
           <CardTitle>
             <div className="flex w-full flex-row justify-between gap-20">
-              <h2 className="text-3xl font-semibold">{props.date}</h2>
+              <h2 className="text-3xl font-semibold">{date}</h2>
               <span
                 dangerouslySetInnerHTML={{
                   __html: twemoji.parse(props.countryEmoji, {
@@ -44,7 +51,7 @@ export const GoogleCard = (props: cardProps) => {
                 layout={"fill"}
                 objectFit={"contain"}
                 src={props.imageUrl}
-                alt={`Picture of a Google Car spotted in ${props.town} on ${props.date}.`}
+                alt={`Picture of a Google Car spotted in ${props.town} on ${date}.`}
                 className="rounded-md object-cover"
               />
             </AspectRatio>
@@ -67,8 +74,10 @@ export const GoogleCard = (props: cardProps) => {
               </a>
             )}
           </div>
-          <div className="flex items-center md:w-1/2">
-            <Button className="flex h-full w-full items-center">Info</Button>
+          <div className="flex items-center md:w-1/3">
+            <Button className="flex h-full w-full items-center" asChild>
+              <Link href={`/${props.id}`}>Info</Link>
+            </Button>
           </div>
         </CardFooter>
       </Card>
@@ -80,11 +89,11 @@ export const CardSet = (props: cardSetProps) => {
   return (
     <div className="flex w-full flex-col gap-4">
       <TopText title={props.month} right={props.year} />
-      <div className="flex flex-wrap gap-x-16 gap-y-6">
-        {props.info.map((item: cardProps, index) => (
+      <div className="flex flex-wrap justify-center gap-x-16 gap-y-6 lg:justify-evenly">
+        {props.info.map((item: cardProps) => (
           <GoogleCard
             id={item.id}
-            key={index}
+            key={item.id}
             date={item.date}
             town={item.town}
             countryEmoji={item.countryEmoji}
