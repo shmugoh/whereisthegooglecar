@@ -68,7 +68,7 @@ class spotting():
     try:
       # process regex
       spotting = self.process_spotting(message.content)
-        
+      
       # get spotting meta information
       spotting_message_id = message.id
       spotting_channel_id = channel['id']
@@ -84,7 +84,7 @@ class spotting():
       # process country if empty
       if spotting['country']['country'] == None:
         spotting['country'] = {"country": "others", "countryEmoji": "🌐"}
-
+        
       # add the spotting to the database
       await database.add_spotting(
         spotting_message_id,
@@ -98,6 +98,8 @@ class spotting():
         spotting['location'],
         spotting['service']
       )
+      
+      return spotting
 
     except Exception as e:
       raise e

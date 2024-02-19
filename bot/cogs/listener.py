@@ -31,14 +31,14 @@ class Listener(commands.Cog, name="listener"):
         channel_index = [channel['id'] for channel in channels].index(message.channel.id)
       except ValueError:
         return
-      
+            
       if channels[channel_index]['id'] != -1 and message.attachments:
         try:
           channel_map = {
-            "id": message.id,
+            "id": message.channel.id,
             "company": channels[channel_index]['company'] 
           }
-          spotting = self.spotting.add_spotting(message, channel_map, self.bot.database)
+          spotting = await self.spotting.add_spotting(message, channel_map, self.bot.database)
           self.bot.logger.info(f"Added [{message.author.name} - {message.author.id}]'s spotting ({message.id}) to the database: {spotting['date']} - {spotting['town']}")
           
         except IndexError:
