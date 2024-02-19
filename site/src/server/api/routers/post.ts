@@ -12,32 +12,28 @@ export const postRouter = createTRPCRouter({
       };
     }),
 
-  create: publicProcedure.query(async () => {
-    // simulate a slow db call
-    // await new Promise((resolve) => setTimeout(resolve, 1000));
+  queryByFilter: publicProcedure
+    .input(
+      z.object({
+        company: z.string(),
+        month: z.string(),
+        year: z.string(),
+      }),
+    )
+    .query(({ input, ctx }) => {
+      const { company, month, year } = input;
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-    return db.spottings.create({
-      data: {
-        date: new Date(),
-        town: "Bogota, Colombias",
-        country: "Colombia",
-        countryEmoji: "🇨🇴",
-        imageUrl:
-          "https://cdn.discordapp.com/attachments/774703077172838430/1139459856332496966/IMG_1732.png",
-        sourceUrl: "#",
-        // locationUrl: input.locationUrl,
-        // createdAt: new Date(),
-        // updatedAt: new Date(),
-      },
-    });
-  }),
+      const startDate = new Date(`${year}-${month}-01`);
+      const endDate = new Date(`${year}-${month}-31`);
 
-  getLatest: publicProcedure.query(({ ctx }) => {
-    return ctx.db.spottings.findMany({
-      orderBy: { date: "desc" },
-    });
-  }),
+      return ctx.db.spottings.findMany({
+        where: {
+          company: company,
+          date: { gte: startDate, lte: endDate },
+        },
+        orderBy: { date: "desc" },
+      });
+    }),
 
   getById: publicProcedure
     .input(z.object({ id: z.number() }))
