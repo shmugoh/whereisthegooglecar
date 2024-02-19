@@ -98,6 +98,18 @@ class DatabaseManager:
                 None
             """
             await self.database.execute("DELETE FROM spottings WHERE message_id=$1", id)
+            
+    async def delete_spottings(self, channel_id: int) -> None:
+        """
+        Deletes all spottings from the database based on the given channel ID.
+
+        Args:
+            channel_id (int): The ID of the channel where the spottings were made.
+
+        Returns:
+            None
+        """
+        await self.database.execute("DELETE FROM spottings WHERE channel_id=$1", channel_id)
 
     async def find_spotting(self, id: int) -> dict:
             """

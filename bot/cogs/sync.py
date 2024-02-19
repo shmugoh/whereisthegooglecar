@@ -47,7 +47,7 @@ class Sync(commands.Cog, name="sync"):
       channel="The channel to add", 
       thread="The thread to add", 
       sync="Whether to sync the content to the database or not. Default: True",
-      company="The company that the spottings are from. Note that this will only be used for syncing spottings. Default: 'Google",  
+      company="The company that the spottings are from. Default: 'Google",  
     )
     @app_commands.guilds(discord.Object(id=guild_id))
     @commands.has_guild_permissions(manage_messages=True)
@@ -76,9 +76,11 @@ class Sync(commands.Cog, name="sync"):
       # sets the target to the channel or thread
       if channel is not None:
         target = channel
+        target_company = company
         target_string = target.__class__.__name__
       if thread is not None:
         target = thread
+        target_company = company
         target_string = target.__class__.__name__
 
       # adds the channel or thread to the database
@@ -125,14 +127,14 @@ class Sync(commands.Cog, name="sync"):
         for msg in target_messages:
         
           try:
-            await self.spotting.add_spotting(msg, target, self.bot.database)
+            await self.spotting.add_spotting(msg, {"id": target.id, "company": company}, self.bot.database)
             self.bot.logger.info(f"Synced [{msg.author.name} - {msg.author.id}]'s spotting ({msg.id}) to the database")
           except IndexError:
             minusCounter -= 1
             pass
           except Exception as e:
             self.embed.description = f"Failed to sync <#{target.id}> - {e}"
-            self.embed.set_footer(text=f"Last Synced Message: <https://discord.com/channels/{msg.guild.id}/{target.id}/{msg.id}<>")
+            self.embed.set_footer(text=f"Last Synced Message ID: {msg.id}")
             self.embed.color = self.embed_error
             await bot_message.edit(embed=self.embed)
             return
@@ -209,9 +211,17 @@ class Sync(commands.Cog, name="sync"):
         self.embed.color = self.embed_orange
 
         bot_message = await context.send(embed=self.embed, ephemeral=True)
-
-        # TODO: logic to remove spottings from the database
         
+        try:
+          self.database.delete_spottings(target.id)
+        except Exception as e:
+          self.embed.description = f"Failed to unsync <#{target.id}> - {e}"
+          self.embed.color = self.embed_error
+          await bot_message.edit(embed=self.embed)
+          return
+        self.embed.description = f"Removed messages from <#{target.id}>!"
+        self.embed.color = self.embed_success
+        await bot_message.edit(embed=self.embed)
 
 async def setup(bot) -> None:
     await bot.add_cog(Sync(bot))
