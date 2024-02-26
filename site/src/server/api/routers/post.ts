@@ -4,14 +4,6 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
 
 export const postRouter = createTRPCRouter({
-  hello: publicProcedure
-    .input(z.object({ text: z.string() }))
-    .query(({ input }) => {
-      return {
-        greeting: `Hello ${input.text}`,
-      };
-    }),
-
   queryByFilter: publicProcedure
     .input(
       z.object({
@@ -37,8 +29,8 @@ export const postRouter = createTRPCRouter({
 
   getById: publicProcedure
     .input(z.object({ id: z.number() }))
-    .query(({ input }) => {
-      return db.spottings.findUnique({
+    .query(({ ctx, input }) => {
+      return ctx.db.spottings.findUnique({
         where: { id: input.id },
       });
     }),

@@ -4,20 +4,22 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import { useState, useEffect } from "react";
 
 export default function Home({}) {
+  // dates
   const currentDate = new Date();
   const [monthsBack, setMonthsBack] = useState(0);
   const getMonth = currentDate.getMonth() + 1;
   const getYear = currentDate.getFullYear().toString();
 
+  // infinite scroll
   const [page, setPage] = useState(1);
   const [cardSets, setCardSets] = useState([{ data: [], month: "", year: "" }]);
 
+  // fetch data
   const { refetch } = api.post.queryByFilter.useQuery({
     company: "google",
     month: getMonth.toString(),
     year: getYear,
   });
-
   const fetchData = async () => {
     setMonthsBack(monthsBack + 1);
     const currentDate = new Date();
@@ -31,10 +33,12 @@ export default function Home({}) {
       year: getYear,
     });
 
+    // append to cardSets
     setCardSets([
       ...cardSets,
       { data: data, month: getMonth.toString(), year: getYear },
     ]);
+    // increment page
     setPage(page + 1);
   };
 

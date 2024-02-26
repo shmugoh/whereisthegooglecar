@@ -12,12 +12,12 @@ export const TopText = (props: propsTopText) => {
   return (
     <div className="flex flex-col gap-2">
       <Separator />
-      <div className="textContainer md: flex flex-wrap justify-normal justify-center md:flex-nowrap">
-        <h1 className="w-full scroll-m-20 text-center text-6xl font-extrabold leading-[normal] md:text-left">
+      <div className="textContainer flex justify-normal justify-center md:flex-nowrap">
+        <h1 className="w-full scroll-m-20 text-left text-4xl font-extrabold leading-[normal] md:text-5xl">
           {props.title}
         </h1>
         {props.right && (
-          <h1 className="scroll-m-20 text-6xl font-extrabold leading-[normal]">
+          <h1 className="scroll-m-20 text-4xl font-extrabold leading-[normal] md:text-5xl">
             {props.right}
           </h1>
         )}
@@ -29,7 +29,7 @@ export const TopText = (props: propsTopText) => {
                 ext: ".svg",
               }),
             }}
-            className="flex w-16"
+            className="flex w-14"
           />
         )}
       </div>
