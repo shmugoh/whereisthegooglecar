@@ -1,5 +1,9 @@
 import logging
+import os
+
 from PIL import Image
+import ffmpeg
+
 from io import BytesIO
 import requests
 
@@ -98,6 +102,12 @@ class ImageUpload:
         response = requests.get(image_url)
         output = BytesIO(response.content)
         
+        if response.headers['Content-Type'].startswith('video'):
+          try:
+            output = self.process_video(output)
+          except Exception as e:
+            raise Exception(e)
+        
         # process image and return as bytes
         image = Image.open(output)
         image.save(output, format='WebP', quality=75)
@@ -107,3 +117,34 @@ class ImageUpload:
       except Exception as e:
         logger.error(f"Failed to process image {image_url}: {e}")
         raise Exception(f"S3 Processing: {e}")
+
+    def process_video(self, video_bytesio):
+      try:
+        # save video to file temporarily
+        video_bytesio.seek(0)
+        with open("tmp_vid", "wb") as f:
+            f.write(video_bytesio.getbuffer())
+      
+        # process video and return first frame as image bytes
+        logger.info(f"Processing video to first frame")
+        process = (
+          ffmpeg
+          .input('tmp_vid')
+          .output('tmp.png', vf='select=eq(n\,1)')
+          .run(quiet=False)
+        )
+        logger.info(f"Processed video to first frame")
+
+        # read image from buffer and return as bytes
+        file = open('tmp.png', 'rb')
+        buffer = BytesIO(file.read())
+        # cleanup
+        file.close()
+        os.remove('tmp_vid')
+        os.remove('tmp.png')
+        
+        return buffer
+        
+      except Exception as e:
+        logger.error(f"Failed to process video: {e}")
+        raise Exception(f"S3 Video Processing: {e}")
