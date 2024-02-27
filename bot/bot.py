@@ -16,6 +16,9 @@ import sys
 import asyncpg
 from utils.database import DatabaseManager
 
+import boto3
+from utils.s3_upload import ImageUpload
+
 import discord
 from discord.ext import commands, tasks
 from discord.ext.commands import Context
@@ -156,6 +159,37 @@ class DiscordBot(commands.Bot):
                 self.logger.info("Database connection pool created.")
             except Exception as e:
                 self.logger.error(f"Error connecting to DB: {e}")
+    
+    async def init_aws(self) -> None:
+        """
+        Initializes the AWS connection pool.
+
+        This method creates a connection pool to the AWS S3 using the
+        environment variables for the connection details. It then assigns the pool to
+        `self.aws` so that it can be accessed from anywhere in the bot using `self.aws`.
+        """
+        try:
+            self.aws = boto3.Session(
+                aws_access_key_id=os.getenv('AWS_SECRET_PUBLIC_KEY'),
+                aws_secret_access_key=os.getenv('AWS_SECRET_PRIVATE_KEY')
+            )
+            self.logger.info("AWS connection pool created.")
+        except Exception as e:
+            self.logger.error(f"Error connecting to AWS: {e}")
+            
+    async def init_s3(self) -> None:
+        """
+        Initializes the AWS S3 connection pool.
+
+        This method creates a connection pool to the AWS S3 using the
+        environment variables for the connection details. It then assigns the pool to
+        `self.s3` so that it can be accessed from anywhere in the bot using `self.s3`.
+        """
+        try:
+            self.s3 = ImageUpload(self.aws, os.getenv('AWS_BUCKET_NAME'))
+            self.logger.info("AWS S3 connection pool created.")
+        except Exception as e:
+            self.logger.error(f"Error connecting to AWS S3: {e}")
 
     async def load_cogs(self) -> None:
         """
@@ -203,6 +237,9 @@ class DiscordBot(commands.Bot):
         await self.load_cogs()
         self.status_task.start()
         await self.init_db()
+        
+        await self.init_aws()
+        await self.init_s3()
 
     async def on_message(self, message: discord.Message) -> None:
         """

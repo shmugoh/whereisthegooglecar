@@ -6,6 +6,7 @@ from discord.ext.commands import Context
 from asyncpg import exceptions as ps
 from utils.spotting import spotting
 from utils.database import DatabaseManager
+from utils.s3_upload import ImageUpload
 
 class Listener(commands.Cog, name="listener"):
     def __init__(self, bot) -> None:
@@ -38,7 +39,7 @@ class Listener(commands.Cog, name="listener"):
             "id": message.channel.id,
             "company": channels[channel_index]['company'] 
           }
-          spotting = await self.spotting.add_spotting(message, channel_map, self.bot.database)
+          spotting = await self.spotting.add_spotting(message, channel_map, self.bot.database, self.bot.s3)
           self.bot.logger.info(f"Added [{message.author.name} - {message.author.id}]'s spotting ({message.id}) to the database: {spotting['date']} - {spotting['town']}")
           
         except IndexError:
@@ -79,7 +80,6 @@ class Listener(commands.Cog, name="listener"):
           
           # get spotting meta information
           spotting_message_id = after.id
-          spotting_image = after.attachments[0].url
           
           # process source
           if spotting['source'] == None:
@@ -96,7 +96,6 @@ class Listener(commands.Cog, name="listener"):
             town=spotting['town'], 
             country=spotting['country']['country'], 
             countryEmoji=spotting['country']['countryEmoji'], 
-            imageUrl=spotting_image, 
             sourceUrl=spotting['source'], 
             locationUrl=spotting['location'], 
             company=spotting['service']
@@ -126,9 +125,13 @@ class Listener(commands.Cog, name="listener"):
       if message.author == self.bot.user or message.author.bot or message.guild.id != self.bot.guild_id:
         return
       
-      # removes the spotting from the database based off the message id
+      # removes the spotting based off the message id
       message_db = await self.bot.database.find_spotting(message.id)
       if message_db:
+        # removes image from S3
+        self.bot.s3.delete(message.id)
+        
+        # removes entry from database
         await self.bot.database.delete_spotting(message.id)
         self.bot.logger.info(f"Deleted [{message.author.name} - {message.author.id}]'s spotting ({message.id}) from the database - {message.content}")
 

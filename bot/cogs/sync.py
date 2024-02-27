@@ -124,10 +124,11 @@ class Sync(commands.Cog, name="sync"):
         counter = 0
         minusCounter = 0
         self.embed.description = "Saving messages..."
+        self.embed.set_footer(text="This may take a while.")
+        await bot_message.edit(embed=self.embed)
         for msg in target_messages:
-        
           try:
-            await self.spotting.add_spotting(msg, {"id": target.id, "company": company}, self.bot.database)
+            await self.spotting.add_spotting(msg, {"id": target.id, "company": company}, self.bot.database, self.bot.s3)
             self.bot.logger.info(f"Synced [{msg.author.name} - {msg.author.id}]'s spotting ({msg.id}) to the database")
           except IndexError:
             minusCounter -= 1
@@ -140,7 +141,7 @@ class Sync(commands.Cog, name="sync"):
             return
             
           counter += 1
-          if counter % 10 == 0: # update every 10 messages to prevent rate limiting
+          if counter % 5 == 0: # update every 5 messages to prevent rate limiting
             self.embed.set_footer(text=f"This may take a while - {counter}/{length - minusCounter} messages saved...")
             await bot_message.edit(embed=self.embed)
       

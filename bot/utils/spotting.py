@@ -7,6 +7,8 @@ from discord import Message
 
 from utils.database import DatabaseManager
 
+from utils.s3_upload import ImageUpload
+
 class spotting():
   def __init__(self):
     # whenever a new separator is added per regex, add another if statement to the corresponding function
@@ -52,7 +54,7 @@ class spotting():
     # first spearator is for legacy spottings
     # second separator is for catching URLs after the town name; among brackets, and sometimes angle brackets
 
-  async def add_spotting(self, message: Message, channel: dict[str, any], database: DatabaseManager):
+  async def add_spotting(self, message: Message, channel: dict[str, any], database: DatabaseManager, s3: ImageUpload):
     """
     Adds a spotting to the database.
 
@@ -65,14 +67,18 @@ class spotting():
       Exception: If an error occurs while adding the spotting to the database.
         - IndexError: Invalid Spotting
     """
-    try:
+    try:    
       # process regex
       spotting = self.process_spotting(message.content)
       
       # get spotting meta information
       spotting_message_id = message.id
       spotting_channel_id = channel['id']
-      spotting_image = message.attachments[0].url
+      
+      # process image
+      spotting_image_url = message.attachments[0].url
+      spotting_image_raw = s3.process(spotting_image_url)
+      spotting_image_s3 = s3.upload(spotting_image_raw, spotting_message_id)
 
       if spotting['source'] == None:
         spotting['source'] = message.author.name
@@ -93,7 +99,7 @@ class spotting():
         spotting['town'],
         spotting['country']['country'],
         spotting['country']['countryEmoji'],
-        spotting_image,
+        spotting_image_s3,
         spotting['source'],
         spotting['location'],
         spotting['service']
