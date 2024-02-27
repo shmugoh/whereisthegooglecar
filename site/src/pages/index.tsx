@@ -2,6 +2,7 @@ import { api } from "~/utils/api";
 import { CardSet } from "~/components/layout/entry/card";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useState, useEffect, useRef } from "react";
+import { HomeSkeleton } from "~/components/layout/entry/skeleton";
 
 export default function Home({}) {
   // set dates
@@ -88,27 +89,23 @@ export default function Home({}) {
   }, []);
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <InfiniteScroll
-        dataLength={cardSets.length}
-        next={fetchData}
-        hasMore={true}
-        loader={<div>Loading...</div>}
-      >
-        {cardSets.map((data, index) => (
-          <CardSet
-            key={index}
-            month={new Date(0, Number(data.month) - 1).toLocaleString(
-              "default",
-              {
-                month: "long",
-              },
-            )}
-            year={data.year}
-            info={data.data}
-          />
-        ))}
-      </InfiniteScroll>
-    </div>
+    <InfiniteScroll
+      dataLength={cardSets.length}
+      next={fetchData}
+      hasMore={true}
+      className="flex w-full flex-col items-center gap-4"
+      loader={<HomeSkeleton />}
+    >
+      {cardSets.map((data, index) => (
+        <CardSet
+          key={index}
+          month={new Date(0, Number(data.month) - 1).toLocaleString("default", {
+            month: "long",
+          })}
+          year={data.year}
+          info={data.data}
+        />
+      ))}
+    </InfiniteScroll>
   );
 }
