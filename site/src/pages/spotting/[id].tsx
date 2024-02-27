@@ -7,6 +7,8 @@ import { db } from "~/server/db";
 import { PageComponent } from "~/components/layout/entry/page";
 import Head from "next/head";
 
+import { env } from "~/env";
+
 export default function Page(
   props: InferGetServerSidePropsType<typeof getServerSideProps>,
 ) {
@@ -34,7 +36,7 @@ export default function Page(
           <meta property="og:description" content={description} />
           <meta
             property="og:image"
-            content={`${process.env.NEXT_PUBLIC_VERCEL_URL}/api/og?img=${encodeURIComponent(props.data.imageUrl)}`}
+            content={`${env.NEXT_PUBLIC_VERCEL_URL}/api/og?img=${encodeURIComponent(props.data.imageUrl)}`}
           />
         </Head>
         <div>
@@ -97,6 +99,9 @@ export const getServerSideProps = async ({
       data.updatedAt = getById.updatedAt.toISOString();
       data.message_id = String(getById.message_id);
       data.channel_id = String(getById.channel_id);
+
+      // add CDN url to imageUrl (location)
+      data.imageUrl = `${env.NEXT_PUBLIC_CDN_URL}/${data.imageUrl}`;
 
       return {
         props: {

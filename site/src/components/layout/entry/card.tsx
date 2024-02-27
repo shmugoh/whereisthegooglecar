@@ -14,6 +14,7 @@ import { Button } from "~/components/ui/button";
 import { AspectRatio } from "~/components/ui/aspect-ratio";
 
 import twemoji from "twemoji";
+import { env } from "~/env";
 
 export const GoogleCard = (props: cardProps) => {
   const date = props.date.toLocaleDateString(undefined, {
@@ -50,7 +51,10 @@ export const GoogleCard = (props: cardProps) => {
               <Image
                 layout={"fill"}
                 objectFit={"contain"}
-                src={props.imageUrl}
+                src={`${env.NEXT_PUBLIC_CDN_URL}/${props.imageUrl}`}
+                // cdn_url is called here in the component instead of rewriting it in the page
+                // as i don't wanna spend the time re-initializing the data with new values
+                // like done in [id].tsx
                 alt={`Picture of a Google Car spotted in ${props.town} on ${date}.`}
                 className="rounded-md object-cover"
               />
