@@ -36,15 +36,33 @@ export const PageComponent = (props: pageProps) => {
         </div>
       </div>
 
-      <div className="w-full">
-        {/* TODO: adapt image into aspect ratio and not crop it */}
-        <AspectRatio ratio={16 / 9} className="bg-muted">
+      <div className="w-full md:w-11/12">
+        <AspectRatio ratio={16 / 9} className="relative bg-muted">
           <Image
             src={props.data.imageUrl}
             alt="Google Street View Car"
             fill
-            className="rounded-md object-cover"
+            className="rounded-md object-contain"
+            style={{ zIndex: 1 }}
           />
+          {/* <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              // zIndex: -1,
+              filter: "blur(8px)",
+            }}
+          >
+            <Image
+              src={props.data.imageUrl}
+              alt="Google Street View Car"
+              fill
+              className="rounded-md object-cover"
+            />
+          </div> */}
         </AspectRatio>
       </div>
     </div>
