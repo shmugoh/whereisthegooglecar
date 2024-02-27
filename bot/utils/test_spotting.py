@@ -98,7 +98,13 @@ class SpottingTests(unittest.TestCase):
         "🇷🇼 [2022/10/17](<https://www.facebook.com/photo/?fbid=10160245152912114&set=pcb.10160245153047114>) in [Kigali, Rwanda](<https://maps.app.goo.gl/2ehvo4VVYr9b3dD49>)",
         "🇹🇿 2014 in Gombe National Park, Tanzania / Source: https://www.vetstreet.com/our-pet-experts/google-street-view-lets-you-walk-with-jane-goodall",
         "🇱🇹 2013 in Kaunas, Lithuania / Source: https://www.15min.lt/naujiena/aktualu/lietuva/kauno-gatves-fotografuoja-google-maps-56-363361",
-        "🇵🇪 2015 in Cuzco, Peru / Source: https://twitter.com/japonton/status/630835724703547393/photo/1"
+        "🇵🇪 2015 in Cuzco, Peru / Source: https://twitter.com/japonton/status/630835724703547393/photo/1",
+        "🇪🇺 2012(?) in Europe /Source: https://petapixel.com/2012/06/06/google-street-view-has-snapped-20-petabytes-of-street-photos/",
+        "🇯🇵 2010 in Taitō, Tokyo, Japan / Source: https://gigazine.net/gsc_news/en/20100107_street_view_car",
+        "🇸🇪 2010 in Varberg, Halland County, Sweden / Source: https://commons.wikimedia.org/wiki/File:Google_Street_View_camera_car,_Varberg,_Sweden.jpg Location: https://maps.app.goo.gl/avzVY51ia4bHjDR67",
+        "🇮🇱 2011 in [Yad Vashem holocaust remembrance center, Jerusalem, Israel](<https://maps.app.goo.gl/mPTTuBqopx52vrXBA>) / source: https://www.yadvashem.org/blog/google-street-view-trike-comes-to-yad-vashem.html",
+        "🇯🇵 2009 in Japan / Source:<https://noriyuki.cocolog-nifty.com/blog/2009/04/google-4312.html>",
+        "🇨🇦 2009 in Mississauga, Ontario, Canada / Source:<https://www.iphoneincanada.ca/2009/08/07/google-street-view-almost-in-canada/>"
     ]
         self.s = spotting()
 

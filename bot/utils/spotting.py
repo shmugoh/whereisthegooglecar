@@ -24,9 +24,9 @@ class spotting():
     self.regex_date = r"\d{4}(?:\/\d{2}(?:\/\d{2})?)?"
     # YYYY/MM/DD
     
-    self.regex_town = r"((?:in)|(?:-)) (\w.+(?=\()|\w.+(?=\/ )|\w.+|(?:\[)(\w.+?)(?:\]))"
-    # first separators is for legacy spottings that have a parenthesis after the town name ( in Town Name( )
-      # this is to avoid catching accidental text
+    self.regex_town = r"((?:in)|(?:-)) (\w.+(?=\()|\w.+(?=\/ )|\w.+(?=\/\w)|\w.+|(?:\[)(\w.+?)(?:\]))"
+    # first separators is for legacy spottings that have a parenthesis or slash after the town name ( in Town Name( )
+      # this is to avoid catching accidental text or slashes ([TOWN]/Source:) that might be in the same line
     # second separator is for catching legacy spottings with no parenthesis ( in Town Name )
     # third separator is for catching town names among brackets ( in [Town Name] )
     
