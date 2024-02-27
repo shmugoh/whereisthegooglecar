@@ -4,7 +4,7 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import { useState, useEffect } from "react";
 
 export default function Home({}) {
-  // dates
+  // set dates
   const currentDate = new Date();
   const [monthsBack, setMonthsBack] = useState(0);
   const getMonth = currentDate.getMonth() + 1;
@@ -15,19 +15,23 @@ export default function Home({}) {
   const [cardSets, setCardSets] = useState([{ data: [], month: "", year: "" }]);
 
   // fetch data
-  const { refetch } = api.post.queryByFilter.useQuery({
-    company: "google",
-    month: getMonth.toString(),
-    year: getYear,
+  const [data, setData] = useState({});
+  const dataMutation = api.post.queryByFilter.useMutation({
+    onSuccess(data) {
+      setData(data);
+      console.log(data);
+    },
   });
+
   const fetchData = async () => {
+    // set dates for query
     setMonthsBack(monthsBack + 1);
     const currentDate = new Date();
     currentDate.setMonth(currentDate.getMonth() - monthsBack);
     const getMonth = (currentDate.getMonth() + 1).toString();
     const getYear = currentDate.getFullYear().toString();
 
-    const { data: data } = await refetch({
+    dataMutation.mutate({
       company: "google",
       month: getMonth.toString(),
       year: getYear,
@@ -36,12 +40,13 @@ export default function Home({}) {
     // append to cardSets
     setCardSets([
       ...cardSets,
-      { data: data, month: getMonth.toString(), year: getYear },
+      { data: dataMutation, month: getMonth.toString(), year: getYear },
     ]);
     // increment page
     setPage(page + 1);
   };
 
+  // fetch data on mount/start
   useEffect(() => {
     void fetchData();
   }, []);
@@ -57,7 +62,12 @@ export default function Home({}) {
         {cardSets.map((data, index) => (
           <CardSet
             key={index}
-            month={data.month}
+            month={new Date(0, Number(data.month) - 1).toLocaleString(
+              "default",
+              {
+                month: "long",
+              },
+            )}
             year={data.year}
             info={data.data}
           />

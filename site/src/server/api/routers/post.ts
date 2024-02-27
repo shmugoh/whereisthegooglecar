@@ -12,7 +12,7 @@ export const postRouter = createTRPCRouter({
         year: z.string(),
       }),
     )
-    .query(({ input, ctx }) => {
+    .mutation(({ input, ctx }) => {
       const { company, month, year } = input;
 
       const startDate = new Date(`${year}-${month}-01`);
