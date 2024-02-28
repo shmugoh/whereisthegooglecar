@@ -6,6 +6,7 @@ type cardProps = {
   imageUrl: string;
   sourceUrl: string;
   locationUrl?: string;
+  company?: string;
 };
 
 type cardSetProps = {

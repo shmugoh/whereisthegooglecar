@@ -15,8 +15,9 @@ import { AspectRatio } from "~/components/ui/aspect-ratio";
 
 import twemoji from "twemoji";
 import { env } from "~/env";
+import { Badge } from "~/components/ui/badge";
 
-export const GoogleCard = (props: cardProps) => {
+export const SpottingCard = (props: cardProps) => {
   const date = props.date.toLocaleDateString(undefined, {
     month: "long",
     year: "numeric",
@@ -24,25 +25,39 @@ export const GoogleCard = (props: cardProps) => {
   });
 
   return (
-    <div>
-      <Card className="w-full -space-y-4">
+    <div className="w-96 lg:w-[402px]">
+      <Card className="-space-y-4">
         <CardHeader>
           <CardTitle>
             <div className="flex w-full flex-row justify-between gap-20">
-              <h2 className="text-3xl font-semibold">{date}</h2>
-              <span
-                dangerouslySetInnerHTML={{
-                  __html: twemoji.parse(props.countryEmoji, {
-                    folder: "svg",
-                    ext: ".svg",
-                  }),
-                }}
-                className="w-full md:w-[36px]"
-              />
+              <h2 className="flex items-center justify-start text-3xl font-semibold">
+                {date}
+              </h2>
+
+              <div className="flex items-center justify-end">
+                <span
+                  dangerouslySetInnerHTML={{
+                    __html: twemoji.parse(props.countryEmoji, {
+                      folder: "svg",
+                      ext: ".svg",
+                    }),
+                  }}
+                  className="w-12 lg:w-9"
+                />
+              </div>
             </div>
           </CardTitle>
-          <CardDescription className="font-regular text-slate-500">
-            {props.town}
+          <CardDescription className="flex items-center justify-between gap-2">
+            <div className="font-regular text-slate-500">{props.town}</div>
+
+            {props.company && (
+              <Badge variant={"secondary"} className="h-fit w-24">
+                <p className="w-full text-center">
+                  {props.company.charAt(0).toUpperCase() +
+                    props.company.slice(1)}
+                </p>
+              </Badge>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -93,9 +108,9 @@ export const CardSet = (props: cardSetProps) => {
   return (
     <div className="flex w-full flex-col gap-4">
       <TopText title={props.month} right={props.year} />
-      <div className="flex flex-wrap justify-center gap-x-16 gap-y-6 lg:justify-evenly">
+      <div className="flex flex-wrap justify-center gap-x-16 gap-y-6">
         {props.info.map((item: cardProps) => (
-          <GoogleCard
+          <SpottingCard
             id={item.id}
             key={item.id}
             date={item.date}
@@ -104,6 +119,7 @@ export const CardSet = (props: cardSetProps) => {
             imageUrl={item.imageUrl}
             sourceUrl={item.sourceUrl}
             locationUrl={item.locationUrl}
+            company={item.company}
           />
         ))}
       </div>
