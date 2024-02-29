@@ -22,18 +22,22 @@ export default function Page(
     });
 
     // seo data
-    const title = `${props.data.town} in Google Street View - WhereIsTheGoogleCar`;
-    const description = `Google Street View Car in ${props.data.town} on ${dateFormatted}.`;
-    const keywords = `google street view, ${props.data.town}, ${props.data.country}, google car, google maps, google, street view, google street view car, google maps car`;
+    const TITLE = `${props.data.town} in Google Street View - WhereIsTheGoogleCar`;
+    const DESCRIPTION = `Google Street View Car in ${props.data.town} on ${dateFormatted}.`;
+    const KEYWORDS = `google street view, ${props.data.town}, ${props.data.country}, google car, google maps, google, street view, google street view car, google maps car`;
 
     return (
       <>
         <Head>
-          <title>{title}</title>
-          <meta name="description" content={description} />
-          <meta name="keywords" content={keywords} />
-          <meta property="og:title" content={title} />
-          <meta property="og:description" content={description} />
+          <title>{TITLE}</title>
+          <meta property="og:title" content={TITLE} />
+          <meta property="twitter:title" content={TITLE}></meta>
+
+          <meta name="description" content={DESCRIPTION} />
+          <meta property="og:description" content={DESCRIPTION} />
+
+          <meta name="keywords" content={KEYWORDS} />
+
           <meta
             property="og:image"
             content={`${env.NEXT_PUBLIC_VERCEL_URL}/api/og?img=${encodeURIComponent(props.data.imageUrl)}`}
