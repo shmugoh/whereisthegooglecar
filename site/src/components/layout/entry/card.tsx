@@ -52,7 +52,7 @@ export const SpottingCard = (props: cardProps) => {
             <div className="font-regular text-slate-500">{props.town}</div>
 
             {props.company && (
-              <Badge variant={"secondary"} className="h-fit w-24">
+              <Badge variant={"secondary"} className="h-5 w-24">
                 <p className="w-full text-center">
                   {props.company.charAt(0).toUpperCase() +
                     props.company.slice(1)}
@@ -124,7 +124,7 @@ export const CardSet = (props: cardSetProps) => {
             imageUrl={item.imageUrl}
             sourceUrl={item.sourceUrl}
             locationUrl={item.locationUrl}
-            company={item.company}
+            company={props.showCompany ? item.company : undefined}
           />
         ))}
       </div>

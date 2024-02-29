@@ -7,7 +7,7 @@ export const queryRouter = createTRPCRouter({
   queryByFilter: publicProcedure
     .input(
       z.object({
-        company: z.string(),
+        company: z.string().toLowerCase(),
         month: z.string(),
         year: z.string(),
       }),
