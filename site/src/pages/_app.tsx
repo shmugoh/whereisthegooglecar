@@ -26,7 +26,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
           name="keywords"
           content="google street view, google car, google maps, google, street view, google street view car, google street view car location, google street view car sightings, google street view car tracker, google street view car sightings, google street view car sightings map, google street view car sightings live"
         />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.svg" />
       </Head>
       <div className="flex h-screen flex-col justify-between gap-4 bg-background">
         <Header />
