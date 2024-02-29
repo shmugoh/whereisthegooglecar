@@ -9,6 +9,7 @@ import { Inter as FontSans } from "next/font/google";
 
 import { cn } from "../lib/utils";
 import { Header } from "~/components/layout/header";
+import { Foot } from "~/components/layout/footer";
 
 export const fontSans = FontSans({
   subsets: ["latin"],
@@ -27,7 +28,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div className="flex min-h-screen flex-col gap-4 bg-background">
+      <div className="flex h-screen flex-col gap-4 bg-background">
         <Header />
         <div className="container flex flex-col pb-4">
           <Component
@@ -38,6 +39,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
             {...pageProps}
           />
         </div>
+        <Foot />
       </div>
     </>
   );
