@@ -28,7 +28,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div className="flex h-screen flex-col gap-4 bg-background">
+      <div className="flex h-screen flex-col justify-between gap-4 bg-background">
         <Header />
         <div className="container flex flex-col pb-4">
           <Component

@@ -2,6 +2,8 @@ import React from "react";
 import { TopText } from "~/components/layout/entry/topText";
 
 import Image from "next/image";
+import headerImage from "../../public/about.webp";
+
 import { AspectRatio } from "~/components/ui/aspect-ratio";
 
 // i may use markdown in case if i have to extend this
@@ -16,7 +18,7 @@ export default function about() {
       {/* a rookie incident */}
       <AspectRatio ratio={32 / 9} className="bg-muted">
         <Image
-          src="/about.webp"
+          src={headerImage}
           alt="Google Street View Car"
           fill
           className="rounded-md object-cover"
