@@ -45,10 +45,6 @@ export default function Page(
       </>
     );
   }
-
-  if (!props.data) {
-    return <Error statusCode={404} />;
-  }
 }
 
 export const getServerSideProps = async ({
@@ -69,51 +65,52 @@ export const getServerSideProps = async ({
 
     // get data from api
     // eslint-disable-next-line prefer-const
-    const getById = await caller.post.getById({ id });
 
-    // fix JSON serialization issues
-    // ...and return data
-    if (getById) {
-      // TODO: pass getById's type over
-      const data: {
-        id: number;
-        date: string;
-        town: string;
-        country: string;
-        countryEmoji: string;
-        imageUrl: string;
-        sourceUrl: string;
-        locationUrl: string | null;
-        company: string;
-        createdAt: string;
-        updatedAt: string;
-        message_id: string;
-        channel_id: string;
-      } = { ...getById };
+    try {
+      const getById = await caller.query.getById({ id });
 
-      // JSON return serialization errors as
-      // the below values are "not serializable"
-      // (date && bigint)
-      data.date = getById.date.toISOString();
-      data.createdAt = getById.createdAt.toISOString();
-      data.updatedAt = getById.updatedAt.toISOString();
-      data.message_id = String(getById.message_id);
-      data.channel_id = String(getById.channel_id);
+      // fix JSON serialization issues
+      // ...and return data
+      if (getById) {
+        // TODO: pass getById's type over
+        const data: {
+          id: number;
+          date: string;
+          town: string;
+          country: string;
+          countryEmoji: string;
+          imageUrl: string;
+          sourceUrl: string;
+          locationUrl: string | null;
+          company: string;
+          createdAt: string;
+          updatedAt: string;
+          message_id: string;
+          channel_id: string;
+        } = { ...getById };
 
-      // add CDN url to imageUrl (location)
-      data.imageUrl = `${env.NEXT_PUBLIC_CDN_URL}/${data.imageUrl}`;
+        // JSON return serialization errors as
+        // the below values are "not serializable"
+        // (date && bigint)
+        data.date = getById.date.toISOString();
+        data.createdAt = getById.createdAt.toISOString();
+        data.updatedAt = getById.updatedAt.toISOString();
+        data.message_id = String(getById.message_id);
+        data.channel_id = String(getById.channel_id);
 
+        // add CDN url to imageUrl (location)
+        data.imageUrl = `${env.NEXT_PUBLIC_CDN_URL}/${data.imageUrl}`;
+
+        return {
+          props: {
+            data,
+          },
+        };
+      }
+    } catch (error) {
       return {
-        props: {
-          data,
-        },
+        notFound: true,
       };
     }
   }
-
-  return {
-    props: {
-      data: null,
-    },
-  };
 };

@@ -16,6 +16,7 @@ import { AspectRatio } from "~/components/ui/aspect-ratio";
 import twemoji from "twemoji";
 import { env } from "~/env";
 import { Badge } from "~/components/ui/badge";
+import { HomeSkeleton } from "./skeleton";
 
 export const SpottingCard = (props: cardProps) => {
   const date = props.date.toLocaleDateString(undefined, {
@@ -105,6 +106,10 @@ export const SpottingCard = (props: cardProps) => {
 };
 
 export const CardSet = (props: cardSetProps) => {
+  if (props.info.length === 0) {
+    return <HomeSkeleton />;
+  }
+
   return (
     <div className="flex w-full flex-col gap-4">
       <TopText title={props.month} right={props.year} />
