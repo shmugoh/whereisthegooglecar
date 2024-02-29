@@ -25,6 +25,7 @@ from discord.ext.commands import Context
 from dotenv import load_dotenv
 
 if not os.path.isfile(f"{os.path.realpath(os.path.dirname(__file__))}/config.json"):
+    print("test0")
     sys.exit("'config.json' not found! Please add it and try again.")
 else:
     with open(f"{os.path.realpath(os.path.dirname(__file__))}/config.json") as file:
@@ -154,11 +155,13 @@ class DiscordBot(commands.Bot):
             `self.database` so that it can be accessed from anywhere in the bot using `self.database`.
             """
             try:
+                self.logger.info("Creating a database connection pool.")
                 connection_string = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_IP')}/{os.getenv('POSTGRES_DB')}"
                 self.database = DatabaseManager(connection=await asyncpg.create_pool(dsn=connection_string))
                 self.logger.info("Database connection pool created.")
             except Exception as e:
                 self.logger.error(f"Error connecting to DB: {e}")
+                exit(1)
     
     async def init_aws(self) -> None:
         """

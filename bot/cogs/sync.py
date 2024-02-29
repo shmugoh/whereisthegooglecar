@@ -10,10 +10,11 @@ import asyncio
 from utils.spotting import spotting
 from utils.database import DatabaseManager
 
-if not os.path.isfile(f"{os.path.realpath(os.path.dirname(__file__))}\\..\\config.json"):
-    sys.exit("'config.json' not found! Please add it and try again.")
+config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "config.json"))
+if not os.path.isfile(config_path):
+  sys.exit("'config.json' not found! Please add it and try again.")
 else:
-    with open(f"{os.path.realpath(os.path.dirname(__file__))}\\..\\config.json") as file:
+    with open(config_path) as file:
         config = json.load(file)
 guild_id = int(config.get("guild_id"))
 # this is a very funny workaround of grabbing the guild_id from config instead of hard-coding it

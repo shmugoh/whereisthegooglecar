@@ -1,0 +1,26 @@
+x-name: whereisthegooglecar
+version: "3.8"
+
+services:
+  bot:
+    container_name: discord_bot
+    build:
+      context: ./bot
+    volumes:
+      - ./bot/:/bot
+    environment:
+      - TOKEN=${TOKEN}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_IP=${POSTGRES_IP}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - AWS_SECRET_PUBLIC_KEY=${AWS_SECRET_PUBLIC_KEY}
+      - AWS_SECRET_PRIVATE_KEY=${AWS_SECRET_PRIVATE_KEY}
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+  # db:
+  #   container_name: database
+  #   image: postgres:latest
+  #   environment:
+  #     POSTGRES_USER: ${POSTGRES_USER}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #     POSTGRES_DB: ${POSTGRES_DB}
