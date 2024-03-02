@@ -10,6 +10,7 @@ services:
       - ./bot/:/bot
     environment:
       - TOKEN=${TOKEN}
+      - GUILD_ID=${GUILD_ID}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_IP=${POSTGRES_IP}

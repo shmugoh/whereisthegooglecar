@@ -143,7 +143,7 @@ class DiscordBot(commands.Bot):
         """
         self.logger = logger
         self.config = config
-        self.guild_id = int(config["guild_id"])
+        self.guild_id = os.getenv("GUILD_ID")
         self.database = None
 
     async def init_db(self) -> None:

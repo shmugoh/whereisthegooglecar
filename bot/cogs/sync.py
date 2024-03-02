@@ -4,22 +4,12 @@ from discord.ext import commands
 from discord.ext.commands import Context
 from asyncpg import exceptions as ps
 
-import os, sys, json
-import asyncio
-
+import os
 from utils.spotting import spotting
 from utils.database import DatabaseManager
 
-config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "config.json"))
-if not os.path.isfile(config_path):
-  sys.exit("'config.json' not found! Please add it and try again.")
-else:
-    with open(config_path) as file:
-        config = json.load(file)
-guild_id = int(config.get("guild_id"))
-# this is a very funny workaround of grabbing the guild_id from config instead of hard-coding it
-# as i can't call self.bot.guild_id within the decorator
-# i personally hate hard-coding so this is a good workaround for now, that will stay
+guild_id = os.getenv("GUILD_ID")
+# i can't call self.bot.guild_id within the @app_commands.guilds decorator, so i have to hard-code it
 
 class Sync(commands.Cog, name="sync"):
     def __init__(self, bot) -> None:
