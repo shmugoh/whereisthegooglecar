@@ -122,8 +122,9 @@ class Sync(commands.Cog, name="sync"):
 
         # save messages
         length = len(target_messages)
-        counter = 0
-        minusCounter = 0
+        success_counter = 0
+        error_counter = 0
+        minus_counter = 0
         self.embed.description = "Saving messages..."
         self.embed.set_footer(text="This may take a while.")
         await bot_message.edit(embed=self.embed)
@@ -132,23 +133,27 @@ class Sync(commands.Cog, name="sync"):
             await self.spotting.add_spotting(msg, {"id": target.id, "company": company}, self.bot.database, self.bot.s3)
             self.bot.logger.info(f"Synced [{msg.author.name} - {msg.author.id}]'s spotting ({msg.id}) to the database")
           except IndexError:
-            minusCounter -= 1
+            minus_counter -= 1
             pass
           except Exception as e:
-            self.embed.description = f"Failed to sync <#{target.id}> - {e}"
-            self.embed.set_footer(text=f"Last Synced Message ID: {msg.id}")
-            self.embed.color = self.embed_error
-            await bot_message.edit(embed=self.embed)
-            return
+            self.bot.logger.error(f"Failed to sync the following spotting {msg.id} to the database: {e}")
+            error_counter += 1
+            continue
             
-          counter += 1
-          if counter % 5 == 0: # update every 5 messages to prevent rate limiting
-            self.embed.set_footer(text=f"This may take a while - {counter}/{length - minusCounter} messages saved...")
+          success_counter += 1
+          if success_counter % 5 == 0: # update every 5 messages to prevent rate limiting
+            self.embed.set_footer(text=f"This may take a while - {success_counter}/{length - minus_counter} messages saved... | {error_counter} errors.")
             await bot_message.edit(embed=self.embed)
       
-        # # success
-        self.embed.description = f"Synced <#{target.id}>!"
-        self.embed.color = self.embed_success
+        # update embed
+        # success
+        if error_counter == 0:
+          self.embed.description = f"Synced <#{target.id}>!"
+          self.embed.color = self.embed_success
+        # with errors
+        else:
+          self.embed.description = f"Synced <#{target.id}> with {error_counter} error{'' if error_counter == 1 else 's'}."
+          self.embed.color = self.embed_orange
         self.embed.set_footer(text=f"Synced {length} messages.")
         await bot_message.edit(embed=self.embed)
     

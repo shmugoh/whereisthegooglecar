@@ -1,2 +1,10 @@
-.env
-.vercel
+*
+
+# Project Folders
+!bot
+!site
+
+# Development Files
+!.env.example
+!.gitignore
+!.compose.yaml

@@ -123,28 +123,29 @@ class ImageUpload:
         # save video to file temporarily
         video_bytesio.seek(0)
         with open("tmp_vid", "wb") as f:
-            f.write(video_bytesio.getbuffer())
-      
+          f.write(video_bytesio.getbuffer())
+
         # process video and return first frame as image bytes
         logger.info(f"Processing video to first frame")
         process = (
           ffmpeg
           .input('tmp_vid')
-          .output('tmp.png', vf='select=eq(n\,1)')
-          .run(quiet=False)
+          .output('tmp_%03d.png', vf='select=eq(n\,1)') # selects second frame; docker's ffmpeg crashes without %03d, creates two temporal files
+          .run(quiet=False, overwrite_output=True)
         )
         logger.info(f"Processed video to first frame")
 
         # read image from buffer and return as bytes
-        file = open('tmp.png', 'rb')
+        file = open('tmp_002.png', 'rb')
         buffer = BytesIO(file.read())
         # cleanup
         file.close()
         os.remove('tmp_vid')
-        os.remove('tmp.png')
-        
+        os.remove('tmp_001.png')
+        os.remove('tmp_002.png')
+
         return buffer
-        
+
       except Exception as e:
         logger.error(f"Failed to process video: {e}")
         raise Exception(f"S3 Video Processing: {e}")
