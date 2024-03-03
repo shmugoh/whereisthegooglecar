@@ -3,6 +3,8 @@ import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
+import { kv } from "@vercel/kv";
+
 export const queryRouter = createTRPCRouter({
   queryByFilter: publicProcedure
     .input(
@@ -42,8 +44,19 @@ export const queryRouter = createTRPCRouter({
 
   getById: publicProcedure
     .input(z.object({ id: z.number() }))
-    .query(({ ctx, input }) => {
-      const data = ctx.db.spottings
+    .query(async ({ ctx, input }) => {
+      // obtains from cache
+      let cachedValue = await kv.hget(
+        `spotting:${input.id.toString()}`,
+        "data",
+      );
+      if (cachedValue) {
+        console.log(`[CACHE] Loading ${input.id} from cache...`);
+        return cachedValue;
+      }
+
+      // obtains from database if cache is empty
+      const data = await ctx.db.spottings
         .findUnique({
           where: { id: input.id },
         })
@@ -58,6 +71,32 @@ export const queryRouter = createTRPCRouter({
           }
         });
 
-      return data;
+      // kv automatically stringifies the object,
+      // thus causing serialization errors
+      // the below values are "not serializable"
+      // (date && bigint)
+      const date = data.date.toISOString();
+      const createdAt = data.createdAt.toISOString();
+      const updatedAt = data.updatedAt.toISOString();
+      const message_id = String(data.message_id);
+      const channel_id = String(data.channel_id);
+
+      // registers to cache
+      console.log(`[CACHE] Caching ${input.id}...`);
+      await kv.hset(`spotting:${input.id.toString()}`, {
+        data: {
+          ...data,
+          date: date,
+          createdAt: createdAt,
+          updatedAt: updatedAt,
+          message_id: message_id,
+          channel_id: channel_id,
+        },
+      });
+
+      // load from new cache
+      console.log(`[CACHE] Loading ${input.id} from cache...`);
+      cachedValue = await kv.hget(`spotting:${input.id.toString()}`, "data");
+      return cachedValue;
     }),
 });

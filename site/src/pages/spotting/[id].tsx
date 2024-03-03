@@ -90,15 +90,6 @@ export const getServerSideProps = async ({
           channel_id: string;
         } = { ...getById };
 
-        // JSON return serialization errors as
-        // the below values are "not serializable"
-        // (date && bigint)
-        data.date = getById.date.toISOString();
-        data.createdAt = getById.createdAt.toISOString();
-        data.updatedAt = getById.updatedAt.toISOString();
-        data.message_id = String(getById.message_id);
-        data.channel_id = String(getById.channel_id);
-
         // add CDN url to imageUrl (location)
         data.imageUrl = `${env.NEXT_PUBLIC_CDN_URL}/${data.imageUrl}`;
 
