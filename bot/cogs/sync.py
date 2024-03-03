@@ -1,3 +1,4 @@
+import asyncio
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -41,7 +42,7 @@ class Sync(commands.Cog, name="sync"):
       company="The company that the spottings are from. Default: 'Google",  
     )
     @app_commands.guilds(discord.Object(id=guild_id))
-    @commands.has_guild_permissions(manage_messages=True)
+    @commands.is_owner()
     async def add(self, context: Context, *, 
       channel: discord.TextChannel = None, 
       thread: discord.Thread = None, 
@@ -115,6 +116,7 @@ class Sync(commands.Cog, name="sync"):
         success_counter = 0
         error_counter = 0
         minus_counter = 0
+        rate_limit_counter = 0
         self.embed.description = "Saving messages..."
         self.embed.set_footer(text="This may take a while.")
         await bot_message.edit(embed=self.embed)
@@ -131,9 +133,22 @@ class Sync(commands.Cog, name="sync"):
             continue
             
           success_counter += 1
-          if success_counter % 5 == 0: # update every 5 messages to prevent rate limiting
-            self.embed.set_footer(text=f"This may take a while - {success_counter}/{length - minus_counter} messages saved... | {error_counter} errors.")
-            await bot_message.edit(embed=self.embed)
+          try:
+            # reset rate limit counter every 15 messages
+            if rate_limit_counter % 15 == 0 and rate_limit_counter:
+              self.bot.logger.warning("Discord Rate Limit Error - Resetting Counter")
+              rate_limit_counter = 0
+        
+            # update embed every 15 messages
+            if success_counter % 15 == 0 and rate_limit_counter == 0:
+              self.embed.set_footer(text=f"This may take a while - {success_counter}/{length - minus_counter} messages saved... | {error_counter} errors.")
+              await bot_message.edit(embed=self.embed)
+            
+          # begin soft cooldown for discord rate limit
+          # (so the database can still be updated admist the rate limit error)
+          except discord.errors.HTTPException:
+            self.bot.logger.warning("Discord Rate Limit Error - Beginning Cooldown")
+            rate_limit_counter += 1
       
         # update embed
         # success
@@ -145,7 +160,11 @@ class Sync(commands.Cog, name="sync"):
           self.embed.description = f"Synced <#{target.id}> with {error_counter} error{'' if error_counter == 1 else 's'}."
           self.embed.color = self.embed_orange
         self.embed.set_footer(text=f"Synced {length} messages.")
-        await bot_message.edit(embed=self.embed)
+        try:
+          await bot_message.edit(embed=self.embed)
+        except discord.errors.HTTPException:
+          await asyncio.sleep(30) 
+          await bot_message.edit(embed=self.embed)
     
     @commands.hybrid_command(
       name="remove_channel",
@@ -158,7 +177,7 @@ class Sync(commands.Cog, name="sync"):
       company="The company that the spottings are from. Default: 'Google",  
     )
     @app_commands.guilds(discord.Object(id=guild_id))
-    @commands.has_guild_permissions(manage_messages=True)
+    @commands.is_owner()
     async def remove(self, context: Context, *, 
       channel: discord.TextChannel = None, 
       thread: discord.Thread = None, 
