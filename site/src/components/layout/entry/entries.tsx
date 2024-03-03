@@ -84,9 +84,21 @@ export default function EntriesPage(props: EntriesPageProps) {
 
   // fetch data on mount/start
   useEffect(() => {
-    console.log("useEffect called");
     void fetchData();
   }, []);
+
+  // add more data if first fetched data has less than 6
+  // to ensure that scrolling works in higher resolutions
+  // ...might have to use other iterations as well
+  useEffect(() => {
+    if (
+      cardSets.length === 1 &&
+      cardSets[0]?.data?.length < 6 &&
+      window.innerWidth >= 1024 // only for desktop
+    ) {
+      void fetchData();
+    }
+  }, [cardSets]);
 
   return (
     <InfiniteScroll
