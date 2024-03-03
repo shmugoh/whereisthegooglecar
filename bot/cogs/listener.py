@@ -20,7 +20,7 @@ class Listener(commands.Cog, name="listener"):
       The code in this event is executed every time someone sends a message within
       a channel that the bot synchronizes with.
       """
-      if message.author == self.bot.user or message.author.bot or message.guild.id != self.bot.guild_id:
+      if message.author == self.bot.user or message.guild.id != self.bot.guild_id:
         return
       
       # get channel index from channels db
@@ -58,7 +58,7 @@ class Listener(commands.Cog, name="listener"):
       The code in this event is executed every time someone edits a message within
       a channel that the bot synchronizes with.
       """
-      if after.author == self.bot.user or after.author.bot or after.guild.id != self.bot.guild_id:
+      if after.author == self.bot.user or after.guild.id != self.bot.guild_id:
         return
         
       # checks if edited message is the same as the original message
@@ -122,7 +122,7 @@ class Listener(commands.Cog, name="listener"):
       The code in this event is executed every time someone sends a message within
       a channel that the bot synchronizes with.
       """
-      if message.author == self.bot.user or message.author.bot or message.guild.id != self.bot.guild_id:
+      if message.author == self.bot.user or message.guild.id != self.bot.guild_id:
         return
       
       # removes the spotting based off the message id
