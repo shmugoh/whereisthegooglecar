@@ -9,17 +9,14 @@ import Head from "next/head";
 
 import { env } from "~/env";
 
+import { convertDate } from "~/utils/date";
+
 export default function Page(
   props: InferGetServerSidePropsType<typeof getServerSideProps>,
 ) {
   if (props.data) {
     // format date
-    const date = new Date(props.data.date);
-    const dateFormatted = date.toLocaleDateString(undefined, {
-      month: "long",
-      year: "numeric",
-      day: "numeric",
-    });
+    const dateFormatted = convertDate(props.data.date);
 
     // seo data
     const TITLE = `${props.data.town} in Google Street View - WhereIsTheGoogleCar`;

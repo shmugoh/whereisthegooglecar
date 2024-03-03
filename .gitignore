@@ -1,8 +1,12 @@
+# Ignore everything
 *
 
+# But don't ignore directories themselves, so we can recurse into them
+!*/
+
 # Project Folders
-!bot
-!site
+!bot/**/*
+!site/**/*
 
 # Development Files
 !.env.example

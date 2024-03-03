@@ -17,13 +17,11 @@ import twemoji from "twemoji";
 import { env } from "~/env";
 import { Badge } from "~/components/ui/badge";
 import { HomeSkeleton } from "./skeleton";
+import { convertDate } from "~/utils/date";
 
 export const SpottingCard = (props: cardProps) => {
-  const date = props.date.toLocaleDateString(undefined, {
-    month: "long",
-    year: "numeric",
-    day: "numeric",
-  });
+  // format date
+  const date = convertDate(props.date.toISOString());
 
   return (
     <div className="w-96 lg:w-[402px]">
