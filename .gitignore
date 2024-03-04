@@ -12,3 +12,7 @@
 !.env.example
 !.gitignore
 !.compose.yaml
+
+# Markdown Files
+!*.md
+!LICENSE
