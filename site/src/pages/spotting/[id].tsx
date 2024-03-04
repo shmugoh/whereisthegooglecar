@@ -61,11 +61,7 @@ export const getServerSideProps = async ({
   // get id from query
   const id_query = params.id;
   if (id_query) {
-    // parse id to number
-    const id = parseInt(id_query);
-
-    // get data from api
-    // eslint-disable-next-line prefer-const
+    const id = id_query.toString();
 
     try {
       const getById = await caller.query.getById({ id });

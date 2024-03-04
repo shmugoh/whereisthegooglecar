@@ -56,7 +56,7 @@ export const queryRouter = createTRPCRouter({
           }
         });
 
-      // registers to cache
+      // // registers to cache
       console.log(
         `[CACHE - queryByMonth] Caching spottings:${company}:${month}:${year}...`,
       );
@@ -76,7 +76,7 @@ export const queryRouter = createTRPCRouter({
     }),
 
   getById: publicProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       // obtains from cache
       let cachedValue = await kv.hget(
@@ -90,8 +90,8 @@ export const queryRouter = createTRPCRouter({
 
       // obtains from database if cache is empty
       const data = await ctx.db.spottings
-        .findUnique({
-          where: { id: input.id },
+        .findFirst({
+          where: { message_id: input.id },
         })
         .then((data) => {
           if (data) {

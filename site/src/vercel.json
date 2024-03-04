@@ -1,8 +1,0 @@
-{
-  "crons": [
-    {
-      "path": "/api/monthCacheCron?company=google",
-      "schedule": "*/15 * * * *"
-    }
-  ]
-}

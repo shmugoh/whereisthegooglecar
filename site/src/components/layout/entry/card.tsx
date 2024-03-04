@@ -114,7 +114,7 @@ export const CardSet = (props: cardSetProps) => {
       <div className="flex flex-wrap justify-center gap-x-16 gap-y-6">
         {props.info.map((item: cardProps) => (
           <SpottingCard
-            id={item.id}
+            id={item.message_id}
             key={item.id}
             date={item.date}
             town={item.town}
