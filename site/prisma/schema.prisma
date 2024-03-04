@@ -22,7 +22,7 @@ model spottings {
     company         String      @default("google")
     createdAt       DateTime    @default(now())
     updatedAt       DateTime    @updatedAt @default(now())
-    message_id      BigInt
+    message_id      String
     channel_id      BigInt
     channel         channel     @relation(fields: [channel_id], references: [id])
     

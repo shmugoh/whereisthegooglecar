@@ -1,6 +1,7 @@
 type cardProps = {
   id: number;
-  date: Date;
+  message_id: string;
+  date: string;
   town: string;
   countryEmoji: string;
   imageUrl: string;

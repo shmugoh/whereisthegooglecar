@@ -21,7 +21,7 @@ import { convertDate } from "~/utils/date";
 
 export const SpottingCard = (props: cardProps) => {
   // format date
-  const date = convertDate(props.date.toISOString());
+  const date = convertDate(props.date);
 
   return (
     <div className="w-96 lg:w-[402px]">
@@ -114,7 +114,7 @@ export const CardSet = (props: cardSetProps) => {
       <div className="flex flex-wrap justify-center gap-x-16 gap-y-6">
         {props.info.map((item: cardProps) => (
           <SpottingCard
-            id={item.id}
+            id={item.message_id}
             key={item.id}
             date={item.date}
             town={item.town}

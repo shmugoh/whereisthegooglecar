@@ -26,7 +26,7 @@ export default function EntriesPage(props: EntriesPageProps) {
   const [continueFetching, setContinueFetching] = useState(true);
 
   // fetch data
-  const dataMutation = api.query.queryByFilter.useMutation({});
+  const dataMutation = api.query.queryByMonth.useMutation({});
 
   const updateDate = () => {
     currentDate.setMonth(currentDate.getMonth() - 1);

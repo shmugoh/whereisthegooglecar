@@ -146,15 +146,7 @@ class spotting():
       location = location.replace("<", "").replace(">", "") # remove discord formatting
     
     # timestamp information
-    date_str = self.get_date(spotting)
-    try:
-      date_obj = datetime.datetime.strptime(date_str, "%Y/%m/%d")
-    except ValueError:
-      try:
-        # only year
-        date_obj = datetime.datetime.strptime(date_str, "%Y")
-      except ValueError:
-        raise ValueError
+    date_obj = self.get_date(spotting)
     
     # define the SpottingResult class
     return {
@@ -192,7 +184,17 @@ class spotting():
     return None # optional, so that it doesn't throw an error if there's no match
   
   def get_date(self, spotting: str) -> str:
-    return re.findall(self.regex_date, spotting)[0]
+    raw_date = re.findall(self.regex_date, spotting)[0]
+    try:
+      date_obj = datetime.datetime.strptime(raw_date, "%Y/%m/%d")
+      return date_obj
+    except ValueError:
+      try:
+        # only year
+        date_obj = datetime.datetime.strptime(raw_date, "%Y")
+        return date_obj
+      except ValueError:
+        raise ValueError
   
   def get_town(self, spotting: str) -> str:
     result = re.findall(self.regex_town, spotting)

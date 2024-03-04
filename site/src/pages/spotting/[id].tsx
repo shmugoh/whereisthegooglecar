@@ -61,11 +61,7 @@ export const getServerSideProps = async ({
   // get id from query
   const id_query = params.id;
   if (id_query) {
-    // parse id to number
-    const id = parseInt(id_query);
-
-    // get data from api
-    // eslint-disable-next-line prefer-const
+    const id = id_query.toString();
 
     try {
       const getById = await caller.query.getById({ id });
@@ -89,15 +85,6 @@ export const getServerSideProps = async ({
           message_id: string;
           channel_id: string;
         } = { ...getById };
-
-        // JSON return serialization errors as
-        // the below values are "not serializable"
-        // (date && bigint)
-        data.date = getById.date.toISOString();
-        data.createdAt = getById.createdAt.toISOString();
-        data.updatedAt = getById.updatedAt.toISOString();
-        data.message_id = String(getById.message_id);
-        data.channel_id = String(getById.channel_id);
 
         // add CDN url to imageUrl (location)
         data.imageUrl = `${env.NEXT_PUBLIC_CDN_URL}/${data.imageUrl}`;
