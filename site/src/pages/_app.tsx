@@ -1,4 +1,5 @@
 import Head from "next/head";
+import { Analytics } from "@vercel/analytics/react";
 
 import { type AppType } from "next/app";
 
@@ -49,6 +50,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
           />
         </div>
         <Foot />
+        <Analytics />
       </div>
     </>
   );
