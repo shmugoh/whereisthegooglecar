@@ -14,6 +14,7 @@ import random
 import sys
 
 import asyncpg
+from upstash_redis import Redis
 from utils.database import DatabaseManager
 
 import boto3
@@ -145,6 +146,7 @@ class DiscordBot(commands.Bot):
         self.config = config
         self.guild_id = int(os.getenv("GUILD_ID"))
         self.database = None
+        self.redis = None
 
     async def init_db(self) -> None:
             """
@@ -154,10 +156,20 @@ class DiscordBot(commands.Bot):
             environment variables for the connection details. It then assigns the pool to
             `self.database` so that it can be accessed from anywhere in the bot using `self.database`.
             """
+            
+            try:
+                self.logger.info("Creating a REDIS connection pool.")
+                self.redis = Redis(url=os.getenv("REDIS_SERVERLESS_URL"), token=os.getenv('REDIS_SERVERLESS_TOKEN'))
+                self.logger.info(f"REDIS: {self.redis.ping()}")
+                self.logger.info("REDIS connection pool created.")
+            except Exception as e:
+                self.logger.error(f"Error connecting to REDIS: {e}")
+                exit(1)
+            
             try:
                 self.logger.info("Creating a database connection pool.")
                 connection_string = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_IP')}/{os.getenv('POSTGRES_DB')}"
-                self.database = DatabaseManager(connection=await asyncpg.create_pool(dsn=connection_string))
+                self.database = DatabaseManager(connection=await asyncpg.create_pool(dsn=connection_string), redis=self.redis)
                 self.logger.info("Database connection pool created.")
             except Exception as e:
                 self.logger.error(f"Error connecting to DB: {e}")

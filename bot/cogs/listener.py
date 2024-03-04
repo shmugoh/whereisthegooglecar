@@ -88,11 +88,20 @@ class Listener(commands.Cog, name="listener"):
           # process service
           if spotting['service'] == None:
             spotting['service'] = channels[channel_index]['company']
+            
+          # remove month cache if date has changed
+          before_date = self.spotting.get_date(before.content)
+          after_date = spotting['date']
+          if before_date != after_date:
+            service = channels[channel_index]['company']            
+            self.bot.database.clear_cache_month(service, before_date)
+            self.bot.database.clear_cache_month(service, after_date)
+            # no need to clear the spotting cache, as it'll be automatically deleted when updating the database
           
           # add the spotting to the database
           await self.bot.database.update_spotting(
             spotting_message_id,
-            date=spotting['date'], 
+            date=after_date, 
             town=spotting['town'], 
             country=spotting['country']['country'], 
             countryEmoji=spotting['country']['countryEmoji'], 
