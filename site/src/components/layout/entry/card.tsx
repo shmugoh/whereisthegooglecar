@@ -19,10 +19,32 @@ import { Badge } from "~/components/ui/badge";
 import { HomeSkeleton } from "./skeleton";
 import { convertDate } from "~/utils/date";
 import { LocationButton, SourceButton, TextBluePrint } from "./output";
+import { useState } from "react";
+
+import { ImagePreview } from "~/components/layout/entry/image";
 
 export const SpottingCard = (props: cardProps) => {
   // format date
   const date = convertDate(props.date);
+
+  // handle aspect ratio (for mobile)
+  const [aspectRatio, setAspectRatio] = useState(16 / 9); // default aspect ratio
+
+  const handleLoadingComplete = ({
+    naturalWidth,
+    naturalHeight,
+  }: {
+    // type definitions
+    naturalWidth: number;
+    naturalHeight: number;
+  }) => {
+    // if on pc, stay with 16/9
+    if (window.innerWidth >= 1024) {
+      return;
+    }
+
+    setAspectRatio(naturalWidth / naturalHeight);
+  };
 
   return (
     <div className="w-96 lg:w-[402px]">
@@ -61,20 +83,10 @@ export const SpottingCard = (props: cardProps) => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="">
-            <AspectRatio ratio={16 / 9} className="bg-muted">
-              <Image
-                layout={"fill"}
-                objectFit={"contain"}
-                src={`${env.NEXT_PUBLIC_CDN_URL}/${props.imageUrl}`}
-                // cdn_url is called here in the component instead of rewriting it in the page
-                // as i don't wanna spend the time re-initializing the data with new values
-                // like done in [id].tsx
-                alt={`Picture of a Google Car spotted in ${props.town} on ${date}.`}
-                className="rounded-md object-cover"
-              />
-            </AspectRatio>
-          </div>
+          <ImagePreview
+            url={`${env.NEXT_PUBLIC_CDN_URL}/${props.imageUrl}`}
+            alt={`Picture of a Google Car spotted in ${props.town} on ${date}.`}
+          />
         </CardContent>
         <CardFooter className="flex justify-between">
           <div className="flex gap-2">

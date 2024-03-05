@@ -9,7 +9,6 @@
 !site/**/*
 
 # Development Files
-!scripts/**/*
 !.env.example
 !.gitignore
 !.compose.yaml

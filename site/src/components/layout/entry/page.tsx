@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -6,8 +6,28 @@ import Link from "next/link";
 import { TopText } from "~/components/layout/entry/topText";
 import { AspectRatio } from "~/components/ui/aspect-ratio";
 import { LocationButton, SourceButton, TextBluePrint } from "./output";
+import { ImagePreview } from "~/components/layout/entry/image";
 
 export const PageComponent = (props: pageProps) => {
+  // handle aspect ratio (for mobile)
+  const [aspectRatio, setAspectRatio] = useState(16 / 9); // default aspect ratio
+
+  const handleLoadingComplete = ({
+    naturalWidth,
+    naturalHeight,
+  }: {
+    // type definitions
+    naturalWidth: number;
+    naturalHeight: number;
+  }) => {
+    // if on pc, stay with 16/9
+    if (window.innerWidth >= 1024) {
+      return;
+    }
+
+    setAspectRatio(naturalWidth / naturalHeight);
+  };
+
   return (
     <div className="flex flex-col items-center gap-4">
       {/* Top Title */}
@@ -27,35 +47,13 @@ export const PageComponent = (props: pageProps) => {
         </div>
       </div>
 
-      <div className="w-full md:w-11/12">
-        <AspectRatio ratio={16 / 9} className="relative bg-muted">
-          <Image
-            src={props.data.imageUrl}
-            alt="Google Street View Car"
-            fill
-            className="rounded-md object-contain"
-            style={{ zIndex: 1 }}
-          />
-          {/* <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              // zIndex: -1,
-              filter: "blur(8px)",
-            }}
-          >
-            <Image
-              src={props.data.imageUrl}
-              alt="Google Street View Car"
-              fill
-              className="rounded-md object-cover"
-            />
-          </div> */}
-        </AspectRatio>
-      </div>
+      {/* Image Preview */}
+      <ImagePreview
+        className="w-full md:w-11/12"
+        url={props.data.imageUrl}
+        alt={`Picture of a Google Car spotted in ${props.data.town} on ${props.dateFormatted}.`}
+        loading="eager"
+      />
     </div>
   );
 };
