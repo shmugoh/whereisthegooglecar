@@ -11,6 +11,8 @@ import { env } from "~/env";
 
 import { convertDate } from "~/utils/date";
 
+import { NextSeo } from "next-seo";
+
 export default function Page(
   props: InferGetServerSidePropsType<typeof getServerSideProps>,
 ) {
@@ -21,7 +23,6 @@ export default function Page(
     // seo data
     const TITLE = `${props.data.town} in Google Street View - WhereIsTheGoogleCar`;
     const DESCRIPTION = `Google Street View Car in ${props.data.town} on ${dateFormatted}.`;
-    const KEYWORDS = `google street view, ${props.data.town}, ${props.data.country}, google car, google maps, google, street view, google street view car, google maps car`;
 
     const OG_IMG_ENCODED = encodeURIComponent(props.data.imageUrl);
     const OG_IMG_OPTIMIZED = encodeURIComponent(
@@ -31,26 +32,25 @@ export default function Page(
 
     return (
       <>
-        <Head>
-          <title>{TITLE}</title>
-          <meta property="og:title" content={TITLE} />
-          <meta property="twitter:title" content={TITLE}></meta>
-          {/*  */}
-          <meta name="description" content={DESCRIPTION} />
-          <meta property="og:description" content={DESCRIPTION} />
-          <meta property="twitter:description" content={DESCRIPTION} />
-          {/*  */}
-          <meta name="keywords" content={KEYWORDS} />
-          <meta property="og:image" content={OPENGRAPH_IMAGE} />
-          <meta property="twitter:image" content={OPENGRAPH_IMAGE}></meta>
-          <meta name="twitter:card" content="summary_large_image" />
-          {/*  */}
-          <meta property="og:type" content="website" />
-          <meta
-            property="og:url"
-            content={`${env.NEXT_PUBLIC_VERCEL_URL}/spotting/${props.data.id}`}
-          />
-        </Head>
+        <NextSeo
+          title={TITLE}
+          description={DESCRIPTION}
+          openGraph={{
+            type: "website",
+            title: TITLE,
+            description: DESCRIPTION,
+            images: [
+              {
+                url: OPENGRAPH_IMAGE,
+                width: 1200,
+                height: 630,
+                alt: TITLE,
+              },
+            ],
+            site_name: "WhereIsTheGoogleCar",
+          }}
+        />
+
         <div>
           <PageComponent dateFormatted={dateFormatted} data={props.data} />
         </div>

@@ -20,6 +20,8 @@ export const fontSans = FontSans({
   variable: "--font-sans",
 });
 
+import { NextSeo } from "next-seo";
+
 const TITLE = "WhereIsTheGoogleCar";
 const DESCRIPTION =
   "WhereIsTheGoogleCar is the largest community-driven database of Google Street View Sightings, monitoring since 2020.";
@@ -27,44 +29,27 @@ const DESCRIPTION =
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <>
-      <Head>
-        <link
-          rel="sitemap"
-          type="application/xml"
-          title="Sitemap"
-          href="/api/sitemap.xml"
-        />
-
-        <title>{TITLE}</title>
-        <meta property="og:title" content={TITLE}></meta>
-        <meta property="twitter:title" content={TITLE}></meta>
-
-        <meta property="twitter:description" content={DESCRIPTION}></meta>
-        <meta property="og:description" content={DESCRIPTION}></meta>
-        <meta name="description" content={DESCRIPTION}></meta>
-        <meta
-          name="keywords"
-          content="google street view, google car, google maps, google, street view, google street view car, google street view car location, google street view car sightings, google street view car tracker, google street view car sightings, google street view car sightings map, google street view car sightings live"
-        />
-        <link rel="icon" href="/favicon.svg" />
-
-        <meta
-          property="og:image"
-          content={`${env.NEXT_PUBLIC_VERCEL_URL}/about.webp`}
-        />
-        <meta
-          property="twitter:image"
-          content={`${env.NEXT_PUBLIC_VERCEL_URL}/about.webp`}
-        ></meta>
-        <meta name="twitter:card" content="summary_large_image" />
-
-        <meta property="og:type" content="website" />
-        {/* <meta
-            property="og:url"
-            content={`${env.NEXT_PUBLIC_VERCEL_URL}/spotting/${props.data.id}`}
-          /> */}
-      </Head>
-
+      <NextSeo
+        title={TITLE}
+        description={DESCRIPTION}
+        openGraph={{
+          type: "website",
+          title: TITLE,
+          description: DESCRIPTION,
+          images: [
+            {
+              url: `${env.NEXT_PUBLIC_VERCEL_URL}/about.webp`,
+              width: 1200,
+              height: 630,
+              alt: TITLE,
+            },
+          ],
+          site_name: "WhereIsTheGoogleCar",
+        }}
+        twitter={{
+          cardType: "summary_large_image",
+        }}
+      />
       <ThemeProvider
         attribute="class"
         defaultTheme="system"
