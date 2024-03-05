@@ -1,7 +1,9 @@
 x-name: whereisthegooglecar
-version: "3.8"
+version: "3"
 
 services:
+  # -- App Stack --
+  # Back-End
   bot:
     container_name: discord_bot
     build:
@@ -20,6 +22,13 @@ services:
       - AWS_SECRET_PUBLIC_KEY=${AWS_SECRET_PUBLIC_KEY}
       - AWS_SECRET_PRIVATE_KEY=${AWS_SECRET_PRIVATE_KEY}
       - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+    depends_on:
+      - db
+      - redis
+      - serverless
+
+  # -- Database Stack --
+  # PostgreSQL
   db:
     container_name: database
     image: postgres:16-alpine
@@ -32,12 +41,15 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - 5432:5432
+  # Adminer
   adminer:
     container_name: adminer
     image: adminer
     restart: always
     ports:
       - 8080:8080
+
+  # Redis
   redis:
     container_name: redis
     image: redis:6.2-alpine
@@ -46,10 +58,12 @@ services:
       - 6379:6379
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-  redis-serverless:
+  # Serverless Redis (to ensure compatibility with upstash-redis & @vercel/kv)
+  serverless:
     container_name: redis-serverless
+    restart: always
     ports:
-      - "${REDIS_SERVERLESS_PORT}:80"
+      - "8079:80"
     image: hiett/serverless-redis-http:latest
     environment:
       SRH_MODE: env
