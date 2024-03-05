@@ -32,12 +32,24 @@ export default function Page(
 
           <meta name="description" content={DESCRIPTION} />
           <meta property="og:description" content={DESCRIPTION} />
+          <meta property="twitter:description" content={DESCRIPTION} />
 
           <meta name="keywords" content={KEYWORDS} />
 
           <meta
             property="og:image"
             content={`${env.NEXT_PUBLIC_VERCEL_URL}/api/og?img=${encodeURIComponent(props.data.imageUrl)}`}
+          />
+          <meta
+            property="twitter:image"
+            content={`${env.NEXT_PUBLIC_VERCEL_URL}/api/og?img=${encodeURIComponent(props.data.imageUrl)}`}
+          ></meta>
+          <meta name="twitter:card" content="summary_large_image" />
+
+          <meta property="og:type" content="website" />
+          <meta
+            property="og:url"
+            content={`${env.NEXT_PUBLIC_VERCEL_URL}/spotting/${props.data.id}`}
           />
         </Head>
         <div>
