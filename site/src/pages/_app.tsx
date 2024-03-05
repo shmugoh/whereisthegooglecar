@@ -11,6 +11,7 @@ import { Inter as FontSans } from "next/font/google";
 import { cn } from "../lib/utils";
 import { Header } from "~/components/layout/header";
 import { Foot } from "~/components/layout/footer";
+import { ThemeProvider } from "~/components/theme-provider";
 
 export const fontSans = FontSans({
   subsets: ["latin"],
@@ -38,20 +39,28 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         />
         <link rel="icon" href="/favicon.svg" />
       </Head>
-      <div className="flex h-screen flex-col justify-between gap-4 bg-background">
-        <Header />
-        <div className="container flex flex-col pb-4">
-          <Component
-            className={cn(
-              "min-h-screen bg-background font-sans antialiased",
-              fontSans.variable,
-            )}
-            {...pageProps}
-          />
+
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <div className="flex h-screen flex-col justify-between gap-4 bg-background">
+          <Header />
+          <div className="container flex flex-col pb-4">
+            <Component
+              className={cn(
+                "min-h-screen bg-background font-sans antialiased",
+                fontSans.variable,
+              )}
+              {...pageProps}
+            />
+          </div>
+          <Foot />
+          <Analytics />
         </div>
-        <Foot />
-        <Analytics />
-      </div>
+      </ThemeProvider>
     </>
   );
 };
