@@ -18,6 +18,7 @@ import { env } from "~/env";
 import { Badge } from "~/components/ui/badge";
 import { HomeSkeleton } from "./skeleton";
 import { convertDate } from "~/utils/date";
+import { LocationButton, SourceButton, TextBluePrint } from "./output";
 
 export const SpottingCard = (props: cardProps) => {
   // format date
@@ -47,7 +48,7 @@ export const SpottingCard = (props: cardProps) => {
             </div>
           </CardTitle>
           <CardDescription className="flex items-center justify-between gap-2">
-            <div className="font-regular text-slate-500">{props.town}</div>
+            <TextBluePrint text={props.town} size="base" />
 
             {props.company && (
               <Badge variant={"secondary"} className="h-5 w-24">
@@ -77,19 +78,9 @@ export const SpottingCard = (props: cardProps) => {
         </CardContent>
         <CardFooter className="flex justify-between">
           <div className="flex gap-2">
-            <a
-              href={props.sourceUrl}
-              className="text-sm font-medium text-slate-500 underline underline-offset-4 hover:cursor-pointer hover:text-slate-400"
-            >
-              Source
-            </a>
+            <SourceButton url={props.sourceUrl} size="sm" />
             {props.locationUrl && (
-              <a
-                href={props.locationUrl}
-                className="text-sm font-medium text-slate-500 underline underline-offset-4 hover:cursor-pointer hover:text-slate-400"
-              >
-                Location
-              </a>
+              <LocationButton url={props.locationUrl} size="sm" />
             )}
           </div>
           <div className="flex items-center md:w-1/3">

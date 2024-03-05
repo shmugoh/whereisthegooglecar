@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { TopText } from "~/components/layout/entry/topText";
 import { AspectRatio } from "~/components/ui/aspect-ratio";
+import { LocationButton, SourceButton, TextBluePrint } from "./output";
 
 export const PageComponent = (props: pageProps) => {
   return (
@@ -16,22 +17,12 @@ export const PageComponent = (props: pageProps) => {
 
       {/* Description */}
       <div className="flex items-start justify-between self-stretch">
-        <div className="text-lg text-slate-500">{props.data.town}</div>
+        <TextBluePrint text={props.data.town} size="lg" />
         <div className="flex gap-4">
-          <Link
-            className="text-lg font-medium text-slate-500 underline"
-            href={props.data.sourceUrl}
-          >
-            Source
-          </Link>
+          <SourceButton url={props.data.sourceUrl} size="lg" />
 
           {props.data.locationUrl && (
-            <Link
-              href={props.data.locationUrl}
-              className="text-lg font-medium text-slate-500 underline"
-            >
-              Location
-            </Link>
+            <LocationButton url={props.data.locationUrl} size="lg" />
           )}
         </div>
       </div>
