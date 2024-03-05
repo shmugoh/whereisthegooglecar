@@ -2,6 +2,7 @@ import logging
 import os
 
 from PIL import Image
+import tempfile
 import ffmpeg
 
 from io import BytesIO
@@ -100,18 +101,28 @@ class ImageUpload:
       # load image from URL
       try:
         response = requests.get(image_url)
-        output = BytesIO(response.content)
+        input = BytesIO(response.content)
         
+        # converts first frame of video to image
         if response.headers['Content-Type'].startswith('video'):
           try:
-            output = self.process_video(output)
+            input = self.process_video(input)
           except Exception as e:
             raise Exception(e)
         
         # process image and return as bytes
-        image = Image.open(output)
-        image.save(output, format='WebP', quality=75)
-        output.seek(0)
+        image = Image.open(input)
+        
+        # create temp file to append to IO
+        with tempfile.NamedTemporaryFile(delete=False) as temp:
+          image.save(temp.name, format='WebP', quality=10, optimize=True)
+          temp.close()
+          
+          # append to IO
+          with open(temp.name, 'rb') as f:
+            output = BytesIO(f.read())
+          os.remove(temp.name)
+        
         logger.info(f"Processed image {image_url}")
         return output.getvalue()
       except Exception as e:
