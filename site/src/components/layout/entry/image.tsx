@@ -39,6 +39,7 @@ export const ImagePreview = (props: {
           style={{ zIndex: 1 }}
           onLoadingComplete={handleLoadingComplete}
           loading={props.loading ?? "lazy"}
+          unoptimized
         />
         {/* <div
       style={{
