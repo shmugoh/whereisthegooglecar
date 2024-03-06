@@ -20,9 +20,25 @@ export default function Page(
     // format date
     const dateFormatted = convertDate(props.data.date);
 
+    const SERVICE = (() => {
+      switch (props.data.company) {
+        case "google":
+          return "Google Street View";
+        case "apple":
+          return "Apple Maps";
+        case "others":
+          return "Street View";
+        default:
+          return (
+            props.data.company.charAt(0).toUpperCase() +
+            props.data.company.slice(1)
+          ); // capitalize first letter
+      }
+    })();
+
     // seo data
-    const TITLE = `${props.data.town} in Google Street View - WhereIsTheGoogleCar`;
-    const DESCRIPTION = `Google Street View Car in ${props.data.town} on ${dateFormatted}.`;
+    const TITLE = `${props.data.town} in ${SERVICE} - WhereIsTheGoogleCar`;
+    const DESCRIPTION = `${SERVICE} Car in ${props.data.town} on ${dateFormatted}.`;
 
     const OG_IMG_ENCODED = encodeURIComponent(props.data.imageUrl);
     const OG_IMG_OPTIMIZED = encodeURIComponent(

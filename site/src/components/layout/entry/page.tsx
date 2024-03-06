@@ -51,7 +51,7 @@ export const PageComponent = (props: pageProps) => {
       <ImagePreview
         className="w-full md:w-11/12"
         url={props.data.imageUrl}
-        alt={`Picture of a Google Car spotted in ${props.data.town} on ${props.dateFormatted}.`}
+        alt={`Picture of a ${props.data.company === "others" ? "Street View" : props.data.company.charAt(0).toUpperCase() + props.data.company.slice(1)} Car spotted in ${props.data.town} on ${props.dateFormatted}.`}
         loading="eager"
       />
     </div>

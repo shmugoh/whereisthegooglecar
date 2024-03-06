@@ -79,12 +79,11 @@ class DatabaseManager:
             imageUrl,
             sourceUrl,
             locationUrl,
-            company,
+            str(company).lower(),
         )
 
         # remove month data from cache (redis)
-        service = await self.database.fetchval("SELECT company FROM channel WHERE id=$1", channel_id)
-        self.clear_cache_month(service, date)
+        self.clear_cache_month(company, date)
         
     async def update_spotting(self, id: int, **kwargs) -> None:
         """
@@ -104,7 +103,7 @@ class DatabaseManager:
         
         # remove from cache (redis)
         channel_id = await self.database.fetchval("SELECT channel_id FROM spottings WHERE message_id=$1", str(id))
-        service = await self.database.fetchval("SELECT company FROM channel WHERE id=$1", channel_id)
+        service = await self.database.fetchval("SELECT company FROM spottings WHERE message_id=$1", str(channel_id))
         date = await self.database.fetchval("SELECT date FROM spottings WHERE message_id=$1", str(id))
         
         self.clear_cache_spotting(str(id))
@@ -124,8 +123,7 @@ class DatabaseManager:
         # get month before purging from database
         date = await self.database.fetchval("SELECT date FROM spottings WHERE message_id=$1", str(id))
         # get service as well
-        channel_id = await self.database.fetchval("SELECT channel_id FROM spottings WHERE message_id=$1", str(id))
-        service = await self.database.fetchval("SELECT company FROM channel WHERE id=$1", channel_id)
+        service = await self.database.fetchval("SELECT company FROM spottings WHERE message_id=$1", str(id))
         
         # delete from database
         await self.database.execute("DELETE FROM spottings WHERE message_id=$1", str(id))
@@ -172,8 +170,13 @@ class DatabaseManager:
         Returns:
             None
         """
+        service = service.lower() # lowercase to match the key in redis
         date = self.generate_cache_month(date)
         self.redis.hdel(f"spottings:{service}:{date}", "data")
+        if service != "google":
+            self.redis.hdel(f"spottings:others:{date}", "data")
+            self.redis.hdel(f"spottings:{service}:{date}", "data")
+        self.redis.hdel(f"spottings:all:{date}", "data")
         
     def clear_cache_spotting(self, id: str) -> None:
         '''

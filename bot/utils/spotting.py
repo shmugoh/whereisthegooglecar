@@ -86,6 +86,7 @@ class spotting():
       # process service
       if spotting['service'] == None:
         spotting['service'] = channel['company']
+      spotting['service'] = str(spotting['service']).lower()
         
       # process country if empty
       if spotting['country']['country'] == None:

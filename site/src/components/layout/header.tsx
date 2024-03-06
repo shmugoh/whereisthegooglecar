@@ -50,17 +50,17 @@ export const Header = () => {
               </NavigationMenuItem>
 
               {/* Others */}
-              {/* <NavigationMenuItem>
-                <NavigationMenuTrigger>Others</NavigationMenuTrigger>
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>Services</NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
                     <ListItem href="/" title="Google"></ListItem>
-                    <ListItem href="/" title="Apple"></ListItem>
-                    <ListItem href="/" title="Yandex"></ListItem>
-                    <ListItem href="/" title="Others"></ListItem>
+                    <ListItem href="/services/apple" title="Apple"></ListItem>
+                    <ListItem href="/services/yandex" title="Yandex"></ListItem>
+                    <ListItem href="/services/others" title="Others"></ListItem>
                   </ul>
                 </NavigationMenuContent>
-              </NavigationMenuItem> */}
+              </NavigationMenuItem>
 
               {/* About & FAQ */}
               <NavigationMenuItem>

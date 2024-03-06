@@ -40,7 +40,7 @@ export const queryRouter = createTRPCRouter({
       const data = await ctx.db.spottings
         .findMany({
           where: {
-            company: company,
+            company: company === "others" ? { not: "google" } : company,
             date: { gte: startDate, lte: endDate },
           },
           orderBy: { date: "desc" },
