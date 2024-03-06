@@ -79,7 +79,7 @@ class DatabaseManager:
             imageUrl,
             sourceUrl,
             locationUrl,
-            str(company).lower(),
+            company,
         )
 
         # remove month data from cache (redis)
@@ -102,8 +102,7 @@ class DatabaseManager:
         await self.database.execute(query, *values, str(id))
         
         # remove from cache (redis)
-        channel_id = await self.database.fetchval("SELECT channel_id FROM spottings WHERE message_id=$1", str(id))
-        service = await self.database.fetchval("SELECT company FROM spottings WHERE message_id=$1", str(channel_id))
+        service = await self.database.fetchval("SELECT company FROM spottings WHERE message_id=$1", str(id))
         date = await self.database.fetchval("SELECT date FROM spottings WHERE message_id=$1", str(id))
         
         self.clear_cache_spotting(str(id))

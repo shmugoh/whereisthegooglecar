@@ -134,7 +134,7 @@ export default function about() {
                 href="https://twitter.com/VirtualStreets_"
                 className="list-disc font-medium text-primary underline underline-offset-4 [&>li]:mt-2"
               >
-                @VirtualStreets
+                @VirtualStreets_
               </Link>{" "}
               on Twitter with the date, image, and location (if possible) to
               submit your sighting. Once approved, your submission will be added

@@ -29,6 +29,9 @@ const DESCRIPTION =
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <>
+      <Head>
+        <link rel="icon" href="/favicon.svg" />
+      </Head>
       <NextSeo
         title={TITLE}
         description={DESCRIPTION}

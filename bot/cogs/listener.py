@@ -53,44 +53,43 @@ class Listener(commands.Cog, name="listener"):
           self.bot.logger.error(f"[{message.author.name} - {message.author.id}]: {message.content} - {message.attachments[0].url}")
     
     @commands.Cog.listener()
-    async def on_message_edit(self, before: discord.Message, after: discord.Message) -> None:
+    async def on_raw_message_edit(self, payload: discord.RawMessageUpdateEvent) -> None:
       """
       The code in this event is executed every time someone edits a message within
       a channel that the bot synchronizes with.
       """
-      if after.author == self.bot.user or after.guild.id != self.bot.guild_id:
+      if payload.guild_id != self.bot.guild_id:
         return
-        
-      # checks if edited message is the same as the original message
-      # usually happens when embedded is triggered
-      if before.content == after.content:
+
+      # attempts to skip if message has been cached and is the same
+      if payload.cached_message and payload.cached_message.content == payload.data.get('content'):
         return
 
       # checks if message has been already logged
       try:
-        message_db = await self.bot.database.find_spotting(before.id)
+        message_db = await self.bot.database.find_spotting(payload.message_id)
       except ValueError:
         return
       
-      if message_db and after.attachments:
+      if message_db and payload.data.get('attachments'):
         try:
           channels: dict = await self.bot.database.get_channels() # for service
-          channel_index = [channel['id'] for channel in channels].index(after.channel.id)
-          spotting = self.spotting.process_spotting(after.content)
+          channel_index = [channel['id'] for channel in channels].index(payload.channel_id)
+          spotting = self.spotting.process_spotting(payload.data.get('content'))
           
           # get spotting meta information
-          spotting_message_id = after.id
+          spotting_message_id = payload.message_id
           
           # process source
           if spotting['source'] == None:
-            spotting['source'] = after.author.name
+            spotting['source'] = payload.data.get('author').get('username')
             
           # process service
           if spotting['service'] == None:
             spotting['service'] = channels[channel_index]['company']
             
           # remove month cache if date has changed
-          before_date = self.spotting.get_date(before.content)
+          before_date = message_db['date']
           after_date = spotting['date']
           if before_date != after_date:
             service = channels[channel_index]['company']            
@@ -110,39 +109,46 @@ class Listener(commands.Cog, name="listener"):
             company=spotting['service']
           )
           
-          # log the spotting
-          self.bot.logger.info(f"Edited [{after.author.name} - {after.author.id}]'s spotting ({after.id}) to the database: {spotting['date']} - {spotting['town']}")
+      #     # log the spotting
+          self.bot.logger.info(f"Edited [{payload.data.get('author').get('username')} - {payload.data.get('author').get('id')}]'s spotting ({payload.message_id}) to the database: {spotting['date']} - {spotting['town']} - {spotting['service']}")
           
         except IndexError:
-          self.bot.logger.error(f"Failed to parse spotting {after.id} to RegEx: {after.content}")
+          self.bot.logger.error(f"Failed to parse spotting {payload.message_id} to RegEx: {payload.data.get('content')}")
           pass
           # self.bot.logger.error(f"Failed to parse spotting: {message.content}")
           
         except Exception as e:
           # log the error
-          self.bot.logger.error(f"Failed to edit spotting {after.id} to the database: {e}")
-          self.bot.logger.error(f"Before: [{before.author.name} - {before.author.id}]: {before.content} - {before.attachments[0].url}")
-          self.bot.logger.error(f"After: [{after.author.name} - {after.author.id}]: {after.content} - {after.attachments[0].url}")
+          self.bot.logger.error(f"Failed to edit spotting {payload.message_id} to the database: {e}")
+          
+          if payload.cached_message:
+            self.bot.logger.error(f"Before: [{payload.cached_message.author.name} - {payload.cached_message.author.id}]: {payload.cached_message.content} - {payload.cached_message.attachments[0].url}")
+          self.bot.logger.error(f"After: [{payload.data.get('author').get('username')} - {payload.data.get('author').get('id')}]: {payload.data.get('content')} - {payload.data.get('attachments')[0].url}")
 
         
     @commands.Cog.listener()
-    async def on_message_delete(self, message: discord.Message) -> None:
+    async def on_raw_message_delete(self, payload: discord.RawMessageDeleteEvent) -> None:
       """
       The code in this event is executed every time someone sends a message within
       a channel that the bot synchronizes with.
-      """
-      if message.author == self.bot.user or message.guild.id != self.bot.guild_id:
+      """      
+      if payload.guild_id != self.bot.guild_id:
         return
       
       # removes the spotting based off the message id
-      message_db = await self.bot.database.find_spotting(message.id)
+      message_db = await self.bot.database.find_spotting(payload.message_id)
       if message_db:
         # removes image from S3
-        self.bot.s3.delete(message.id)
+        self.bot.s3.delete(payload.message_id)
         
         # removes entry from database
-        await self.bot.database.delete_spotting(message.id)
-        self.bot.logger.info(f"Deleted [{message.author.name} - {message.author.id}]'s spotting ({message.id}) from the database - {message.content}")
+        await self.bot.database.delete_spotting(payload.message_id)
+        
+        # uses cached message data if available
+        if payload.cached_message:
+          self.bot.logger.info(f"Deleted [{payload.cached_message.author.name} - {payload.cached_message.author.id}]'s spotting ({payload.cached_message.id}) from the database - {payload.cached_message.content}")
+        else:
+          self.bot.logger.info(f"Deleted spotting {payload.message_id} from the database")
 
 async def setup(bot) -> None:
     await bot.add_cog(Listener(bot))

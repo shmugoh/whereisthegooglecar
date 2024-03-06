@@ -37,10 +37,10 @@ and you'd be better off using `npm run dev` locally. Trust me, you don't want to
 ## Getting Started - Deploying
 
 0. Initiate an AWS S3 Bucket (& CloudFront if needed), alongside IAM credentials with `s3:PutObject` permissions; passed over to the S3 Bucket Policy.
-1. Configure the environment variables asked in Railway, then proceed to deploy
+1. In Vercel (or any other Redis serverless provider such as Upstash), initialize Redis
+2. Configure the environment variables asked in Railway, then proceed to deploy
    - You may wanna deploy twice, as the template has the PostgreSQL variables
      pre-written, but they may not work with once Railway initializes the database.
-2. In Vercel (or any other Redis serverless provider such as Upstash), initialize Redis
 3. Configure the environment variables asked in Vercel, then proceed to deploy.
 
 ## Known Issues
