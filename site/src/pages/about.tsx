@@ -141,6 +141,17 @@ export default function about() {
               to the website, and a link will be sent.
             </p>
           </span>
+
+          <span className="space-y-3.5">
+            <h2 className="border-p scroll-m-20 text-3xl font-extrabold italic tracking-tight underline underline-offset-4">
+              Are you affiliated with the previous{" "}
+              <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-3xl font-semibold">
+                whereisthegooglecar.com
+              </code>{" "}
+              or any of its owners?
+            </h2>
+            <p>No.</p>
+          </span>
         </div>
       </div>
     </>

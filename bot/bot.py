@@ -227,7 +227,7 @@ class DiscordBot(commands.Bot):
         """
         Setup the game status task of the bot.
         """
-        statuses = ["whereisthegooglecar.com"]
+        statuses = ["whereisthegooglecar.xyz"]
         await self.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=random.choice(statuses)))
 
     @status_task.before_loop

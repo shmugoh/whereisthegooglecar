@@ -34,7 +34,7 @@ export const Header = () => {
         {/* Title and Logo */}
         <Link href="/" className="flex items-center gap-2 text-xl font-bold">
           <MdOutlineStreetview size={42} />
-          <span className="hidden md:inline">whereisthegooglecar.com</span>
+          <span className="hidden md:inline">whereisthegooglecar.xyz</span>
         </Link>
 
         {/* Menu Buttons */}

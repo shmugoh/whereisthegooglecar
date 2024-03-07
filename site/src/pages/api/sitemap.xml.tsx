@@ -32,6 +32,9 @@ export default async function handler(
     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"> 
     
     ${generateUrlAttribute(`${url}/`, new Date(), "always", "1.0")}
+    ${generateUrlAttribute(`${url}/services/apple`, undefined, "always", "0.9")}
+    ${generateUrlAttribute(`${url}/services/yandex`, undefined, "always", "0.9")}
+    ${generateUrlAttribute(`${url}/services/others`, undefined, "always", "0.9")}
     ${generateUrlAttribute(`${url}/about`, undefined, "monthly", "0.9")}
     
     ${spottingIds.map((spotting) => {
