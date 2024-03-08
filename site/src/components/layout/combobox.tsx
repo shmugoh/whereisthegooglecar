@@ -15,6 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import { ScrollArea } from "~/components/ui/scroll-area";
 
 type valuesDropdownBox = {
   value: string;
@@ -23,11 +24,13 @@ type valuesDropdownBox = {
 
 export function DropdownBox({
   name,
+  label,
   values,
   valueState,
   setValueState,
 }: {
   name: string;
+  label: string;
   values: valuesDropdownBox[];
   valueState: string; // Add the valueState property
   setValueState: React.Dispatch<React.SetStateAction<string>>;
@@ -51,30 +54,33 @@ export function DropdownBox({
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">
         <Command>
-          <CommandInput placeholder="Search framework..." />
-          <CommandEmpty>No framework found.</CommandEmpty>
-          <CommandGroup>
-            {values.map((values) => (
-              <CommandItem
-                key={values.value}
-                value={values.value}
-                onSelect={(currentValue) => {
-                  setValueState(
-                    currentValue === valueState ? "" : currentValue,
-                  );
-                  setOpen(false);
-                }}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    valueState === values.value ? "opacity-100" : "opacity-0",
-                  )}
-                />
-                {values.label}
-              </CommandItem>
-            ))}
-          </CommandGroup>
+          <CommandInput placeholder={`Search ${label}...`} />
+          <CommandEmpty>No {label} found.</CommandEmpty>
+          <ScrollArea className="h-[238px]">
+            <CommandGroup>
+              {values.map((values) => (
+                <CommandItem
+                  key={values.value}
+                  value={values.label}
+                  onSelect={(currentValue) => {
+                    currentValue = values.value;
+                    setValueState(
+                      currentValue === valueState ? "" : currentValue,
+                    );
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      valueState === values.value ? "opacity-100" : "opacity-0",
+                    )}
+                  />
+                  {values.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </ScrollArea>
         </Command>
       </PopoverContent>
     </Popover>

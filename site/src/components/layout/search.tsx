@@ -23,24 +23,12 @@ import type { DateRange } from "react-day-picker";
 import Link from "next/link";
 import router, { useRouter } from "next/router";
 
-const services = [
-  {
-    value: "google",
-    label: "Google",
-  },
-  {
-    value: "apple",
-    label: "Apple",
-  },
-];
-const countries = [
-  {
-    value: "US",
-    label: "United States",
-  },
-];
+import { api } from "~/utils/api";
 
 export const Search = () => {
+  const services = api.grab.grabServices.useQuery().data ?? [];
+  const countries = api.grab.grabCountries.useQuery().data ?? [];
+
   const router = useRouter();
 
   const [service, setService] = React.useState("");
@@ -84,14 +72,13 @@ export const Search = () => {
           <SearchIcon className="h-4 w-4 text-gray-500" />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              {/* <Button className="w-full text-left" id="service" variant="ghost"> */}
               <DropdownBox
                 name="Services"
+                label="Services"
                 values={services}
                 valueState={service}
                 setValueState={setService}
               />
-              {/* </Button> */}
             </DropdownMenuTrigger>
           </DropdownMenu>
         </div>
@@ -100,14 +87,13 @@ export const Search = () => {
           <BuildingIcon className="h-4 w-4 text-gray-500" />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              {/* <Button className="w-full text-left" id="service" variant="ghost"> */}
               <DropdownBox
                 name="Countries"
+                label="Countries"
                 values={countries}
                 valueState={country}
                 setValueState={setCountry}
               />
-              {/* </Button> */}
             </DropdownMenuTrigger>
           </DropdownMenu>
         </div>
