@@ -22,7 +22,7 @@ const config = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "*.cloudfront.net", // works for now :P
+        hostname: "cdn.whereisthegooglecar.xyz", // works for now :P
       },
     ],
   },
