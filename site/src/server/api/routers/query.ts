@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
@@ -14,18 +17,17 @@ export const queryRouter = createTRPCRouter({
   queryByFilter: publicProcedure
     .input(
       z.object({
+        startDate: z.date(),
+        endDate: z.date(),
+
         company: z.string().toLowerCase().optional(),
-        date: z.string().optional(),
-        town: z.string().optional(),
         country: z.string().toUpperCase().optional(),
+
+        town: z.string().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { company, date, town, country } = input;
-
-      const newDate = JSON.parse(date);
-      console.log(newDate);
-      console.log(new Date(newDate.from), new Date(newDate.to));
+      const { company, startDate, endDate, town, country } = input;
 
       const whereClause: any = {};
 
@@ -33,11 +35,15 @@ export const queryRouter = createTRPCRouter({
         whereClause.company = company;
       }
 
-      if (newDate.from && newDate.to) {
-        whereClause.date = {
-          gte: new Date(newDate.from),
-          lte: new Date(newDate.to),
-        };
+      if (startDate && endDate) {
+        const newStartDate = new Date(
+          startDate.getTime() - startDate.getTimezoneOffset() * 60000,
+        );
+        const newEndDate = new Date(
+          endDate.getTime() - endDate.getTimezoneOffset() * 60000,
+        );
+        console.log(newStartDate, newEndDate);
+        whereClause.date = { gte: newStartDate, lte: newEndDate };
       }
 
       if (town) {

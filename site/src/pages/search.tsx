@@ -1,10 +1,12 @@
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import { api } from "~/utils/api";
+import { updateDate } from "~/utils/date";
+import { BaseEntriesPage } from "~/components/layout/entry/entries";
 
 type SearchProps = {
   town?: string;
-  date: [from: string, to: string];
+  date: string;
   services?: string;
   countries?: string;
 };
@@ -18,41 +20,130 @@ export default function Search() {
   const { query, isReady } = useRouter();
   const { town, date, services, countries } = query;
 
+  // date configuration
+  let startDate: Date;
+  let finalDate: Date;
+
+  const currentStartDate = useRef(new Date());
+  const currentEndDate = useRef(new Date());
+
+  const initDate = (date: string) => {
+    if (date) {
+      type DateObject = {
+        from: string;
+        to: string;
+      };
+      const dateObject = JSON.parse(date) as DateObject;
+      startDate = new Date(dateObject.from);
+      finalDate = new Date(dateObject.to);
+
+      currentStartDate.current = new Date(startDate);
+      currentEndDate.current = new Date(finalDate);
+    }
+  };
+
+  const lastMonth = useRef("");
+  const tries = useRef(0);
+
+  // infinite scroll
+  const [page, setPage] = useState(1);
+  const [cardSets, setCardSets] = useState([]);
+  const [continueFetching, setContinueFetching] = useState(true);
+
+  // fetch data
   const dataMutation = api.query.queryByFilter.useMutation({});
 
-  const [data, setData] = useState({});
+  // using usecallback to ensure that the function is not re-created
+  // and permanently remains the same
+  // in other words... to keep fetching data
+  const fetchData = useCallback(async () => {
+    const { currentStartDate: newStartDate, currentEndDate: newEndDate } =
+      updateDate({
+        startDate,
+        finalDate,
+        currentStartDate: currentStartDate.current,
+        currentEndDate: currentEndDate.current,
+        setContinueFetching,
+      });
 
-  const fetchData = async () => {
+    currentStartDate.current = newStartDate;
+    currentEndDate.current = newEndDate;
+
+    const getMonth = (currentStartDate.current.getMonth() + 1).toString();
+    const getYear = currentStartDate.current.getFullYear().toString();
+
+    // stop fetching if the year is less than the maximum year
+    if (!setContinueFetching) {
+      // update date already tells when to stop fetching
+      return;
+    }
+
     try {
-      console.log(0, town, date, services, countries);
-
       const data = await dataMutation.mutateAsync({
         company: services as string,
-        date: date,
+        startDate: currentStartDate.current,
+        endDate: currentEndDate.current,
         town: town as string,
         country: countries as string,
       });
-      console.log(data);
-      setData(data);
-    } catch (error) {
-      console.error(error);
-    }
-  }; // Add router query data as dependencies
 
+      if (data) {
+        // using this as a way to stop an infinite loop
+        // of the same month being spawned
+        if (lastMonth.current !== getMonth || tries.current != 0) {
+          // append to cardSets
+          setCardSets((prevCardSets) => [
+            ...prevCardSets,
+            {
+              data: data,
+              month: getMonth,
+              year: getYear,
+            },
+          ]);
+          // increment page
+          setPage((prevPage) => prevPage + 1);
+        }
+
+        lastMonth.current = getMonth;
+        tries.current = 0;
+      }
+    } catch (error) {
+      // re-run if no data is found
+      void fetchData();
+      tries.current++;
+      return;
+    }
+  }, []);
+
+  // fetch data when query is ready
   useEffect(() => {
     if (isReady) {
-      console.log(town, date, services, countries);
+      void initDate(date);
       void fetchData();
     }
   }, [isReady]);
 
-  if (!isReady || JSON.stringify(data) === "{}") {
-    return <div>Loading...</div>;
-  }
+  // add more data if first fetched data has less than 6
+  // to ensure that scrolling works in higher resolutions
+  // ...might have to use other iterations as well
+  useEffect(() => {
+    if (
+      cardSets.length === 1 &&
+      cardSets[0]?.data?.length < 6 &&
+      window.innerWidth >= 1024 // only for desktop
+    ) {
+      void fetchData();
+    }
+  }, [cardSets]);
 
   return (
-    <div>
-      <p>{JSON.stringify(data)}</p>
-    </div>
+    <BaseEntriesPage
+      {...{
+        cardSets,
+        fetchData,
+        continueFetching,
+        showCompany: true,
+      }}
+    />
   );
 }
