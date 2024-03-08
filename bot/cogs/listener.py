@@ -87,6 +87,7 @@ class Listener(commands.Cog, name="listener"):
           # process service
           if spotting['service'] == None:
             spotting['service'] = channels[channel_index]['company']
+          spotting['service'] = str(spotting['service']).lower()
             
           # remove month cache if date has changed
           before_date = message_db['date']
