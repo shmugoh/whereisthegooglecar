@@ -11,6 +11,67 @@ BigInt.prototype.toJSON = function () {
 };
 
 export const queryRouter = createTRPCRouter({
+  queryByFilter: publicProcedure
+    .input(
+      z.object({
+        company: z.string().toLowerCase().optional(),
+        date: z.string().optional(),
+        town: z.string().optional(),
+        country: z.string().toUpperCase().optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { company, date, town, country } = input;
+
+      const newDate = JSON.parse(date);
+      console.log(newDate);
+      console.log(new Date(newDate.from), new Date(newDate.to));
+
+      const whereClause: any = {};
+
+      if (company) {
+        whereClause.company = company;
+      }
+
+      if (newDate.from && newDate.to) {
+        whereClause.date = {
+          gte: new Date(newDate.from),
+          lte: new Date(newDate.to),
+        };
+      }
+
+      if (town) {
+        whereClause.town = {
+          contains: town,
+          mode: "insensitive",
+        };
+      }
+
+      if (country) {
+        whereClause.country = country;
+      }
+
+      console.log(country);
+
+      const data = await ctx.db.spottings
+        .findMany({
+          where: whereClause,
+          orderBy: { date: "desc" },
+        })
+        .then((data) => {
+          if (data.length === 0) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: `No data found`,
+            });
+          } else {
+            return data;
+          }
+        });
+
+      return data;
+    }),
+
   queryByMonth: publicProcedure
     .input(
       z.object({
