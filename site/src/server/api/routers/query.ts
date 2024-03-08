@@ -102,8 +102,8 @@ export const queryRouter = createTRPCRouter({
       }
 
       // loads from database if cache is empty
-      const startDate = new Date(`${year}-${month}-01`);
-      const endDate = new Date(`${year}-${month}-31`);
+      const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+      const endDate = new Date(parseInt(year), parseInt(month), 0);
       const data = await ctx.db.spottings
         .findMany({
           where: {
