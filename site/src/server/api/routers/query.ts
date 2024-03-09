@@ -42,7 +42,6 @@ export const queryRouter = createTRPCRouter({
         const newEndDate = new Date(
           endDate.getTime() - endDate.getTimezoneOffset() * 60000,
         );
-        console.log(newStartDate, newEndDate);
         whereClause.date = { gte: newStartDate, lte: newEndDate };
       }
 
@@ -56,8 +55,6 @@ export const queryRouter = createTRPCRouter({
       if (country) {
         whereClause.country = country;
       }
-
-      console.log(country);
 
       const data = await ctx.db.spottings
         .findMany({
