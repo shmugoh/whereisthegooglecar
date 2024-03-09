@@ -75,7 +75,15 @@ export default function Page(
   }
 }
 
-export const getServerSideProps = async ({
+export const getStaticPaths = async () => {
+  // fallback: 'blocking' will generate not-yet-generated pages on-demand
+  return {
+    fallback: "blocking",
+    paths: [], // Add an empty array as the value for paths
+  };
+};
+
+export const getStaticProps = async ({
   params,
 }: {
   params: { id: string };
@@ -120,6 +128,10 @@ export const getServerSideProps = async ({
           props: {
             data,
           },
+          // Next.js will attempt to regenerate the page:
+          // - When a request comes in
+          // - At most once every second
+          revalidate: 1, // In seconds
         };
       }
     } catch (error) {
