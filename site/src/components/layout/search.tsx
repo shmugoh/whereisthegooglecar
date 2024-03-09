@@ -55,6 +55,53 @@ export const Search = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        {/* Service and Country */}
+        <div className="flex w-full">
+          {/* Service */}
+          <div className="flex w-1/2 items-center gap-2 p-2">
+            <SearchIcon className="h-4 w-4 text-gray-500" />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <DropdownBox
+                  name="Service"
+                  label="Service"
+                  values={services}
+                  valueState={service}
+                  setValueState={setService}
+                />
+              </DropdownMenuTrigger>
+            </DropdownMenu>
+          </div>
+          {/* <DropdownMenuSeparator /> */}
+          {/* Country */}
+          <div className="flex w-1/2 items-center gap-2 p-2">
+            <BuildingIcon className="h-4 w-4 text-gray-500" />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <DropdownBox
+                  name="Country"
+                  label="Country"
+                  values={countries}
+                  valueState={country}
+                  setValueState={setCountry}
+                />
+              </DropdownMenuTrigger>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        <DropdownMenuSeparator />
+
+        {/* Date */}
+        <div className="flex items-center gap-2 p-2">
+          <CalendarIcon className="h-4 w-4 text-gray-500" />
+          <Calendar dateState={date} setDateState={setDate} />
+          {/* <Input id="date" placeholder="Search by Date" type="date" /> */}
+        </div>
+
+        <DropdownMenuSeparator />
+
+        {/* Town */}
         <div className="flex items-center gap-2 p-2">
           <SearchIcon className="h-4 w-4 text-gray-500" />
           <Input
@@ -66,43 +113,9 @@ export const Search = () => {
             }}
           />
         </div>
+
         <DropdownMenuSeparator />
-        <div className="flex items-center gap-2 p-2">
-          <CalendarIcon className="h-4 w-4 text-gray-500" />
-          <Calendar dateState={date} setDateState={setDate} />
-          {/* <Input id="date" placeholder="Search by Date" type="date" /> */}
-        </div>
-        <DropdownMenuSeparator />
-        <div className="flex items-center gap-2 p-2">
-          <SearchIcon className="h-4 w-4 text-gray-500" />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <DropdownBox
-                name="Services"
-                label="Services"
-                values={services}
-                valueState={service}
-                setValueState={setService}
-              />
-            </DropdownMenuTrigger>
-          </DropdownMenu>
-        </div>
-        <DropdownMenuSeparator />
-        <div className="flex items-center gap-2 p-2">
-          <BuildingIcon className="h-4 w-4 text-gray-500" />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <DropdownBox
-                name="Countries"
-                label="Countries"
-                values={countries}
-                valueState={country}
-                setValueState={setCountry}
-              />
-            </DropdownMenuTrigger>
-          </DropdownMenu>
-        </div>
-        <DropdownMenuSeparator />
+
         <div className="flex items-center gap-2 p-2">
           <Button asChild className="w-full text-left" id="service">
             <Link
