@@ -1,25 +1,37 @@
 import React from "react";
-import { type InferGetServerSidePropsType } from "next/types";
-import Error from "next/error";
-
+import { NextSeo } from "next-seo";
+import { type InferGetServerSidePropsType } from "next";
 import { appRouter } from "~/server/api/root";
+
 import { db } from "~/server/db";
 import { PageComponent } from "~/components/layout/entry/page";
-import Head from "next/head";
-
+import { convertDate } from "~/utils/date";
 import { env } from "~/env";
 
-import { convertDate } from "~/utils/date";
-
-import { NextSeo } from "next-seo";
+interface IData {
+  id: number;
+  date: string;
+  town: string;
+  country: string;
+  countryEmoji: string;
+  imageUrl: string;
+  sourceUrl: string;
+  locationUrl: string | null;
+  company: string;
+  createdAt: string;
+  updatedAt: string;
+  message_id: string;
+  channel_id: string;
+}
 
 export default function Page(
-  props: InferGetServerSidePropsType<typeof getServerSideProps>,
+  props: InferGetServerSidePropsType<typeof getStaticProps>,
 ) {
   if (props.data) {
     // format date
     const dateFormatted = convertDate(props.data.date);
 
+    // format service for SEO
     const SERVICE = (() => {
       switch (props.data.company) {
         case "google":
@@ -30,9 +42,10 @@ export default function Page(
           return "Street View";
         default:
           return (
+            // capitalize first letter
             props.data.company.charAt(0).toUpperCase() +
             props.data.company.slice(1)
-          ); // capitalize first letter
+          );
       }
     })();
 
@@ -75,7 +88,15 @@ export default function Page(
   }
 }
 
-export const getServerSideProps = async ({
+export const getStaticPaths = async () => {
+  // fallback: 'blocking' will generate not-yet-generated pages on-demand
+  return {
+    fallback: "blocking",
+    paths: [], // Add an empty array as the value for paths
+  };
+};
+
+export const getStaticProps = async ({
   params,
 }: {
   params: { id: string };
@@ -93,25 +114,10 @@ export const getServerSideProps = async ({
     try {
       const getById = await caller.query.getById({ id });
 
-      // fix JSON serialization issues
-      // ...and return data
-      if (getById) {
-        // TODO: pass getById's type over
-        const data: {
-          id: number;
-          date: string;
-          town: string;
-          country: string;
-          countryEmoji: string;
-          imageUrl: string;
-          sourceUrl: string;
-          locationUrl: string | null;
-          company: string;
-          createdAt: string;
-          updatedAt: string;
-          message_id: string;
-          channel_id: string;
-        } = { ...getById };
+      if (getById && typeof getById === "object") {
+        const data: IData = {
+          ...(getById as IData),
+        };
 
         // add CDN url to imageUrl (location)
         data.imageUrl = `${env.NEXT_PUBLIC_CDN_URL}/${data.imageUrl}`;
@@ -120,6 +126,7 @@ export const getServerSideProps = async ({
           props: {
             data,
           },
+          revalidate: 60,
         };
       }
     } catch (error) {
