@@ -97,7 +97,9 @@ export const SpottingCard = (props: cardProps) => {
           </div>
           <div className="flex items-center md:w-1/3">
             <Button className="flex h-full w-full items-center" asChild>
-              <Link href={`/spotting/${props.id}`}>Info</Link>
+              <Link prefetch={false} href={`/spotting/${props.id}`}>
+                Info
+              </Link>
             </Button>
           </div>
         </CardFooter>

@@ -12,6 +12,7 @@ import { env } from "~/env";
 import { convertDate } from "~/utils/date";
 
 import { NextSeo } from "next-seo";
+import { type getServerSideProps } from "next/dist/build/templates/pages";
 
 export default function Page(
   props: InferGetServerSidePropsType<typeof getServerSideProps>,
@@ -128,10 +129,7 @@ export const getStaticProps = async ({
           props: {
             data,
           },
-          // Next.js will attempt to regenerate the page:
-          // - When a request comes in
-          // - At most once every second
-          revalidate: 1, // In seconds
+          revalidate: 60,
         };
       }
     } catch (error) {
