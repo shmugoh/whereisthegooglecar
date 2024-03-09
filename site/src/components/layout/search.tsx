@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { useRouter } from "next/router";
+import type { DateRange } from "react-day-picker";
 import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
@@ -6,23 +8,14 @@ import {
   DropdownMenu,
 } from "~/components/ui/dropdown-menu";
 import { Input } from "~/components/ui/input";
+import { Button } from "~/components/ui/button";
+import { DropdownBox } from "~/components/layout/combobox";
 import {
   CalendarIcon,
   SearchIcon,
   Building2 as BuildingIcon,
 } from "lucide-react";
-
-import { Button } from "~/components/ui/button";
-
-import { DropdownBox } from "~/components/layout/combobox";
-
 import { DatePickerWithRange as Calendar } from "./calendar";
-
-import type { DateRange } from "react-day-picker";
-
-import Link from "next/link";
-import router, { useRouter } from "next/router";
-
 import { api } from "~/utils/api";
 
 export const Search = () => {
@@ -30,6 +23,19 @@ export const Search = () => {
   const countries = api.grab.grabCountries.useQuery().data ?? [];
 
   const router = useRouter();
+  const handleSearch = async () => {
+    const query = {
+      town: town,
+      date: JSON.stringify(processDate(date)),
+      services: service,
+      countries: country,
+    };
+
+    await router.replace({
+      pathname: "/search",
+      query: query,
+    });
+  };
 
   const [service, setService] = React.useState("");
   const [country, setCountry] = React.useState("");
@@ -117,16 +123,12 @@ export const Search = () => {
         <DropdownMenuSeparator />
 
         <div className="flex items-center gap-2 p-2">
-          <Button asChild className="w-full text-left" id="service">
-            <Link
-              href={`/search?town=${town}&date=${JSON.stringify(processDate(date))}&services=${service}&countries=${country}`}
-              passHref
-              onClick={() =>
-                router.route === "/search" ? router.reload() : undefined
-              }
-            >
-              Search
-            </Link>
+          <Button
+            className="w-full text-left"
+            id="service"
+            onClick={handleSearch}
+          >
+            Search
           </Button>
         </div>
       </DropdownMenuContent>

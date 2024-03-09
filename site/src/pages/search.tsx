@@ -1,8 +1,10 @@
 import React, { useCallback, useState, useEffect, useRef } from "react";
-import { useRouter } from "next/router";
 import { api } from "~/utils/api";
 import { updateDate } from "~/utils/date";
 import { BaseEntriesPage } from "~/components/layout/entry/entries";
+import { useRouter } from "next/router";
+
+import type { GetServerSidePropsContext } from "next";
 
 type SearchProps = {
   town?: string;
@@ -16,9 +18,13 @@ BigInt.prototype.toJSON = function () {
   return int ?? this.toString();
 };
 
-export default function Search() {
-  const { query, isReady } = useRouter();
-  const { town, date, services, countries } = query;
+export default function Search({
+  town,
+  date,
+  services,
+  countries,
+}: SearchProps) {
+  const router = useRouter();
 
   // date configuration
   let startDate: Date;
@@ -80,11 +86,11 @@ export default function Search() {
 
     try {
       const data = await dataMutation.mutateAsync({
-        company: services as string,
+        company: services!,
         startDate: currentStartDate.current,
         endDate: currentEndDate.current,
-        town: town as string,
-        country: countries as string,
+        town: town!,
+        country: countries!,
       });
 
       if (data) {
@@ -113,15 +119,13 @@ export default function Search() {
       tries.current++;
       return;
     }
-  }, []);
+  }, [services, town, countries]);
 
   // fetch data when query is ready
   useEffect(() => {
-    if (isReady) {
-      void initDate(date);
-      void fetchData();
-    }
-  }, [isReady]);
+    void initDate(date);
+    void fetchData();
+  }, [date, services, town, countries]);
 
   // add more data if first fetched data has less than 6
   // to ensure that scrolling works in higher resolutions
@@ -136,6 +140,22 @@ export default function Search() {
     }
   }, [cardSets]);
 
+  // re-fetch new data if route chanegs
+  // aka, when new data is given from saearch component
+  useEffect(() => {
+    const handleRouteChange = () => {
+      setCardSets([]);
+      setPage(1);
+      void fetchData();
+    };
+
+    router.events.on("routeChangeComplete", handleRouteChange);
+
+    return () => {
+      router.events.off("routeChangeComplete", handleRouteChange);
+    };
+  }, [router.events]);
+
   return (
     <BaseEntriesPage
       {...{
@@ -147,3 +167,18 @@ export default function Search() {
     />
   );
 }
+
+export const getServerSideProps = async (
+  context: GetServerSidePropsContext,
+) => {
+  const { town, date, services, countries } = context.query;
+
+  return {
+    props: {
+      town,
+      date,
+      services,
+      countries,
+    },
+  };
+};
