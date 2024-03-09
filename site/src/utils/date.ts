@@ -47,17 +47,25 @@ export function updateDate({
     );
     currentEndDate = new Date(
       currentEndDate.getFullYear(),
-      currentEndDate.getMonth() + 1,
-      0,
+      currentEndDate.getMonth(),
+      currentEndDate.getDate(),
     );
     console.log(currentStartDate, currentEndDate);
     return { currentStartDate, currentEndDate };
   }
 
   // if current start date matches month and year
+
+  // simulate decrementing by one month
+  const buffCurrentStartDate = new Date(
+    currentStartDate.getFullYear(),
+    currentStartDate.getMonth() - 1,
+    1,
+  );
+
   if (
-    currentStartDate.getMonth() - 1 === startDate.getMonth() &&
-    currentStartDate.getFullYear() === startDate.getFullYear()
+    buffCurrentStartDate.getMonth() === startDate.getMonth() &&
+    buffCurrentStartDate.getFullYear() === startDate.getFullYear()
     // might not work well if dec <- jan
   ) {
     console.log("Exact Month and Year... Stop fetching");
