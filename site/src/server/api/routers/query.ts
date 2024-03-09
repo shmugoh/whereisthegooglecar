@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
@@ -11,6 +14,70 @@ BigInt.prototype.toJSON = function () {
 };
 
 export const queryRouter = createTRPCRouter({
+  queryByFilter: publicProcedure
+    .input(
+      z.object({
+        startDate: z.date(),
+        endDate: z.date(),
+
+        company: z.string().toLowerCase().optional(),
+        country: z.string().toUpperCase().optional(),
+
+        town: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { company, startDate, endDate, town, country } = input;
+
+      const whereClause: any = {};
+
+      if (company) {
+        whereClause.company = company;
+      }
+
+      if (startDate && endDate) {
+        const newStartDate = new Date(
+          startDate.getTime() - startDate.getTimezoneOffset() * 60000,
+        );
+        const newEndDate = new Date(
+          endDate.getTime() - endDate.getTimezoneOffset() * 60000,
+        );
+        console.log(newStartDate, newEndDate);
+        whereClause.date = { gte: newStartDate, lte: newEndDate };
+      }
+
+      if (town) {
+        whereClause.town = {
+          contains: town,
+          mode: "insensitive",
+        };
+      }
+
+      if (country) {
+        whereClause.country = country;
+      }
+
+      console.log(country);
+
+      const data = await ctx.db.spottings
+        .findMany({
+          where: whereClause,
+          orderBy: { date: "desc" },
+        })
+        .then((data) => {
+          if (data.length === 0) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: `No data found`,
+            });
+          } else {
+            return data;
+          }
+        });
+
+      return data;
+    }),
+
   queryByMonth: publicProcedure
     .input(
       z.object({
@@ -35,8 +102,8 @@ export const queryRouter = createTRPCRouter({
       }
 
       // loads from database if cache is empty
-      const startDate = new Date(`${year}-${month}-01`);
-      const endDate = new Date(`${year}-${month}-31`);
+      const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+      const endDate = new Date(parseInt(year), parseInt(month), 0);
       const data = await ctx.db.spottings
         .findMany({
           where: {

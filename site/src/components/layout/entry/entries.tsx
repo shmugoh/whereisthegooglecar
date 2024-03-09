@@ -10,6 +10,37 @@ type EntriesPageProps = {
   maxYear?: number;
 };
 
+type BaseEntriesPageProps = {
+  cardSets: never[];
+  fetchData: () => void;
+  continueFetching: boolean;
+  showCompany?: boolean;
+};
+
+export function BaseEntriesPage(props: BaseEntriesPageProps) {
+  return (
+    <InfiniteScroll
+      dataLength={props.cardSets.length}
+      next={props.fetchData}
+      hasMore={props.continueFetching}
+      className="flex w-full flex-col items-center gap-4"
+      loader={<HomeSkeleton />}
+    >
+      {props.cardSets.map((data, index) => (
+        <CardSet
+          key={index}
+          month={new Date(0, Number(data.month) - 1).toLocaleString("default", {
+            month: "long",
+          })}
+          year={data.year}
+          info={data.data}
+          showCompany={props.showCompany}
+        />
+      ))}
+    </InfiniteScroll>
+  );
+}
+
 export default function EntriesPage(props: EntriesPageProps) {
   // date configuration
   const currentDate = new Date();
@@ -101,24 +132,13 @@ export default function EntriesPage(props: EntriesPageProps) {
   }, [cardSets]);
 
   return (
-    <InfiniteScroll
-      dataLength={cardSets.length}
-      next={fetchData}
-      hasMore={continueFetching}
-      className="flex w-full flex-col items-center gap-4"
-      loader={<HomeSkeleton />}
-    >
-      {cardSets.map((data, index) => (
-        <CardSet
-          key={index}
-          month={new Date(0, Number(data.month) - 1).toLocaleString("default", {
-            month: "long",
-          })}
-          year={data.year}
-          info={data.data}
-          showCompany={props.showCompany}
-        />
-      ))}
-    </InfiniteScroll>
+    <BaseEntriesPage
+      {...{
+        cardSets,
+        fetchData,
+        continueFetching,
+        showCompany: props.showCompany,
+      }}
+    />
   );
 }
