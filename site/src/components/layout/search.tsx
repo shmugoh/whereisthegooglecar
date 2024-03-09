@@ -34,10 +34,16 @@ export const Search = () => {
   const [service, setService] = React.useState("");
   const [country, setCountry] = React.useState("");
   const [date, setDate] = React.useState<DateRange | undefined>({
-    from: new Date(),
-    to: new Date(),
+    from: undefined,
+    to: undefined,
   });
   const [town, setTown] = React.useState("");
+
+  const processDate = (date: DateRange | undefined) => {
+    if (date?.from == undefined && date?.to == undefined)
+      return { from: new Date("2005-01-01"), to: new Date() };
+    return { from: date?.from, to: date?.to };
+  };
 
   return (
     <DropdownMenu>
@@ -57,7 +63,6 @@ export const Search = () => {
             placeholder="Search by Town"
             onChange={(e) => {
               setTown(e.target.value);
-              console.log(e.target.value);
             }}
           />
         </div>
@@ -101,7 +106,7 @@ export const Search = () => {
         <div className="flex items-center gap-2 p-2">
           <Button asChild className="w-full text-left" id="service">
             <Link
-              href={`/search?town=${town}&date=${JSON.stringify(date)}&services=${service}&countries=${country}`}
+              href={`/search?town=${town}&date=${JSON.stringify(processDate(date))}&services=${service}&countries=${country}`}
               passHref
               onClick={() =>
                 router.route === "/search" ? router.reload() : undefined
