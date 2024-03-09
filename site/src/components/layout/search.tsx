@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/router";
 import type { DateRange } from "react-day-picker";
 import {
@@ -48,8 +48,15 @@ export const Search = () => {
   const processDate = (date: DateRange | undefined) => {
     if (date?.from == undefined && date?.to == undefined)
       return { from: new Date("2005-01-01"), to: new Date() };
+    if (date.from && date.to == undefined) {
+      return { from: date.from, to: date.from };
+    }
     return { from: date?.from, to: date?.to };
   };
+
+  useEffect(() => {
+    console.log(date);
+  }, [date]);
 
   return (
     <DropdownMenu>
