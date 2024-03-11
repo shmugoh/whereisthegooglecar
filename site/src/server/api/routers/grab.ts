@@ -70,4 +70,16 @@ export const grabRouter = createTRPCRouter({
     });
     return res;
   }),
+
+  grabFirstDate: publicProcedure.query(async ({ ctx }) => {
+    const grabFirstDate = await ctx.db.spottings.findFirst({
+      select: {
+        date: true,
+      },
+      orderBy: {
+        date: "asc",
+      },
+    });
+    return grabFirstDate;
+  }),
 });

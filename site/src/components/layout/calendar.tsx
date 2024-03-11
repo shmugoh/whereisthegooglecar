@@ -1,40 +1,30 @@
-"use client";
-
 import * as React from "react";
-import { addDays, format } from "date-fns";
-import type { DateRange } from "react-day-picker";
-import { CaptionProps, DayPicker, useNavigation } from "react-day-picker";
-
 import {
+  addDays,
+  format,
   eachYearOfInterval,
   getYear,
   getMonth,
   startOfYear,
   endOfYear,
   eachMonthOfInterval,
-  startOfMonth,
-  endOfMonth,
 } from "date-fns";
-
-import { buttonVariants } from "~/components/ui/button";
+import type { DateRange } from "react-day-picker";
+import { type CaptionProps, useNavigation } from "react-day-picker";
+import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { cn } from "~/lib/utils";
-import { Button } from "~/components/ui/button";
+import { buttonVariants, Button } from "~/components/ui/button";
 import { Calendar } from "~/components/ui/calendar";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "~/components/ui/command";
+import { Command, CommandGroup, CommandItem } from "~/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { Check, ChevronLeft, ChevronRight, ChevronsUpDown } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
+
+import { api } from "~/utils/api";
 
 export function DatePickerWithRange({
   className,
@@ -92,14 +82,25 @@ export function DatePickerWithRange({
 }
 
 function CustomCaption(props: CaptionProps) {
-  const { goToMonth, nextMonth, previousMonth } = useNavigation();
+  // grab first date from the database
+  const firstDateRequest = api.grab.grabFirstDate.useQuery().data;
+  let firstDate: Date;
+  if (firstDateRequest?.date) {
+    firstDate = new Date(
+      firstDateRequest.date.getUTCFullYear(),
+      firstDateRequest.date.getUTCMonth(),
+    );
+  } else {
+    firstDate = new Date(2006, 0);
+  }
 
+  // handle navigation
+  const { goToMonth, nextMonth, previousMonth } = useNavigation();
   const handlePreviousMonth = () => {
     if (previousMonth) {
       goToMonth(previousMonth);
     }
   };
-
   const handleNextMonth = () => {
     if (nextMonth) {
       goToMonth(nextMonth);
@@ -121,6 +122,7 @@ function CustomCaption(props: CaptionProps) {
         <ChevronLeft className="" />
       </button>
       <div className="flex gap-1 text-sm font-medium">
+        {/* Months */}
         <PopoverDatePicker
           name={format(props.displayMonth, "MMMM")}
           values={eachMonthOfInterval({
@@ -134,10 +136,11 @@ function CustomCaption(props: CaptionProps) {
             goToMonth(new Date(getYear(props.displayMonth), month))
           }
         />
+        {/* Year */}
         <PopoverDatePicker
           name={format(props.displayMonth, "Y")}
           values={eachYearOfInterval({
-            start: startOfYear(new Date(2006, 0)),
+            start: startOfYear(firstDate),
             end: endOfYear(new Date()),
           })
             .map((year) => ({
