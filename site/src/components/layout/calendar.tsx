@@ -3,6 +3,9 @@
 import * as React from "react";
 import { addDays, format } from "date-fns";
 import type { DateRange } from "react-day-picker";
+import { CaptionProps, DayPicker, useNavigation } from "react-day-picker";
+
+import { buttonVariants } from "~/components/ui/button";
 
 import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
@@ -12,6 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export function DatePickerWithRange({
   className,
@@ -56,9 +60,58 @@ export function DatePickerWithRange({
             selected={dateState}
             onSelect={setDateState}
             numberOfMonths={1}
+            fromYear={2006}
+            toDate={addDays(new Date(), 0)}
+            components={{
+              Caption: CustomCaption,
+            }}
           />
         </PopoverContent>
       </Popover>
     </div>
+  );
+}
+
+function CustomCaption(props: CaptionProps) {
+  const { goToMonth, nextMonth, previousMonth } = useNavigation();
+
+  const handlePreviousMonth = () => {
+    if (previousMonth) {
+      goToMonth(previousMonth);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (nextMonth) {
+      goToMonth(nextMonth);
+    }
+  };
+
+  const buttonClass = cn(
+    buttonVariants({ variant: "outline" }),
+    "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+  );
+
+  return (
+    <h2 className="relative flex items-center justify-center pt-1">
+      <button
+        className={cn("absolute left-1", buttonClass)}
+        disabled={!previousMonth}
+        onClick={handlePreviousMonth}
+      >
+        <ChevronLeft className="" />
+      </button>
+      <div className="flex gap-1 text-sm font-medium">
+        <p>{format(props.displayMonth, "MMMM")}</p>
+        <p className="">{format(props.displayMonth, "Y")}</p>
+      </div>
+      <button
+        className={cn("absolute right-1", buttonClass)}
+        disabled={!nextMonth}
+        onClick={handleNextMonth}
+      >
+        <ChevronRight className="" />
+      </button>
+    </h2>
   );
 }
