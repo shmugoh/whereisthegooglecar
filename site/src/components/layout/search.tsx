@@ -89,8 +89,6 @@ export const Search = () => {
       // else if none
       | undefined,
   ) => {
-    console.log(date);
-
     /// if both are empty, set default
     if (date?.from == undefined && date?.to == undefined)
       return { from: new Date(firstDate), to: new Date() };

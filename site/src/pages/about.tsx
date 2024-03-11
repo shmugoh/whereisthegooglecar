@@ -46,7 +46,7 @@ export default function about() {
             Sightings! Our contributions are made by enthusiasts who love Google
             Street View. Since 2020, we have been monitoring Google Street View
             Vehicle Spottings that are being identified and shared online, and
-            our documentation extends back to 2013. We also document sightings
+            our documentation extends back to 2007. We also document sightings
             of other Street View services, such as Apple Maps.
           </p>
 

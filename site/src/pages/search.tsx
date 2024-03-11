@@ -29,10 +29,9 @@ export default function Search({
   // date configuration
   let startDate: Date;
   let finalDate: Date;
-
+  /// buffers
   const currentStartDate = useRef(new Date());
   const currentEndDate = useRef(new Date());
-
   const initDate = (date: string) => {
     if (date) {
       type DateObject = {
@@ -62,7 +61,10 @@ export default function Search({
   // using usecallback to ensure that the function is not re-created
   // and permanently remains the same
   // in other words... to keep fetching data
+  const isMounted = useRef(true);
   const fetchData = useCallback(async () => {
+    if (!isMounted.current) return;
+
     const { currentStartDate: newStartDate, currentEndDate: newEndDate } =
       updateDate({
         startDate,
@@ -149,12 +151,24 @@ export default function Search({
       void fetchData();
     };
 
+    isMounted.current = true;
     router.events.on("routeChangeComplete", handleRouteChange);
 
     return () => {
+      isMounted.current = false;
       router.events.off("routeChangeComplete", handleRouteChange);
     };
-  }, [router.events]);
+  }, [fetchData, router.events]);
+
+  // clear all data when component is unmounted
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+      setCardSets([]);
+      setPage(1);
+    };
+  }, []);
 
   return (
     <BaseEntriesPage
