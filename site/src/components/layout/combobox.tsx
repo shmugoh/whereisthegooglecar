@@ -26,14 +26,14 @@ export function DropdownBox({
   name,
   label,
   values,
-  valueState,
-  setValueState,
+  value,
+  onChange,
 }: {
   name: string;
   label: string;
   values: valuesDropdownBox[];
-  valueState: string; // Add the valueState property
-  setValueState: React.Dispatch<React.SetStateAction<string>>;
+  value: string | undefined; // Add the valueState property
+  onChange: (value: string) => void;
 }) {
   const [open, setOpen] = React.useState(false);
 
@@ -46,8 +46,8 @@ export function DropdownBox({
           aria-expanded={open}
           className="w-full justify-between"
         >
-          {valueState
-            ? values.find((values) => values.value === valueState)?.label
+          {value
+            ? values.find((values) => values.value === value)?.label
             : name}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -64,16 +64,14 @@ export function DropdownBox({
                   value={values.label}
                   onSelect={(currentValue) => {
                     currentValue = values.value;
-                    setValueState(
-                      currentValue === valueState ? "" : currentValue,
-                    );
+                    onChange(currentValue === value ? "" : currentValue);
                     setOpen(false);
                   }}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      valueState === values.value ? "opacity-100" : "opacity-0",
+                      value === values.value ? "opacity-100" : "opacity-0",
                     )}
                   />
                   {values.label}

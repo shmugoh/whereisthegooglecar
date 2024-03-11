@@ -28,13 +28,25 @@ import { api } from "~/utils/api";
 
 export function DatePickerWithRange({
   className,
-  dateState,
-  setDateState,
+  value,
+  onChange,
 }: {
   className?: string;
-  dateState?: DateRange;
-  setDateState: React.Dispatch<React.SetStateAction<DateRange | undefined>>;
+  value?: // if type matches z.object
+  | {
+        from?: Date | undefined;
+        to?: Date | undefined;
+      }
+    // else if none
+    | undefined;
+  onChange: (value: DateRange) => void;
 }) {
+  // destructure from and to from value
+  const { from, to } = value ?? {
+    from: undefined,
+    to: undefined,
+  };
+
   return (
     <div className={cn("grid gap-2", className)}>
       <Popover>
@@ -44,17 +56,16 @@ export function DatePickerWithRange({
             variant={"outline"}
             className={cn(
               "w-[300px] justify-start text-left font-normal",
-              !dateState && "text-muted-foreground",
+              !value && "text-muted-foreground",
             )}
           >
-            {dateState?.from ? (
-              dateState.to ? (
+            {from ? (
+              to ? (
                 <>
-                  {format(dateState.from, "LLL dd, y")} -{" "}
-                  {format(dateState.to, "LLL dd, y")}
+                  {format(from, "LLL dd, y")} - {format(to, "LLL dd, y")}
                 </>
               ) : (
-                format(dateState.from, "LLL dd, y")
+                format(from, "LLL dd, y")
               )
             ) : (
               <span className="text-muted-foreground">Pick a date</span>
@@ -65,9 +76,13 @@ export function DatePickerWithRange({
           <Calendar
             initialFocus
             mode="range"
-            defaultMonth={dateState?.from}
-            selected={dateState}
-            onSelect={setDateState}
+            defaultMonth={from}
+            selected={{ from, to }}
+            onSelect={(value) => {
+              if (value) {
+                onChange(value);
+              }
+            }}
             numberOfMonths={1}
             fromYear={2006}
             toDate={addDays(new Date(), 0)}
@@ -80,7 +95,6 @@ export function DatePickerWithRange({
     </div>
   );
 }
-
 function CustomCaption(props: CaptionProps) {
   // grab first date from the database
   const firstDateRequest = api.grab.grabFirstDate.useQuery().data;
