@@ -5,17 +5,36 @@ import { addDays, format } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import { CaptionProps, DayPicker, useNavigation } from "react-day-picker";
 
+import {
+  eachYearOfInterval,
+  getYear,
+  getMonth,
+  startOfYear,
+  endOfYear,
+  eachMonthOfInterval,
+  startOfMonth,
+  endOfMonth,
+} from "date-fns";
+
 import { buttonVariants } from "~/components/ui/button";
 
 import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 import { Calendar } from "~/components/ui/calendar";
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "~/components/ui/command";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, ChevronsUpDown } from "lucide-react";
+import { ScrollArea } from "../ui/scroll-area";
 
 export function DatePickerWithRange({
   className,
@@ -102,8 +121,35 @@ function CustomCaption(props: CaptionProps) {
         <ChevronLeft className="" />
       </button>
       <div className="flex gap-1 text-sm font-medium">
-        <p>{format(props.displayMonth, "MMMM")}</p>
-        <p className="">{format(props.displayMonth, "Y")}</p>
+        <PopoverDatePicker
+          name={format(props.displayMonth, "MMMM")}
+          values={eachMonthOfInterval({
+            start: startOfYear(new Date()),
+            end: endOfYear(new Date()),
+          }).map((month) => ({
+            value: getMonth(month),
+            label: format(month, "MMMM"),
+          }))}
+          onChange={(month) =>
+            goToMonth(new Date(getYear(props.displayMonth), month))
+          }
+        />
+        <PopoverDatePicker
+          name={format(props.displayMonth, "Y")}
+          values={eachYearOfInterval({
+            start: startOfYear(new Date(2006, 0)),
+            end: endOfYear(new Date()),
+          })
+            .map((year) => ({
+              value: getYear(year),
+              label: format(year, "Y"),
+            }))
+            // order by most recent year
+            .sort((a, b) => b.value - a.value)}
+          onChange={(year) =>
+            goToMonth(new Date(year, getMonth(props.displayMonth)))
+          }
+        />
       </div>
       <button
         className={cn("absolute right-1", buttonClass)}
@@ -113,5 +159,61 @@ function CustomCaption(props: CaptionProps) {
         <ChevronRight className="" />
       </button>
     </h2>
+  );
+}
+
+export function PopoverDatePicker({
+  name,
+  values,
+  onChange,
+}: {
+  name: string;
+  values: { value: number; label: string }[];
+  onChange: (value: number) => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [valueState, setValueState] = React.useState<number | null>(null);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between"
+        >
+          {name}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[200px] p-0">
+        <Command>
+          <ScrollArea className="h-[238px]">
+            <CommandGroup>
+              {values.map((value) => (
+                <CommandItem
+                  key={value.value}
+                  value={value.label}
+                  onSelect={() => {
+                    setValueState(value.value);
+                    onChange(value.value);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      valueState === value.value ? "opacity-100" : "opacity-0",
+                    )}
+                  />
+                  {value.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </ScrollArea>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
