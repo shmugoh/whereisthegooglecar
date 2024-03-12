@@ -1,4 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useRouter } from "next/router";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
 import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
@@ -6,129 +11,203 @@ import {
   DropdownMenu,
 } from "~/components/ui/dropdown-menu";
 import { Input } from "~/components/ui/input";
-import {
-  CalendarIcon,
-  SearchIcon,
-  Building2 as BuildingIcon,
-} from "lucide-react";
-
 import { Button } from "~/components/ui/button";
-
+import { Form, FormControl, FormField } from "~/components/ui/form";
 import { DropdownBox } from "~/components/layout/combobox";
-
 import { DatePickerWithRange as Calendar } from "./calendar";
 
-import type { DateRange } from "react-day-picker";
-
-import Link from "next/link";
-import router, { useRouter } from "next/router";
+import { CalendarIcon, SearchIcon, FilterIcon, FlagIcon } from "lucide-react";
 
 import { api } from "~/utils/api";
 
+// define form schema
+const formSchema = z.object({
+  town: z.string().optional(),
+  date: z
+    .object({
+      from: z.date().optional(),
+      to: z.date().optional(),
+    })
+    .optional(),
+  services: z.string().optional(),
+  countries: z.string().optional(),
+});
+
 export const Search = () => {
+  // Dropdown Hook
+  const [open, setOpen] = useState(false);
+
+  // Grab Services, Countries, and FirstDate
   const services = api.grab.grabServices.useQuery().data ?? [];
   const countries = api.grab.grabCountries.useQuery().data ?? [];
+  const firstDateRequest = api.grab.grabFirstDate.useQuery().data;
+  /// Process First Date
+  let firstDate: Date;
+  if (firstDateRequest?.date) {
+    firstDate = new Date(
+      firstDateRequest.date.getUTCFullYear(),
+      firstDateRequest.date.getUTCMonth(),
+    );
+  } else {
+    firstDate = new Date(2006, 0);
+  }
 
+  // Initialize Router
   const router = useRouter();
 
-  const [service, setService] = React.useState("");
-  const [country, setCountry] = React.useState("");
-  const [date, setDate] = React.useState<DateRange | undefined>({
-    from: undefined,
-    to: undefined,
+  // Form Handlers
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      town: "",
+      date: { from: undefined, to: undefined },
+      services: "",
+      countries: "",
+    },
   });
-  const [town, setTown] = React.useState("");
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setOpen(false);
 
-  const processDate = (date: DateRange | undefined) => {
+    const query = {
+      town: values.town,
+      date: JSON.stringify(processDate(values.date)),
+      services: values.services,
+      countries: values.countries,
+    };
+
+    await router.replace({
+      pathname: "/search",
+      query: query,
+    });
+  }
+
+  // Process Date
+  const processDate = (
+    date?: // if type matches z.object
+    | {
+          from?: Date | undefined;
+          to?: Date | undefined;
+        }
+      // else if none
+      | undefined,
+  ) => {
+    /// if both are empty, set default
     if (date?.from == undefined && date?.to == undefined)
-      return { from: new Date("2005-01-01"), to: new Date() };
+      return { from: new Date(firstDate), to: new Date() };
+    /// if both are empty, set to same day
+    if (date.from && date.to == undefined) {
+      return { from: date.from, to: date.from };
+    }
+    // else, return both
     return { from: date?.from, to: date?.to };
   };
 
+  // Layout
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="w-9 px-0">
           <SearchIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all" />
-          {/* <MoonIcon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" /> */}
-          <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {/* Service and Country */}
-        <div className="flex w-full">
-          {/* Service */}
-          <div className="flex w-1/2 items-center gap-2 p-2">
-            <SearchIcon className="h-4 w-4 text-gray-500" />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <DropdownBox
-                  name="Service"
-                  label="Service"
-                  values={services}
-                  valueState={service}
-                  setValueState={setService}
-                />
-              </DropdownMenuTrigger>
-            </DropdownMenu>
-          </div>
-          {/* <DropdownMenuSeparator /> */}
-          {/* Country */}
-          <div className="flex w-1/2 items-center gap-2 p-2">
-            <BuildingIcon className="h-4 w-4 text-gray-500" />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <DropdownBox
-                  name="Country"
-                  label="Country"
-                  values={countries}
-                  valueState={country}
-                  setValueState={setCountry}
-                />
-              </DropdownMenuTrigger>
-            </DropdownMenu>
-          </div>
-        </div>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            {/* Service and Country */}
+            <div className="flex w-full">
+              {/* Service */}
+              <FormField
+                control={form.control}
+                name="services"
+                render={({ field }) => (
+                  <div className="flex w-1/2 items-center gap-2 p-2">
+                    <FilterIcon className="h-4 w-4 text-gray-500" />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <FormControl>
+                          <DropdownBox
+                            name="Service"
+                            label="Service"
+                            values={services}
+                            value={field.value}
+                            onChange={field.onChange}
+                          />
+                        </FormControl>
+                      </DropdownMenuTrigger>
+                    </DropdownMenu>
+                  </div>
+                )}
+              />
 
-        <DropdownMenuSeparator />
+              {/* Country */}
+              <FormField
+                control={form.control}
+                name="countries"
+                render={({ field }) => (
+                  <div className="flex w-1/2 items-center gap-2 p-2">
+                    <FlagIcon className="h-4 w-4 text-gray-500" />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <FormControl>
+                          <DropdownBox
+                            name="Country"
+                            label="Country"
+                            values={countries}
+                            value={field.value}
+                            onChange={field.onChange}
+                          />
+                        </FormControl>
+                      </DropdownMenuTrigger>
+                    </DropdownMenu>
+                  </div>
+                )}
+              />
+            </div>
 
-        {/* Date */}
-        <div className="flex items-center gap-2 p-2">
-          <CalendarIcon className="h-4 w-4 text-gray-500" />
-          <Calendar dateState={date} setDateState={setDate} />
-          {/* <Input id="date" placeholder="Search by Date" type="date" /> */}
-        </div>
+            <DropdownMenuSeparator />
 
-        <DropdownMenuSeparator />
+            {/* Date */}
+            <FormField
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <div className="flex items-center gap-2 p-2">
+                  <CalendarIcon className="h-4 w-4 text-gray-500" />
+                  <Calendar value={field.value} onChange={field.onChange} />
+                </div>
+              )}
+            />
 
-        {/* Town */}
-        <div className="flex items-center gap-2 p-2">
-          <SearchIcon className="h-4 w-4 text-gray-500" />
-          <Input
-            className="font-semibold"
-            id="name"
-            placeholder="Search by Town"
-            onChange={(e) => {
-              setTown(e.target.value);
-            }}
-          />
-        </div>
+            <DropdownMenuSeparator />
 
-        <DropdownMenuSeparator />
+            {/* Town */}
+            <FormField
+              control={form.control}
+              name="town"
+              render={({ field }) => (
+                <div className="flex items-center gap-2 p-2">
+                  <SearchIcon className="h-4 w-4 text-gray-500" />
+                  <FormControl>
+                    <Input
+                      className="font-semibold"
+                      id="name"
+                      placeholder="Search by Town"
+                      {...field}
+                    />
+                  </FormControl>
+                </div>
+              )}
+            />
 
-        <div className="flex items-center gap-2 p-2">
-          <Button asChild className="w-full text-left" id="service">
-            <Link
-              href={`/search?town=${town}&date=${JSON.stringify(processDate(date))}&services=${service}&countries=${country}`}
-              passHref
-              onClick={() =>
-                router.route === "/search" ? router.reload() : undefined
-              }
-            >
-              Search
-            </Link>
-          </Button>
-        </div>
+            <DropdownMenuSeparator />
+
+            <div className="flex items-center gap-2 p-2">
+              <Button className="w-full text-left" type="submit">
+                Search
+              </Button>
+            </div>
+          </form>
+        </Form>
       </DropdownMenuContent>
     </DropdownMenu>
   );

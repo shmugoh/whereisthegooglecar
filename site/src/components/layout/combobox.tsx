@@ -1,7 +1,5 @@
 import * as React from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
 
-import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 import {
   Command,
@@ -17,6 +15,10 @@ import {
 } from "~/components/ui/popover";
 import { ScrollArea } from "~/components/ui/scroll-area";
 
+import { Check, ChevronsUpDown } from "lucide-react";
+
+import { cn } from "~/lib/utils";
+
 type valuesDropdownBox = {
   value: string;
   label: string;
@@ -26,19 +28,20 @@ export function DropdownBox({
   name,
   label,
   values,
-  valueState,
-  setValueState,
+  value,
+  onChange,
 }: {
   name: string;
   label: string;
   values: valuesDropdownBox[];
-  valueState: string; // Add the valueState property
-  setValueState: React.Dispatch<React.SetStateAction<string>>;
+  value: string | undefined; // Add the valueState property
+  onChange: (value: string) => void;
 }) {
   const [open, setOpen] = React.useState(false);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
+      {/* Calendar Button */}
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -46,12 +49,19 @@ export function DropdownBox({
           aria-expanded={open}
           className="w-full justify-between"
         >
-          {valueState
-            ? values.find((values) => values.value === valueState)?.label
+          {value
+            ? name === "Country"
+              ? values
+                  .find((values) => values.value === value)
+                  ?.label.slice(0, 4)
+              : values
+                  .find((values) => values.value === value)
+                  ?.label.slice(0, 7) + (value.length > 7 ? "..." : "")
             : name}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
+      {/* Calendar Popup */}
       <PopoverContent className="w-[200px] p-0">
         <Command>
           <CommandInput placeholder={`Search ${label}...`} />
@@ -64,16 +74,14 @@ export function DropdownBox({
                   value={values.label}
                   onSelect={(currentValue) => {
                     currentValue = values.value;
-                    setValueState(
-                      currentValue === valueState ? "" : currentValue,
-                    );
+                    onChange(currentValue === value ? "" : currentValue);
                     setOpen(false);
                   }}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      valueState === values.value ? "opacity-100" : "opacity-0",
+                      value === values.value ? "opacity-100" : "opacity-0",
                     )}
                   />
                   {values.label}

@@ -14,6 +14,88 @@ BigInt.prototype.toJSON = function () {
 };
 
 export const queryRouter = createTRPCRouter({
+  queryByFilterMonth: publicProcedure
+    .input(
+      z.object({
+        startDate: z.date(),
+        endDate: z.date(),
+
+        company: z.string().toLowerCase().optional(),
+        country: z.string().toUpperCase().optional(),
+
+        town: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { company, startDate, endDate, town, country } = input;
+
+      // write where clause
+      const whereClause: any = {};
+      // company
+      if (company) {
+        whereClause.company = company;
+      }
+      // dates - ignore timezones
+      if (startDate && endDate) {
+        const newStartDate = new Date(
+          startDate.getTime() - startDate.getTimezoneOffset() * 60000,
+        );
+        const newEndDate = new Date(
+          endDate.getTime() - endDate.getTimezoneOffset() * 60000,
+        );
+        whereClause.date = { gte: newStartDate, lte: newEndDate };
+      }
+      // town - ensure its case insensitive
+      if (town) {
+        whereClause.town = {
+          contains: town,
+          mode: "insensitive",
+        };
+      }
+      // country
+      if (country) {
+        whereClause.country = country;
+      }
+
+      const data = await ctx.db.spottings
+        .findMany({
+          where: whereClause,
+          orderBy: { date: "desc" },
+          select: { date: true },
+        })
+        .then((data) => {
+          if (data.length === 0) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: `No data found`,
+            });
+          } else {
+            const uniqueDates = data
+              // get month & year from all dates
+              .map((item) => {
+                // const date = new Date(
+                //   item.date.getTime() - item.date.getTimezoneOffset() * 60000,
+                // );
+                return new Date(
+                  item.date.getUTCFullYear(),
+                  item.date.getUTCMonth(),
+                  1,
+                );
+              })
+              // remove duplicates
+              .filter((value, index, self) => {
+                return (
+                  self.findIndex((d) => d.getTime() === value.getTime()) ===
+                  index
+                );
+              });
+            return uniqueDates;
+          }
+        });
+
+      return data;
+    }),
+
   queryByFilter: publicProcedure
     .input(
       z.object({
@@ -36,13 +118,16 @@ export const queryRouter = createTRPCRouter({
       }
 
       if (startDate && endDate) {
+        // set hours to 0 to ignore timezones on backend
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(0, 0, 0, 0);
+
         const newStartDate = new Date(
           startDate.getTime() - startDate.getTimezoneOffset() * 60000,
         );
         const newEndDate = new Date(
           endDate.getTime() - endDate.getTimezoneOffset() * 60000,
         );
-        console.log(newStartDate, newEndDate);
         whereClause.date = { gte: newStartDate, lte: newEndDate };
       }
 
@@ -56,8 +141,6 @@ export const queryRouter = createTRPCRouter({
       if (country) {
         whereClause.country = country;
       }
-
-      console.log(country);
 
       const data = await ctx.db.spottings
         .findMany({
