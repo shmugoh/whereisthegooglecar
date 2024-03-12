@@ -2,8 +2,10 @@ import React, { useCallback, useState, useEffect, useRef } from "react";
 import { api } from "~/utils/api";
 import { BaseEntriesPage } from "~/components/layout/entry/entries";
 import { useRouter } from "next/router";
+import Error from "~/pages/_error";
 
 import type { GetServerSidePropsContext } from "next";
+import { TRPCClientError } from "@trpc/client";
 
 type SearchProps = {
   town?: string;
@@ -23,7 +25,10 @@ export default function Search({
   services,
   countries,
 }: SearchProps) {
+  // router & error settings
   const router = useRouter();
+  const [errorCode, setErrorCode] = useState(200);
+  const [errorMessage, setErrorMessage] = useState("");
 
   // date configuration
   const startDate = useRef(new Date());
@@ -60,14 +65,25 @@ export default function Search({
 
   // grabs all available months from query
   const grabMonths = useCallback(async () => {
-    const data = await monthMutation.mutateAsync({
-      startDate: startDate.current,
-      endDate: finalDate.current,
-      company: services!,
-      town: town!,
-      country: countries!,
-    });
-    months.current = data;
+    try {
+      const data = await monthMutation.mutateAsync({
+        startDate: startDate.current,
+        endDate: finalDate.current,
+        company: services!,
+        town: town!,
+        country: countries!,
+      });
+      months.current = data;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+      setErrorCode(error.data?.httpStatus ?? 500);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+      setErrorMessage(error.message ?? undefined);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+      return error;
+    }
   }, [monthMutation, startDate, finalDate, services, town, countries]);
 
   // fetch data
@@ -190,7 +206,9 @@ export default function Search({
     }
   }, [months.current]);
 
-  return (
+  return errorCode !== 200 ? (
+    <Error statusCode={errorCode} message={errorMessage} />
+  ) : (
     <BaseEntriesPage
       {...{
         cardSets,

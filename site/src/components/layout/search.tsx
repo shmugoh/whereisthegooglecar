@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/router";
 import {
   DropdownMenuTrigger,
@@ -37,6 +37,9 @@ const formSchema = z.object({
 });
 
 export const Search = () => {
+  // Dropdown Hook
+  const [open, setOpen] = useState(false);
+
   // Grab Services, Countries, and FirstDate
   const services = api.grab.grabServices.useQuery().data ?? [];
   const countries = api.grab.grabCountries.useQuery().data ?? [];
@@ -66,6 +69,8 @@ export const Search = () => {
     },
   });
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setOpen(false);
+
     const query = {
       town: values.town,
       date: JSON.stringify(processDate(values.date)),
@@ -102,7 +107,7 @@ export const Search = () => {
 
   // Layout
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="w-9 px-0">
           <SearchIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all" />
