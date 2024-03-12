@@ -59,13 +59,23 @@ export default function Search({
   const dataMutation = api.query.queryByFilter.useMutation({});
   const monthMutation = api.query.queryByFilterMonth.useMutation({});
 
-  const months = useRef<Date[]>([]);
+  const months = useRef<Date[] | [Date, Date][]>([]);
   const monthIndex = useRef(0);
 
   // initiates by grabbing all available months from query
   const grabMonths = useCallback(async () => {
     setContinueFetching(true); // in case if it has been set to disabled in the same mount
 
+    // if input are same month and year
+    if (
+      startDate.current.getUTCMonth() === finalDate.current.getUTCMonth() &&
+      startDate.current.getUTCFullYear() === finalDate.current.getUTCFullYear()
+    ) {
+      months.current = [[startDate.current, finalDate.current]];
+      return;
+    }
+
+    // if inputs are different
     try {
       const data = await monthMutation.mutateAsync({
         startDate: startDate.current,
@@ -90,7 +100,7 @@ export default function Search({
   // fetch data
   const isMounted = useRef(true);
   const fetchData = useCallback(async () => {
-    // in the event that it is full and months is not empty
+    // in the event that index has been finished and months is not empty
     if (
       monthIndex.current == months.current.length &&
       monthIndex.current != 0 &&
@@ -107,17 +117,78 @@ export default function Search({
     }
 
     // if component is mounted and months has data, begin indexing
-    const currentDate = months.current[monthIndex.current];
-    currentStartDate.current = new Date(
-      currentDate!.getUTCFullYear(),
-      currentDate!.getUTCMonth(),
-      1,
-    );
-    currentEndDate.current = new Date(
-      currentDate!.getUTCFullYear(),
-      currentDate!.getUTCMonth() + 1,
-      0,
-    );
+    let currentDate: Date;
+
+    // in the event that startDate and finalDate have the same month & year
+    if (Array.isArray(months.current[0]) && months.current[0].length === 2) {
+      // console.log("same month and year on input and output");
+      const currentDate: [Date, Date] | undefined = months.current[0] as [
+        Date,
+        Date,
+      ];
+      currentStartDate.current = currentDate[0];
+      currentEndDate.current = currentDate[1];
+      setContinueFetching(false);
+      monthIndex.current++; // Add this line to increment the monthIndex
+      // in the event that current index is either on first/last month to query, grab day
+    } else if (
+      monthIndex.current === 0 &&
+      months.current[monthIndex.current].getUTCMonth() ===
+        finalDate.current.getUTCMonth() &&
+      months.current[monthIndex.current].getUTCFullYear() ===
+        finalDate.current.getUTCFullYear()
+      // last date picked on input; crawl from first day up until selected day
+    ) {
+      // console.log("on last month...");
+      currentDate = finalDate.current;
+
+      currentStartDate.current = new Date(
+        currentDate.getUTCFullYear(),
+        currentDate.getUTCMonth(),
+        1,
+      );
+      currentEndDate.current = new Date(
+        currentDate.getUTCFullYear(),
+        currentDate.getUTCMonth(),
+        currentDate.getUTCDate(),
+      );
+      // first date picked on input; crawl from selected day up until last day of month
+    } else if (
+      monthIndex.current === months.current.length - 1 &&
+      months.current[monthIndex.current].getUTCMonth() ===
+        startDate.current.getUTCMonth() &&
+      months.current[monthIndex.current].getUTCFullYear() ===
+        startDate.current.getUTCFullYear()
+    ) {
+      // console.log("on start month...");
+      currentDate = startDate.current;
+
+      currentStartDate.current = new Date(
+        currentDate.getUTCFullYear(),
+        currentDate.getUTCMonth(),
+        currentDate.getUTCDate(),
+      );
+
+      currentEndDate.current = new Date(
+        currentDate.getUTCFullYear(),
+        currentDate.getUTCMonth() + 1,
+        0,
+      );
+      // if none apply, index as normal
+    } else {
+      // console.log("index as normal...");
+      const currentDate = months.current[monthIndex.current];
+      currentStartDate.current = new Date(
+        currentDate!.getUTCFullYear(),
+        currentDate!.getUTCMonth(),
+        1,
+      );
+      currentEndDate.current = new Date(
+        currentDate!.getUTCFullYear(),
+        currentDate!.getUTCMonth() + 1,
+        0,
+      );
+    }
 
     const getMonth = (currentStartDate.current.getMonth() + 1).toString();
     const getYear = currentStartDate.current.getFullYear().toString();
@@ -148,7 +219,7 @@ export default function Search({
         monthIndex.current++;
       }
     } catch (error) {
-      // console.log("attempting to refetch data");
+      console.log("attempting to refetch data");
       void fetchData();
       // console.log(error);
       // void fetchData();
@@ -173,10 +244,12 @@ export default function Search({
   // aka, when new data is given from saearch component
   useEffect(() => {
     const handleRouteChange = () => {
+      if (!router.isReady) return;
       setCardSets([]);
       setPage(1);
       monthIndex.current = 0;
-      months.current.length = 0;
+      months.current = [];
+      void initDate(date);
       void grabMonths();
     };
 
@@ -184,11 +257,10 @@ export default function Search({
     router.events.on("routeChangeComplete", handleRouteChange);
 
     return () => {
-      // console.log("unmounting in routeChangeComplete");
       isMounted.current = false;
       router.events.off("routeChangeComplete", handleRouteChange);
     };
-  }, [router.asPath]);
+  }, [router.asPath, router.isReady]);
 
   // grabs months once component mounts
   useEffect(() => {
