@@ -73,9 +73,14 @@ export const queryRouter = createTRPCRouter({
             const uniqueDates = data
               // get month & year from all dates
               .map((item) => {
-                const date = new Date(item.date);
-                date.setMinutes(date.getMinutes() + date.getTimezoneOffset()); // ignore timezone
-                return new Date(date.getFullYear(), date.getMonth());
+                // const date = new Date(
+                //   item.date.getTime() - item.date.getTimezoneOffset() * 60000,
+                // );
+                return new Date(
+                  item.date.getUTCFullYear(),
+                  item.date.getUTCMonth(),
+                  1,
+                );
               })
               // remove duplicates
               .filter((value, index, self) => {
@@ -113,6 +118,10 @@ export const queryRouter = createTRPCRouter({
       }
 
       if (startDate && endDate) {
+        // set hours to 0 to ignore timezones on backend
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(0, 0, 0, 0);
+
         const newStartDate = new Date(
           startDate.getTime() - startDate.getTimezoneOffset() * 60000,
         );

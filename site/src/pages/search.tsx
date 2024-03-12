@@ -96,6 +96,7 @@ export default function Search({
       monthIndex.current != 0 &&
       months.current.length != 0
     ) {
+      // console.log("unmounting in fetchData");
       isMounted.current = false;
       setContinueFetching(false);
     }
@@ -147,7 +148,9 @@ export default function Search({
         monthIndex.current++;
       }
     } catch (error) {
-      console.log(error);
+      // console.log("attempting to refetch data");
+      void fetchData();
+      // console.log(error);
       // void fetchData();
       return;
     }
@@ -181,7 +184,7 @@ export default function Search({
     router.events.on("routeChangeComplete", handleRouteChange);
 
     return () => {
-      console.log("unmounting in routeChangeComplete");
+      // console.log("unmounting in routeChangeComplete");
       isMounted.current = false;
       router.events.off("routeChangeComplete", handleRouteChange);
     };
@@ -193,7 +196,7 @@ export default function Search({
     void initDate(date);
     void grabMonths();
     return () => {
-      console.log("unmounting in useEffect(None)");
+      // console.log("unmounting in useEffect(None)");
       isMounted.current = false;
       setCardSets([]);
       setPage(1);
