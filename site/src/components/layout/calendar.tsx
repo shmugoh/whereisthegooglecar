@@ -1,4 +1,5 @@
 import * as React from "react";
+
 import {
   addDays,
   format,
@@ -9,11 +10,10 @@ import {
   endOfYear,
   eachMonthOfInterval,
 } from "date-fns";
+
 import type { DateRange } from "react-day-picker";
 import { type CaptionProps, useNavigation } from "react-day-picker";
-import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 
-import { cn } from "~/lib/utils";
 import { buttonVariants, Button } from "~/components/ui/button";
 import { Calendar } from "~/components/ui/calendar";
 import { Command, CommandGroup, CommandItem } from "~/components/ui/command";
@@ -24,6 +24,9 @@ import {
 } from "~/components/ui/popover";
 import { ScrollArea } from "../ui/scroll-area";
 
+import { Check, ChevronLeft, ChevronRight } from "lucide-react";
+
+import { cn } from "~/lib/utils";
 import { api } from "~/utils/api";
 
 export function DatePickerWithRange({

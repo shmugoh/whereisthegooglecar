@@ -1,7 +1,5 @@
 import * as React from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
 
-import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 import {
   Command,
@@ -16,6 +14,10 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import { ScrollArea } from "~/components/ui/scroll-area";
+
+import { Check, ChevronsUpDown } from "lucide-react";
+
+import { cn } from "~/lib/utils";
 
 type valuesDropdownBox = {
   value: string;
@@ -39,6 +41,7 @@ export function DropdownBox({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
+      {/* Calendar Button */}
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -47,11 +50,18 @@ export function DropdownBox({
           className="w-full justify-between"
         >
           {value
-            ? values.find((values) => values.value === value)?.label
+            ? name === "Country"
+              ? values
+                  .find((values) => values.value === value)
+                  ?.label.slice(0, 4)
+              : values
+                  .find((values) => values.value === value)
+                  ?.label.slice(0, 7) + (value.length > 7 ? "..." : "")
             : name}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
+      {/* Calendar Popup */}
       <PopoverContent className="w-[200px] p-0">
         <Command>
           <CommandInput placeholder={`Search ${label}...`} />

@@ -5,7 +5,6 @@ import { useRouter } from "next/router";
 import Error from "~/pages/_error";
 
 import type { GetServerSidePropsContext } from "next";
-import { TRPCClientError } from "@trpc/client";
 
 type SearchProps = {
   town?: string;
@@ -63,8 +62,10 @@ export default function Search({
   const months = useRef<Date[]>([]);
   const monthIndex = useRef(0);
 
-  // grabs all available months from query
+  // initiates by grabbing all available months from query
   const grabMonths = useCallback(async () => {
+    setContinueFetching(true); // in case if it has been set to disabled in the same mount
+
     try {
       const data = await monthMutation.mutateAsync({
         startDate: startDate.current,

@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import { useRouter } from "next/router";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
 import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
@@ -8,20 +12,13 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
-import { DropdownBox } from "~/components/layout/combobox";
-import {
-  CalendarIcon,
-  SearchIcon,
-  Building2 as BuildingIcon,
-} from "lucide-react";
-import { DatePickerWithRange as Calendar } from "./calendar";
-import { api } from "~/utils/api";
-
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-
 import { Form, FormControl, FormField } from "~/components/ui/form";
+import { DropdownBox } from "~/components/layout/combobox";
+import { DatePickerWithRange as Calendar } from "./calendar";
+
+import { CalendarIcon, SearchIcon, FilterIcon, FlagIcon } from "lucide-react";
+
+import { api } from "~/utils/api";
 
 // define form schema
 const formSchema = z.object({
@@ -124,7 +121,7 @@ export const Search = () => {
                 name="services"
                 render={({ field }) => (
                   <div className="flex w-1/2 items-center gap-2 p-2">
-                    <SearchIcon className="h-4 w-4 text-gray-500" />
+                    <FilterIcon className="h-4 w-4 text-gray-500" />
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <FormControl>
@@ -148,7 +145,7 @@ export const Search = () => {
                 name="countries"
                 render={({ field }) => (
                   <div className="flex w-1/2 items-center gap-2 p-2">
-                    <BuildingIcon className="h-4 w-4 text-gray-500" />
+                    <FlagIcon className="h-4 w-4 text-gray-500" />
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <FormControl>
