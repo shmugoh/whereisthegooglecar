@@ -14,6 +14,83 @@ BigInt.prototype.toJSON = function () {
 };
 
 export const queryRouter = createTRPCRouter({
+  queryByFilterMonth: publicProcedure
+    .input(
+      z.object({
+        startDate: z.date(),
+        endDate: z.date(),
+
+        company: z.string().toLowerCase().optional(),
+        country: z.string().toUpperCase().optional(),
+
+        town: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { company, startDate, endDate, town, country } = input;
+
+      // write where clause
+      const whereClause: any = {};
+      // company
+      if (company) {
+        whereClause.company = company;
+      }
+      // dates - ignore timezones
+      if (startDate && endDate) {
+        const newStartDate = new Date(
+          startDate.getTime() - startDate.getTimezoneOffset() * 60000,
+        );
+        const newEndDate = new Date(
+          endDate.getTime() - endDate.getTimezoneOffset() * 60000,
+        );
+        whereClause.date = { gte: newStartDate, lte: newEndDate };
+      }
+      // town - ensure its case insensitive
+      if (town) {
+        whereClause.town = {
+          contains: town,
+          mode: "insensitive",
+        };
+      }
+      // country
+      if (country) {
+        whereClause.country = country;
+      }
+
+      const data = await ctx.db.spottings
+        .findMany({
+          where: whereClause,
+          orderBy: { date: "desc" },
+          select: { date: true },
+        })
+        .then((data) => {
+          if (data.length === 0) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: `No data found`,
+            });
+          } else {
+            const uniqueDates = data
+              // get month & year from all dates
+              .map((item) => {
+                const date = new Date(item.date);
+                date.setMinutes(date.getMinutes() + date.getTimezoneOffset()); // ignore timezone
+                return new Date(date.getFullYear(), date.getMonth());
+              })
+              // remove duplicates
+              .filter((value, index, self) => {
+                return (
+                  self.findIndex((d) => d.getTime() === value.getTime()) ===
+                  index
+                );
+              });
+            return uniqueDates;
+          }
+        });
+
+      return data;
+    }),
+
   queryByFilter: publicProcedure
     .input(
       z.object({
