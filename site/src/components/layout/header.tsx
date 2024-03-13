@@ -31,9 +31,12 @@ export const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 max-w-screen-2xl items-center gap-1 md:gap-4">
+      <div className="container flex h-14 max-w-screen-2xl items-center md:gap-4">
         {/* Title and Logo */}
-        <Link href="/" className="flex items-center gap-2 text-xl font-bold">
+        <Link
+          href="/"
+          className="hidden items-center gap-2 text-xl font-bold md:flex"
+        >
           <MdOutlineStreetview size={42} />
           <span className="hidden md:inline">whereisthegooglecar.xyz</span>
         </Link>
@@ -138,5 +141,5 @@ ListItem.displayName = "ListItem";
 
 const navigationMenuItemStyle = cn(
   navigationMenuTriggerStyle(),
-  "bg-[transparent] hover:bg-accent/50 focus:bg-accent/50",
+  "bg-[transparent] hover:bg-accent/50 focus:bg-accent/50 text-xs font-medium md:text-sm",
 );
