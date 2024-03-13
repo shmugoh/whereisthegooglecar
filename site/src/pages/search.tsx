@@ -18,14 +18,14 @@ BigInt.prototype.toJSON = function () {
   return int ?? this.toString();
 };
 
-export default function Search({
-  town,
-  date,
-  services,
-  countries,
-}: SearchProps) {
+export default function Search() {
   // router & error settings
   const router = useRouter();
+
+  // query configuration
+  const query = router.query as SearchProps;
+  const { town, date, services, countries } = query;
+
   const [errorCode, setErrorCode] = useState(200);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -85,6 +85,7 @@ export default function Search({
         country: countries!,
       });
       months.current = data;
+      setErrorCode(200); // re-alives the site if previous call was an error
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
@@ -262,18 +263,22 @@ export default function Search({
     };
   }, [router.asPath, router.isReady]);
 
-  // grabs months once component mounts
+  // grabs months once queries are set
   useEffect(() => {
-    isMounted.current = true;
-    void initDate(date);
-    void grabMonths();
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if (town || date || services || countries) {
+      isMounted.current = true;
+      initDate(query.date);
+      void grabMonths();
+    }
+
     return () => {
       // console.log("unmounting in useEffect(None)");
       isMounted.current = false;
       setCardSets([]);
       setPage(1);
     };
-  }, []);
+  }, [town, date, services, countries]);
 
   // begin querying once available months are set
   useEffect(() => {
@@ -295,18 +300,3 @@ export default function Search({
     />
   );
 }
-
-export const getServerSideProps = async (
-  context: GetServerSidePropsContext,
-) => {
-  const { town, date, services, countries } = context.query;
-
-  return {
-    props: {
-      town,
-      date,
-      services,
-      countries,
-    },
-  };
-};
