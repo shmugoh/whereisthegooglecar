@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 import {
@@ -9,42 +8,25 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { TopText } from "~/components/layout/entry/topText";
 import { Button } from "~/components/ui/button";
-import { AspectRatio } from "~/components/ui/aspect-ratio";
+import { Badge } from "~/components/ui/badge";
 
+import { TopText } from "~/components/layout/entry/topText";
+import {
+  LocationButton,
+  SourceButton,
+  TextBluePrint,
+} from "~/components/layout/entry/output";
+import { ImagePreview } from "~/components/layout/entry/image";
+import { HomeSkeleton } from "~/components/layout/entry/skeleton";
+
+import { convertDate } from "~/utils/date";
 import twemoji from "twemoji";
 import { env } from "~/env";
-import { Badge } from "~/components/ui/badge";
-import { HomeSkeleton } from "./skeleton";
-import { convertDate } from "~/utils/date";
-import { LocationButton, SourceButton, TextBluePrint } from "./output";
-import { useState } from "react";
-
-import { ImagePreview } from "~/components/layout/entry/image";
 
 export const SpottingCard = (props: cardProps) => {
   // format date
   const date = convertDate(props.date);
-
-  // handle aspect ratio (for mobile)
-  const [aspectRatio, setAspectRatio] = useState(16 / 9); // default aspect ratio
-
-  const handleLoadingComplete = ({
-    naturalWidth,
-    naturalHeight,
-  }: {
-    // type definitions
-    naturalWidth: number;
-    naturalHeight: number;
-  }) => {
-    // if on pc, stay with 16/9
-    if (window.innerWidth >= 1024) {
-      return;
-    }
-
-    setAspectRatio(naturalWidth / naturalHeight);
-  };
 
   return (
     <div className="w-96 lg:w-[402px]">
@@ -73,7 +55,7 @@ export const SpottingCard = (props: cardProps) => {
             <TextBluePrint text={props.town} size="base" />
 
             {props.company && (
-              <Badge variant={"secondary"} className="h-5 w-24">
+              <Badge variant={"secondary"} className="h-fit w-24">
                 <p className="w-full text-center">
                   {props.company.charAt(0).toUpperCase() +
                     props.company.slice(1)}

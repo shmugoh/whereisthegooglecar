@@ -24,6 +24,7 @@ import {
 import { Button } from "~/components/ui/button";
 
 import { MdOutlineStreetview } from "react-icons/md";
+import { Search } from "./search";
 
 export const Header = () => {
   const { setTheme } = useTheme();
@@ -77,6 +78,7 @@ export const Header = () => {
 
         <div className="flex flex-1 items-center justify-end space-x-2">
           {/* Search */}
+          <Search />
 
           {/* Dark Mode Toggle */}
           <DropdownMenu>
