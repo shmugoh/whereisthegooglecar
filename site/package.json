@@ -30,6 +30,7 @@
     "@trpc/next": "^10.43.6",
     "@trpc/react-query": "^10.43.6",
     "@trpc/server": "^10.43.6",
+    "@twemoji/api": "^15.1.0",
     "@vercel/analytics": "^1.2.2",
     "@vercel/kv": "^1.0.1",
     "@vercel/og": "^0.6.2",
@@ -50,7 +51,6 @@
     "superjson": "^2.2.1",
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7",
-    "twemoji": "^14.0.2",
     "zod": "^3.22.4"
   },
   "devDependencies": {

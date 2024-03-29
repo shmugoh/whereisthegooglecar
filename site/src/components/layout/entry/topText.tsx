@@ -1,5 +1,5 @@
 import React from "react";
-import twemoji from "twemoji";
+import twemoji from "@twemoji/api";
 import { Separator } from "~/components/ui/separator";
 
 type propsTopText = {

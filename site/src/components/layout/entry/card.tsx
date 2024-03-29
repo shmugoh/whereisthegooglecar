@@ -21,7 +21,7 @@ import { ImagePreview } from "~/components/layout/entry/image";
 import { HomeSkeleton } from "~/components/layout/entry/skeleton";
 
 import { convertDate } from "~/utils/date";
-import twemoji from "twemoji";
+import twemoji from "@twemoji/api";
 import { env } from "~/env";
 
 export const SpottingCard = (props: cardProps) => {
