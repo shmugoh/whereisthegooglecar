@@ -69,8 +69,8 @@ export default function EntriesPage(props: EntriesPageProps) {
 
     const data = await dataMutation.mutateAsync({
       company: props.company,
-      month: (month.current.getMonth() + 1).toString(),
-      year: month.current.getFullYear().toString(),
+      month: (month.current.getUTCMonth() + 1).toString(),
+      year: month.current.getUTCFullYear().toString(),
     });
 
     setCardSets(data as never[]); // set new data
