@@ -62,13 +62,15 @@ export default function EntriesPage(props: EntriesPageProps) {
   const monthMutation = api.query.queryByFilterMonth.useMutation({});
 
   const fetchData = useCallback(async () => {
+    setCardSets([]); // clear current data
+
     const data = await dataMutation.mutateAsync({
       company: props.company,
       month: (month.current.getMonth() + 1).toString(),
       year: month.current.getFullYear().toString(),
     });
 
-    setCardSets(data as never[]);
+    setCardSets(data as never[]); // set new data
   }, []);
 
   const grabMonths = useCallback(async () => {
@@ -89,7 +91,6 @@ export default function EntriesPage(props: EntriesPageProps) {
     if (months.current.length === 0) {
       return;
     }
-
     if (months.current[0]) {
       month.current = months.current[0];
     }
@@ -97,29 +98,39 @@ export default function EntriesPage(props: EntriesPageProps) {
     void fetchData();
   }, [months.current]);
 
-  // fetch data on router change
+  // fetch new data on new query
   useEffect(() => {
-    const handleRouteChange = () => {
-      if (!router.isReady) return;
-
-      // on route change, update the active month index
+    if (router.query.page === undefined || months.current.length === 0) {
+      return;
+    } else {
       activeIndex.current = Number(router.query.page);
-      month.current = months.current[activeIndex.current - 1];
+      month.current = months.current[Number(router.query.page) - 1];
 
-      // clear current data
       setCardSets([]);
-
       void fetchData();
-    };
+    }
+  }, [router.query.page, months.current]);
 
-    console.log("route change ON");
-    router.events.on("routeChangeComplete", handleRouteChange);
+  // // update month and index on router change
+  // useEffect(() => {
+  //   const handleRouteChange = () => {
+  //     if (!router.isReady) return;
+  //     // update the active month index
+  //     activeIndex.current = Number(router.query.page);
+  //     month.current = months.current[activeIndex.current - 1];
 
-    return () => {
-      console.log("route change OFF");
-      router.events.off("routeChangeComplete", handleRouteChange);
-    };
-  }, [router.asPath, router.isReady]);
+  //     // fetch data
+  //     void fetchData();
+  //   };
+
+  //   console.log("route change ON");
+  //   router.events.on("routeChangeComplete", handleRouteChange);
+
+  //   return () => {
+  //     console.log("route change OFF");
+  //     router.events.off("routeChangeComplete", handleRouteChange);
+  //   };
+  // }, [router.asPath, router.isReady]);
 
   return (
     <div className="flex w-full flex-col justify-between gap-4 md:min-h-[730px]">
