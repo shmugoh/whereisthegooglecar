@@ -28,7 +28,7 @@ export const TitleSkeleton = () => {
 export const CardSetSkeleton = () => {
   return (
     <div className="flex flex-wrap justify-center gap-x-16 gap-y-6">
-      {Array.from({ length: 9 }, (_, i) => (
+      {Array.from({ length: 6 }, (_, i) => (
         <CardSkeleton key={i} />
       ))}
     </div>
