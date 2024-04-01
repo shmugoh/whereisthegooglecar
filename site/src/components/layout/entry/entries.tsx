@@ -3,7 +3,10 @@ import { CardSet } from "~/components/layout/entry/card";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { HomeSkeleton } from "~/components/layout/entry/skeleton";
-import { PageNavigation } from "~/components/layout/pagination";
+import {
+  PageNavigation,
+  MobilePageNavigation,
+} from "~/components/layout/pagination";
 import { useRouter } from "next/router";
 
 type EntriesPageProps = {
@@ -139,6 +142,10 @@ export default function EntriesPage(props: EntriesPageProps) {
           length={months.current.length}
           activeIndex={activeIndex.current}
         />
+        <MobilePageNavigation
+          length={months.current.length}
+          activeIndex={activeIndex.current}
+        />
       </div>
 
       <div className="justify-center">
@@ -152,6 +159,10 @@ export default function EntriesPage(props: EntriesPageProps) {
 
       <div className="justify-end">
         <PageNavigation
+          length={months.current.length}
+          activeIndex={activeIndex.current}
+        />
+        <MobilePageNavigation
           length={months.current.length}
           activeIndex={activeIndex.current}
         />

@@ -22,7 +22,7 @@ export function PageNavigation(props: PaginationProps) {
     props.activeIndex !== props.length ? `?page=${props.activeIndex + 1}` : "#";
 
   return (
-    <Pagination>
+    <Pagination className="hidden lg:flex">
       <PaginationContent>
         {/* Previous */}
         <PaginationItem>
@@ -87,6 +87,79 @@ export function PageNavigation(props: PaginationProps) {
             )}
           </React.Fragment>
         ))}
+
+        {/* Next */}
+        <PaginationItem>
+          <PaginationNext href={nextHref} />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  );
+}
+
+export function MobilePageNavigation(props: PaginationProps) {
+  const previousHref =
+    props.activeIndex !== 1 ? `?page=${props.activeIndex - 1}` : "#";
+  const nextHref =
+    props.activeIndex !== props.length ? `?page=${props.activeIndex + 1}` : "#";
+
+  return (
+    <Pagination className="flex lg:hidden">
+      <PaginationContent>
+        {/* Previous */}
+        <PaginationItem>
+          <PaginationPrevious href={previousHref} />
+        </PaginationItem>
+
+        {/* First Item */}
+        <PaginationItem>
+          <PaginationLink
+            href={`?page=1`}
+            isActive={0 === props.activeIndex - 1}
+          >
+            1
+          </PaginationLink>
+        </PaginationItem>
+
+        {/* Ellipsis if activeIndex is more than 2 */}
+        {props.activeIndex > 2 && (
+          <PaginationItem>
+            <PaginationEllipsis />
+          </PaginationItem>
+        )}
+
+        {/* Dynamic pages */}
+        {Array.from({ length: props.length - 2 }, (_, i) => (
+          <React.Fragment key={i}>
+            {i === props.activeIndex - 2 && ( // checks if current index is the active page
+              <PaginationItem>
+                <PaginationLink
+                  href={`?page=${i + 2}`}
+                  isActive={i === props.activeIndex - 2}
+                >
+                  {i + 2}
+                </PaginationLink>
+              </PaginationItem>
+            )}
+          </React.Fragment>
+        ))}
+
+        {/* Ellipsis if activeIndex is less than length - 1 */}
+        {props.activeIndex < props.length - 1 && (
+          <PaginationItem>
+            <PaginationEllipsis />
+          </PaginationItem>
+        )}
+
+        {/* Last Item */}
+        <PaginationItem>
+          <PaginationLink
+            href={`?page=${props.length}`}
+            isActive={props.length - 1 === props.activeIndex - 1}
+          >
+            {props.length}
+          </PaginationLink>
+        </PaginationItem>
 
         {/* Next */}
         <PaginationItem>
