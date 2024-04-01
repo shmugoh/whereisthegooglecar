@@ -7,6 +7,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "~/components/ui/pagination";
+import { Skeleton } from "~/components/ui/skeleton";
 
 import React from "react";
 
@@ -15,7 +16,15 @@ type PaginationProps = {
   activeIndex: number;
 };
 
+function PaginationSkeleton() {
+  return <Skeleton className="h-10 w-full" />;
+}
+
 export function PageNavigation(props: PaginationProps) {
+  if (props.length === 0) {
+    return <PaginationSkeleton />;
+  }
+
   const previousHref =
     props.activeIndex !== 1 ? `?page=${props.activeIndex - 1}` : "#";
   const nextHref =
@@ -98,6 +107,10 @@ export function PageNavigation(props: PaginationProps) {
 }
 
 export function MobilePageNavigation(props: PaginationProps) {
+  if (props.length === 0) {
+    return <></>; // skeleton is already loaded in desktop pagination; too lazy to implement it with the proper css checks
+  }
+
   const previousHref =
     props.activeIndex !== 1 ? `?page=${props.activeIndex - 1}` : "#";
   const nextHref =
