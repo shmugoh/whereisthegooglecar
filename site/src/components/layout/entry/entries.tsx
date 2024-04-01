@@ -3,7 +3,7 @@ import { CardSet } from "~/components/layout/entry/card";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { HomeSkeleton } from "~/components/layout/entry/skeleton";
-import { PageNavigation } from "./pagination";
+import { PageNavigation } from "~/components/layout/pagination";
 import { useRouter } from "next/router";
 
 type EntriesPageProps = {
