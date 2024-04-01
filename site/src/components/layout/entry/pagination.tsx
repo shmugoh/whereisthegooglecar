@@ -31,7 +31,10 @@ export function PageNavigation(props: PaginationProps) {
             {/* show the first three */}
             {i < 3 && (
               <PaginationItem key={i}>
-                <PaginationLink href="#" isActive={i === props.activeIndex - 1}>
+                <PaginationLink
+                  href={`?page=${i + 1}`}
+                  isActive={i === props.activeIndex - 1}
+                >
                   {i + 1}
                 </PaginationLink>
               </PaginationItem>
@@ -47,7 +50,10 @@ export function PageNavigation(props: PaginationProps) {
             {/* shows last item */}
             {i === props.length - 1 && (
               <PaginationItem key={i}>
-                <PaginationLink href="#" isActive={i === props.activeIndex - 1}>
+                <PaginationLink
+                  href={`?page=${i + 1}`}
+                  isActive={i === props.activeIndex - 1}
+                >
                   {i + 1}
                 </PaginationLink>
               </PaginationItem>

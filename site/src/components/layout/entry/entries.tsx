@@ -3,17 +3,8 @@ import { CardSet } from "~/components/layout/entry/card";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { HomeSkeleton } from "~/components/layout/entry/skeleton";
-
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "~/components/ui/pagination";
 import { PageNavigation } from "./pagination";
+import { useRouter } from "next/router";
 
 type EntriesPageProps = {
   company: string;
@@ -53,18 +44,18 @@ export function BaseEntriesPage(props: BaseEntriesPageProps) {
 }
 
 export default function EntriesPage(props: EntriesPageProps) {
+  const router = useRouter();
+
   // date configuration
   const currentDate = new Date();
   currentDate.setMonth(currentDate.getMonth() + 1);
   // summing new month so during first-run, it fetches the current month
 
-  // re-run tracking
+  // states & references
+  const [cardSets, setCardSets] = useState([]);
   const months = useRef<Date[]>([]);
   const month = useRef<Date>(new Date());
-  const tries = useRef(0);
-
-  // infinite scroll
-  const [cardSets, setCardSets] = useState([]);
+  const activeIndex = useRef<number>(1);
 
   // fetch data
   const dataMutation = api.query.queryByMonth.useMutation({});
@@ -93,6 +84,7 @@ export default function EntriesPage(props: EntriesPageProps) {
     void grabMonths();
   }, []);
 
+  // fetch data on mount
   useEffect(() => {
     if (months.current.length === 0) {
       return;
@@ -105,8 +97,31 @@ export default function EntriesPage(props: EntriesPageProps) {
     void fetchData();
   }, [months.current]);
 
+  // fetch data on router change
+  useEffect(() => {
+    const handleRouteChange = () => {
+      if (!router.isReady) return;
+      activeIndex.current = Number(router.query.page);
+      month.current = months.current[activeIndex.current - 1];
+      void fetchData();
+    };
+
+    console.log("route change ON");
+    router.events.on("routeChangeComplete", handleRouteChange);
+
+    return () => {
+      console.log("route change OFF");
+      router.events.off("routeChangeComplete", handleRouteChange);
+    };
+  }, [router.asPath, router.isReady]);
+
   return (
     <>
+      <PageNavigation
+        length={months.current.length}
+        activeIndex={activeIndex.current}
+      />
+
       <CardSet
         month={month.current.toLocaleString("default", { month: "long" })}
         year={month.current.getFullYear().toString()}
@@ -114,7 +129,10 @@ export default function EntriesPage(props: EntriesPageProps) {
         showCompany={props.showCompany}
       />
 
-      <PageNavigation length={months.current.length} activeIndex={1} />
+      <PageNavigation
+        length={months.current.length}
+        activeIndex={activeIndex.current}
+      />
     </>
   );
 }
