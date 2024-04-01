@@ -51,7 +51,7 @@ export const SpottingCard = (props: cardProps) => {
               </div>
             </div>
           </CardTitle>
-          <CardDescription className="flex items-center justify-between gap-2">
+          <CardDescription className="flex items-center justify-between gap-2 break-all">
             <TextBluePrint text={props.town} size="base" />
 
             {props.company && (
