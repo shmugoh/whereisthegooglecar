@@ -101,8 +101,14 @@ export default function EntriesPage(props: EntriesPageProps) {
   useEffect(() => {
     const handleRouteChange = () => {
       if (!router.isReady) return;
+
+      // on route change, update the active month index
       activeIndex.current = Number(router.query.page);
       month.current = months.current[activeIndex.current - 1];
+
+      // clear current data
+      setCardSets([]);
+
       void fetchData();
     };
 
@@ -116,23 +122,29 @@ export default function EntriesPage(props: EntriesPageProps) {
   }, [router.asPath, router.isReady]);
 
   return (
-    <>
-      <PageNavigation
-        length={months.current.length}
-        activeIndex={activeIndex.current}
-      />
+    <div className="flex w-full flex-col justify-between gap-4 md:min-h-[730px]">
+      <div className="justify-start">
+        <PageNavigation
+          length={months.current.length}
+          activeIndex={activeIndex.current}
+        />
+      </div>
 
-      <CardSet
-        month={month.current.toLocaleString("default", { month: "long" })}
-        year={month.current.getFullYear().toString()}
-        info={cardSets}
-        showCompany={props.showCompany}
-      />
+      <div className="justify-center">
+        <CardSet
+          month={month.current.toLocaleString("default", { month: "long" })}
+          year={month.current.getFullYear().toString()}
+          info={cardSets}
+          showCompany={props.showCompany}
+        />
+      </div>
 
-      <PageNavigation
-        length={months.current.length}
-        activeIndex={activeIndex.current}
-      />
-    </>
+      <div className="justify-end">
+        <PageNavigation
+          length={months.current.length}
+          activeIndex={activeIndex.current}
+        />
+      </div>
+    </div>
   );
 }

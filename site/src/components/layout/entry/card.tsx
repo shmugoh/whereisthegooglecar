@@ -68,6 +68,7 @@ export const SpottingCard = (props: cardProps) => {
           <ImagePreview
             url={`${env.NEXT_PUBLIC_CDN_URL}/${props.imageUrl}`}
             alt={`Picture of a Google Car spotted in ${props.town} on ${date}.`}
+            loading="eager"
           />
         </CardContent>
         <CardFooter className="flex justify-between">
@@ -98,7 +99,7 @@ export const CardSet = (props: cardSetProps) => {
   return (
     <div className="flex w-full flex-col gap-4">
       <TopText title={props.month} right={props.year} />
-      <div className="flex flex-wrap justify-center gap-x-16 gap-y-6">
+      <div className="flex flex-wrap items-center justify-center gap-x-16 gap-y-6">
         {props.info.map((item: cardProps) => (
           <SpottingCard
             id={item.message_id}
