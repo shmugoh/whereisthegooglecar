@@ -4,6 +4,17 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { HomeSkeleton } from "~/components/layout/entry/skeleton";
 
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "~/components/ui/pagination";
+import { PageNavigation } from "./pagination";
+
 type EntriesPageProps = {
   company: string;
   showCompany?: boolean;
@@ -48,97 +59,62 @@ export default function EntriesPage(props: EntriesPageProps) {
   // summing new month so during first-run, it fetches the current month
 
   // re-run tracking
-  const lastMonth = useRef("");
+  const months = useRef<Date[]>([]);
+  const month = useRef<Date>(new Date());
   const tries = useRef(0);
 
   // infinite scroll
-  const [page, setPage] = useState(1);
   const [cardSets, setCardSets] = useState([]);
-  const [continueFetching, setContinueFetching] = useState(true);
 
   // fetch data
   const dataMutation = api.query.queryByMonth.useMutation({});
+  const monthMutation = api.query.queryByFilterMonth.useMutation({});
 
-  const updateDate = () => {
-    currentDate.setMonth(currentDate.getMonth() - 1);
-  };
-
-  // using usecallback to ensure that the function is not re-created
-  // and permanently remains the same
-  // in other words... to keep fetching data
   const fetchData = useCallback(async () => {
-    updateDate();
+    const data = await dataMutation.mutateAsync({
+      company: props.company,
+      month: (month.current.getMonth() + 1).toString(),
+      year: month.current.getFullYear().toString(),
+    });
 
-    const getMonth = (currentDate.getMonth() + 1).toString();
-    const getYear = currentDate.getFullYear().toString();
-
-    // stop fetching if the year is less than the maximum year
-    if (props.maxYear && props.maxYear > Number(getYear)) {
-      setContinueFetching(false);
-      return;
-    }
-
-    try {
-      const data = await dataMutation.mutateAsync({
-        company: props.company,
-        month: getMonth,
-        year: getYear,
-      });
-
-      if (data) {
-        // using this as a way to stop an infinite loop
-        // of the same month being spawned
-        if (lastMonth.current !== getMonth || tries.current != 0) {
-          // append to cardSets
-          setCardSets((prevCardSets) => [
-            ...prevCardSets,
-            {
-              data: data,
-              month: getMonth,
-              year: getYear,
-            },
-          ]);
-          // increment page
-          setPage((prevPage) => prevPage + 1);
-        }
-
-        lastMonth.current = getMonth;
-        tries.current = 0;
-      }
-    } catch (error) {
-      // re-run if no data is found
-      void fetchData();
-      tries.current++;
-      return;
-    }
+    setCardSets(data as never[]);
   }, []);
 
-  // fetch data on mount/start
+  const grabMonths = useCallback(async () => {
+    const data = await monthMutation.mutateAsync({
+      startDate: new Date(props.maxYear ?? 2006, 0),
+      endDate: currentDate,
+      company: props.company,
+    });
+
+    months.current = data;
+  }, []);
   useEffect(() => {
+    void grabMonths();
+  }, []);
+
+  useEffect(() => {
+    if (months.current.length === 0) {
+      return;
+    }
+
+    if (months.current[0]) {
+      month.current = months.current[0];
+    }
+
     void fetchData();
-  }, []);
-
-  // add more data if first fetched data has less than 6
-  // to ensure that scrolling works in higher resolutions
-  // ...might have to use other iterations as well
-  useEffect(() => {
-    if (
-      cardSets.length === 1 &&
-      cardSets[0]?.data?.length < 6 &&
-      window.innerWidth >= 1024 // only for desktop
-    ) {
-      void fetchData();
-    }
-  }, [cardSets]);
+  }, [months.current]);
 
   return (
-    <BaseEntriesPage
-      {...{
-        cardSets,
-        fetchData,
-        continueFetching,
-        showCompany: props.showCompany,
-      }}
-    />
+    <>
+      <CardSet
+        month={month.current.toLocaleString("default", { month: "long" })}
+        year={month.current.getFullYear().toString()}
+        info={cardSets}
+        showCompany={props.showCompany}
+      />
+
+      <PageNavigation length={months.current.length} activeIndex={1} />
+    </>
   );
 }
