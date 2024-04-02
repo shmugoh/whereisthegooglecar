@@ -3,6 +3,7 @@
 import React from "react";
 import { Separator } from "~/components/ui/separator";
 import { Twitter, Github, Coffee } from "lucide-react";
+import Link from "next/link";
 
 const links = [
   {
@@ -27,7 +28,20 @@ export function Foot() {
           <div className="flex flex-wrap justify-center">
             <div className="flex flex-col items-center md:items-baseline">
               <p className="text-background-foreground font-bold leading-7">
-                © VirtualStreets
+                © VirtualStreets |{" "}
+                <Link
+                  href="/privacy-policy"
+                  className="font-medium text-primary underline underline-offset-4"
+                >
+                  Privacy Policy
+                </Link>{" "}
+                |{" "}
+                <Link
+                  href="/about"
+                  className="font-medium text-primary underline underline-offset-4"
+                >
+                  About
+                </Link>
               </p>
               <p className="text-background-foreground leading-7">
                 All trademarks and pictures are property of their respective
