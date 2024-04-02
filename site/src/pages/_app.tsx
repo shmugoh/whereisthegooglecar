@@ -22,7 +22,7 @@ export const fontSans = FontSans({
 
 import { NextSeo } from "next-seo";
 
-const TITLE = "WhereIsTheGoogleCar";
+const TITLE = "Where Is The Google Car";
 const DESCRIPTION =
   "WhereIsTheGoogleCar is the largest community-driven database of Google Street View Sightings, monitoring since 2020.";
 
@@ -30,7 +30,27 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <>
       <Head>
-        <link rel="icon" href="/favicon.svg" />
+        <link
+          rel="apple-touch-icon"
+          sizes="180x180"
+          href="/apple-touch-icon.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="32x32"
+          href="/favicon-32x32.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="16x16"
+          href="/favicon-16x16.png"
+        />
+        <link rel="manifest" href="/site.webmanifest" />
+        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5" />
+        <meta name="msapplication-TileColor" content="#000000" />
+        <meta name="theme-color" content="#ffffff" />
       </Head>
       <NextSeo
         title={TITLE}
@@ -47,7 +67,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
               alt: TITLE,
             },
           ],
-          site_name: "WhereIsTheGoogleCar",
+          site_name: "Where Is The Google Car",
         }}
         twitter={{
           cardType: "summary_large_image",

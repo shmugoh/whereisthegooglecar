@@ -27,7 +27,7 @@ export function Foot() {
           <div className="flex flex-wrap justify-center">
             <div className="flex flex-col items-center md:items-baseline">
               <p className="text-background-foreground font-bold leading-7">
-                © {new Date().getFullYear()} VirtualStreets
+                © VirtualStreets
               </p>
               <p className="text-background-foreground leading-7">
                 All trademarks and pictures are property of their respective

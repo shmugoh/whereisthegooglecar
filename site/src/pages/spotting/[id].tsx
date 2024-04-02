@@ -76,7 +76,7 @@ export default function Page(
                 alt: TITLE,
               },
             ],
-            site_name: "WhereIsTheGoogleCar",
+            site_name: "Where Is The Google Car",
           }}
         />
 

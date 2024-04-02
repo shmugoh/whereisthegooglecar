@@ -38,7 +38,7 @@ export const Header = () => {
           className="hidden items-center gap-2 text-xl font-bold md:flex"
         >
           <MdOutlineStreetview size={42} />
-          <span className="hidden md:inline">whereisthegooglecar.xyz</span>
+          <span className="hidden md:inline">Where Is The Google Car</span>
         </Link>
 
         {/* Menu Buttons */}
