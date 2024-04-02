@@ -11,10 +11,9 @@ type cardProps = {
 };
 
 type cardSetProps = {
-  month: string;
+  month: number;
   year: string;
-  info: [];
-  index: number;
+  info: never[];
   showCompany?: boolean;
 };
 

@@ -150,8 +150,8 @@ export default function EntriesPage(props: EntriesPageProps) {
 
       <div className="justify-center">
         <CardSet
-          month={month.current.toLocaleString("default", { month: "long" })}
-          year={month.current.getFullYear().toString()}
+          month={month.current.getUTCMonth()}
+          year={month.current.getUTCFullYear().toString()}
           info={cardSets}
           showCompany={props.showCompany}
         />
