@@ -68,7 +68,6 @@ export const SpottingCard = (props: cardProps) => {
           <ImagePreview
             url={`${env.NEXT_PUBLIC_CDN_URL}/${props.imageUrl}`}
             alt={`Picture of a Google Car spotted in ${props.town} on ${date}.`}
-            loading="eager"
           />
         </CardContent>
         <CardFooter className="flex justify-between">
