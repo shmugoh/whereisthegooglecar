@@ -33,10 +33,7 @@ export const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 max-w-screen-2xl items-center md:gap-4">
         {/* Title and Logo */}
-        <Link
-          href="/"
-          className="hidden items-center gap-2 text-xl font-bold md:flex"
-        >
+        <Link href="/" className="items-center gap-2 text-xl font-bold md:flex">
           <MdOutlineStreetview size={42} />
           <span className="hidden md:inline">Where Is The Google Car</span>
         </Link>
@@ -66,6 +63,14 @@ export const Header = () => {
                   <ListItem href="/services/others" title="Others"></ListItem>
                 </ul>
               </NavigationMenuContent>
+            </NavigationMenuItem>
+
+            <NavigationMenuItem>
+              <Link href="/submit" legacyBehavior passHref>
+                <NavigationMenuLink className={navigationMenuItemStyle}>
+                  Submit
+                </NavigationMenuLink>
+              </Link>
             </NavigationMenuItem>
 
             {/* About & FAQ */}
