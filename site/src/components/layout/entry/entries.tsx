@@ -8,6 +8,7 @@ import {
   MobilePageNavigation,
 } from "~/components/layout/pagination";
 import { useRouter } from "next/router";
+import Error from "~/pages/_error";
 
 type EntriesPageProps = {
   company: string;
@@ -60,6 +61,8 @@ export default function EntriesPage(props: EntriesPageProps) {
   const month = useRef<Date>(new Date());
   const activeIndex = useRef<number>(1);
 
+  const [error, setError] = useState(200);
+
   // fetch data
   const dataMutation = api.query.queryByMonth.useMutation({});
   const monthMutation = api.query.queryByFilterMonth.useMutation({});
@@ -106,6 +109,15 @@ export default function EntriesPage(props: EntriesPageProps) {
     if (router.query.page === undefined || months.current.length === 0) {
       return;
     } else {
+      // checks if query is within range
+      if (
+        Number(router.query.page) > months.current.length ||
+        Number(router.query.page) < 1
+      ) {
+        setError(404);
+        return;
+      }
+
       activeIndex.current = Number(router.query.page);
       month.current = months.current[Number(router.query.page) - 1];
 
@@ -114,26 +126,10 @@ export default function EntriesPage(props: EntriesPageProps) {
     }
   }, [router.query.page, months.current]);
 
-  // // update month and index on router change
-  // useEffect(() => {
-  //   const handleRouteChange = () => {
-  //     if (!router.isReady) return;
-  //     // update the active month index
-  //     activeIndex.current = Number(router.query.page);
-  //     month.current = months.current[activeIndex.current - 1];
-
-  //     // fetch data
-  //     void fetchData();
-  //   };
-
-  //   console.log("route change ON");
-  //   router.events.on("routeChangeComplete", handleRouteChange);
-
-  //   return () => {
-  //     console.log("route change OFF");
-  //     router.events.off("routeChangeComplete", handleRouteChange);
-  //   };
-  // }, [router.asPath, router.isReady]);
+  if (error !== 200) {
+    console.log("hello bro");
+    return <Error statusCode={error} />;
+  }
 
   return (
     <div className="flex w-full flex-col justify-between gap-4 md:min-h-[730px]">
