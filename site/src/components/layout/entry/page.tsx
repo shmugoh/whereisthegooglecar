@@ -7,6 +7,7 @@ import { TopText } from "~/components/layout/entry/topText";
 import { AspectRatio } from "~/components/ui/aspect-ratio";
 import { LocationButton, SourceButton, TextBluePrint } from "./output";
 import { ImagePreview } from "~/components/layout/entry/image";
+import EditDialog from "../form/edit";
 
 export const PageComponent = (props: pageProps) => {
   // handle aspect ratio (for mobile)
@@ -44,6 +45,8 @@ export const PageComponent = (props: pageProps) => {
           {props.data.locationUrl && (
             <LocationButton url={props.data.locationUrl} size="lg" />
           )}
+
+          <EditDialog size="lg" />
         </div>
       </div>
 
