@@ -145,6 +145,8 @@ class DiscordBot(commands.Bot):
         self.logger = logger
         self.config = config
         self.guild_id = int(os.getenv("GUILD_ID"))
+        
+        self.url = str(os.getenv("SITE_URL"))
         self.database = None
         self.redis = None
 
