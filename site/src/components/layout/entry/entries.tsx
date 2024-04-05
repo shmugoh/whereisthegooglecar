@@ -35,9 +35,7 @@ export function BaseEntriesPage(props: BaseEntriesPageProps) {
       {props.cardSets.map((data, index) => (
         <CardSet
           key={index}
-          month={new Date(0, Number(data.month) - 1).toLocaleString("default", {
-            month: "long",
-          })}
+          month={data.month}
           year={data.year}
           info={data.data}
           showCompany={props.showCompany}
