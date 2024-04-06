@@ -22,6 +22,7 @@ services:
       - AWS_SECRET_PUBLIC_KEY=${AWS_SECRET_PUBLIC_KEY}
       - AWS_SECRET_PRIVATE_KEY=${AWS_SECRET_PRIVATE_KEY}
       - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+      - SITE_URL=${SITE_URL}
     depends_on:
       - db
       - redis

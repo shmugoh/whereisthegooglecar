@@ -191,7 +191,7 @@ export default function Search() {
       );
     }
 
-    const getMonth = (currentStartDate.current.getMonth() + 1).toString();
+    const getMonth = currentStartDate.current.getUTCMonth().toString();
     const getYear = currentStartDate.current.getFullYear().toString();
 
     // query data from indexed month

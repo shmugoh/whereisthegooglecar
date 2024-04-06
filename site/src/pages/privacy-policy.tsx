@@ -35,8 +35,9 @@ export default function about() {
 
         <div className="text-background-foreground space-y-3.5 leading-7 [&:not(:first-child)]:mt-6">
           <p>
-            WhereIsTheGoogleCar uses Vercel Web Analytics to understand how
-            users interact with our site and to improve the user experience.
+            WhereIsTheGoogleCar uses Vercel Web Analytics and Vercel Speed
+            Insights to understand how users interact with our site and to
+            improve the user experience.
           </p>
 
           <p>
@@ -161,6 +162,19 @@ export default function about() {
             their{" "}
             <a
               href="https://vercel.com/docs/analytics/privacy-policy"
+              className="font-medium text-primary underline underline-offset-4"
+            >
+              Privacy and Compliance
+            </a>{" "}
+            page.
+          </p>
+
+          <p>
+            Vercel Speed Insights is also used to monitor the performance of the
+            site. This data is also anonymous and does not collect any personal
+            information. For more information, please see their{" "}
+            <a
+              href="https://vercel.com/docs/speed-insights/privacy-policy"
               className="font-medium text-primary underline underline-offset-4"
             >
               Privacy and Compliance

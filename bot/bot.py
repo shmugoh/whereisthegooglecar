@@ -145,6 +145,8 @@ class DiscordBot(commands.Bot):
         self.logger = logger
         self.config = config
         self.guild_id = int(os.getenv("GUILD_ID"))
+        
+        self.url = str(os.getenv("SITE_URL"))
         self.database = None
         self.redis = None
 
@@ -222,12 +224,12 @@ class DiscordBot(commands.Bot):
                         f"Failed to load extension {extension}\n{exception}"
                     )
 
-    @tasks.loop(minutes=1.0)
+    @tasks.loop(hours=6)
     async def status_task(self) -> None:
         """
         Setup the game status task of the bot.
         """
-        statuses = ["whereisthegooglecar.xyz"]
+        statuses = [self.url, "Google Street View", "Apple Maps", "Baidu Maps", "Yandex Maps"]
         await self.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=random.choice(statuses)))
 
     @status_task.before_loop
