@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type { InferGetServerSidePropsType } from "next";
 import EntriesPage from "~/components/layout/entry/entries";
 import { appRouter } from "~/server/api/root";
@@ -10,7 +11,13 @@ export default function Home(
 ) {
   console.log("Client: ", props.months, props.entries);
 
-  return <EntriesPage company="google" showCompany={false} maxYear={2004} />;
+  const months = JSON.parse(props.months);
+  const activeIndex = 1;
+  const entries = JSON.parse(props.entries);
+
+  return (
+    <EntriesPage months={months} entries={entries} activeIndex={activeIndex} />
+  );
 }
 
 export const getServerSideProps = async ({}) => {

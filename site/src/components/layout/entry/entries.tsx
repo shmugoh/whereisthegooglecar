@@ -11,9 +11,10 @@ import { useRouter } from "next/router";
 import Error from "~/pages/_error";
 
 type EntriesPageProps = {
-  company: string;
   showCompany?: boolean;
-  maxYear?: number;
+  months: never[];
+  entries: never[];
+  activeIndex: number;
 };
 
 type BaseEntriesPageProps = {
@@ -22,6 +23,53 @@ type BaseEntriesPageProps = {
   continueFetching: boolean;
   showCompany?: boolean;
 };
+
+export default function EntriesPage(props: EntriesPageProps) {
+  // states & references
+  // const [cardSets, setCardSets] = useState([]);
+  // setCardSets(props.entries);
+
+  // const [error, setError] = useState(200);
+  // if (error !== 200) {
+  //   console.log("hello bro");
+  //   return <Error statusCode={error} />;
+  // }
+
+  return (
+    <div className="flex w-full flex-col justify-between gap-4 md:min-h-[730px]">
+      <div className="justify-start">
+        <PageNavigation
+          length={props.months.length}
+          activeIndex={props.activeIndex}
+        />
+        <MobilePageNavigation
+          length={props.months.length}
+          activeIndex={props.activeIndex}
+        />
+      </div>
+
+      <div className="justify-center">
+        <CardSet
+          month={2}
+          year={"2024"}
+          info={props.entries}
+          showCompany={props.showCompany}
+        />
+      </div>
+
+      <div className="justify-end">
+        <PageNavigation
+          length={props.months.length}
+          activeIndex={props.activeIndex}
+        />
+        <MobilePageNavigation
+          length={props.months.length}
+          activeIndex={props.activeIndex}
+        />
+      </div>
+    </div>
+  );
+}
 
 export function BaseEntriesPage(props: BaseEntriesPageProps) {
   return (
@@ -42,125 +90,5 @@ export function BaseEntriesPage(props: BaseEntriesPageProps) {
         />
       ))}
     </InfiniteScroll>
-  );
-}
-
-export default function EntriesPage(props: EntriesPageProps) {
-  const router = useRouter();
-
-  // date configuration
-  const currentDate = new Date();
-  currentDate.setMonth(currentDate.getMonth() + 1);
-  // summing new month so during first-run, it fetches the current month
-
-  // states & references
-  const [cardSets, setCardSets] = useState([]);
-  const months = useRef<Date[]>([]);
-  const month = useRef<Date>(new Date());
-  const activeIndex = useRef<number>(1);
-
-  const [error, setError] = useState(200);
-
-  // fetch data
-  const dataMutation = api.query.queryByMonth.useMutation({});
-  const monthMutation = api.query.queryByFilterMonth.useMutation({});
-
-  const fetchData = useCallback(async () => {
-    setCardSets([]); // clear current data
-
-    const data = await dataMutation.mutateAsync({
-      company: props.company,
-      month: (month.current.getUTCMonth() + 1).toString(),
-      year: month.current.getUTCFullYear().toString(),
-    });
-
-    setCardSets(data as never[]); // set new data
-  }, []);
-
-  const grabMonths = useCallback(async () => {
-    const data = await monthMutation.mutateAsync({
-      startDate: new Date(props.maxYear ?? 2006, 0),
-      endDate: currentDate,
-      company: props.company,
-    });
-
-    months.current = data;
-  }, []);
-  useEffect(() => {
-    void grabMonths();
-  }, []);
-
-  // fetch data on mount
-  useEffect(() => {
-    if (months.current.length === 0) {
-      return;
-    }
-    if (months.current[0]) {
-      month.current = months.current[0];
-    }
-
-    void fetchData();
-  }, [months.current]);
-
-  // fetch new data on new query
-  useEffect(() => {
-    if (router.query.page === undefined || months.current.length === 0) {
-      return;
-    } else {
-      // checks if query is within range
-      if (
-        Number(router.query.page) > months.current.length ||
-        Number(router.query.page) < 1
-      ) {
-        setError(404);
-        return;
-      }
-
-      activeIndex.current = Number(router.query.page);
-      month.current = months.current[Number(router.query.page) - 1];
-
-      setCardSets([]);
-      void fetchData();
-    }
-  }, [router.query.page, months.current]);
-
-  if (error !== 200) {
-    console.log("hello bro");
-    return <Error statusCode={error} />;
-  }
-
-  return (
-    <div className="flex w-full flex-col justify-between gap-4 md:min-h-[730px]">
-      <div className="justify-start">
-        <PageNavigation
-          length={months.current.length}
-          activeIndex={activeIndex.current}
-        />
-        <MobilePageNavigation
-          length={months.current.length}
-          activeIndex={activeIndex.current}
-        />
-      </div>
-
-      <div className="justify-center">
-        <CardSet
-          month={month.current.getUTCMonth()}
-          year={month.current.getUTCFullYear().toString()}
-          info={cardSets}
-          showCompany={props.showCompany}
-        />
-      </div>
-
-      <div className="justify-end">
-        <PageNavigation
-          length={months.current.length}
-          activeIndex={activeIndex.current}
-        />
-        <MobilePageNavigation
-          length={months.current.length}
-          activeIndex={activeIndex.current}
-        />
-      </div>
-    </div>
   );
 }
