@@ -33,7 +33,10 @@ export const queryRouter = createTRPCRouter({
       const whereClause: any = {};
       // company
       if (company) {
-        whereClause.company = company;
+        whereClause.company =
+          company === "others_rest"
+            ? { notIn: ["google", "apple", "yandex"] }
+            : company;
       }
       // dates - ignore timezones
       if (startDate && endDate) {
@@ -173,7 +176,7 @@ export const queryRouter = createTRPCRouter({
       const { company, month, year } = input;
 
       // obtains from cache
-      let cachedValue = await kv.hget(
+      const cachedValue = await kv.hget(
         `spottings:${company}:${month}:${year}`,
         "data",
       );
@@ -185,6 +188,9 @@ export const queryRouter = createTRPCRouter({
       }
 
       // loads from database if cache is empty
+      console.log(
+        `[DB - queryByMonth] Loading spottings:${company}:${month}:${year} from DB...`,
+      );
       const startDate = new Date(
         Date.UTC(parseInt(year), parseInt(month) - 1, 1),
       );
@@ -193,7 +199,10 @@ export const queryRouter = createTRPCRouter({
       const data = await ctx.db.spottings
         .findMany({
           where: {
-            company: company === "others" ? { not: "google" } : company,
+            company:
+              company === "others_rest"
+                ? { notIn: ["google", "apple", "yandex"] }
+                : company,
             date: { gte: startDate, lte: endDate },
           },
           orderBy: { date: "desc" },
@@ -209,7 +218,7 @@ export const queryRouter = createTRPCRouter({
           }
         });
 
-      // // registers to cache
+      // registers to cache
       console.log(
         `[CACHE - queryByMonth] Caching spottings:${company}:${month}:${year}...`,
       );
@@ -217,22 +226,15 @@ export const queryRouter = createTRPCRouter({
         data: data,
       });
 
-      // load from new cache
-      console.log(
-        `[CACHE - queryByMonth] Loading spottings:${company}:${month}:${year} from cache...`,
-      );
-      cachedValue = await kv.hget(
-        `spottings:${company}:${month}:${year}`,
-        "data",
-      );
-      return cachedValue;
+      // load from database
+      return data;
     }),
 
   getById: publicProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
       // obtains from cache
-      let cachedValue = await kv.hget(
+      const cachedValue = await kv.hget(
         `spotting:${input.id.toString()}`,
         "data",
       );
@@ -242,6 +244,7 @@ export const queryRouter = createTRPCRouter({
       }
 
       // obtains from database if cache is empty
+      console.log(`[DB - getById] Loading spottings:${input.id} from DB...`);
       const data = await ctx.db.spottings
         .findFirst({
           where: { message_id: input.id },
@@ -263,9 +266,7 @@ export const queryRouter = createTRPCRouter({
         data,
       });
 
-      // load from new cache
-      console.log(`[CACHE - getById] Loading ${input.id} from cache...`);
-      cachedValue = await kv.hget(`spotting:${input.id.toString()}`, "data");
-      return cachedValue;
+      // load from database
+      return data;
     }),
 });
