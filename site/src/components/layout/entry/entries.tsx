@@ -14,7 +14,7 @@ type EntriesPageProps = {
   showCompany?: boolean;
   months: never[];
   entries: never[];
-  activeIndex: number;
+  index: number;
 };
 
 type BaseEntriesPageProps = {
@@ -40,11 +40,11 @@ export default function EntriesPage(props: EntriesPageProps) {
       <div className="justify-start">
         <PageNavigation
           length={props.months.length}
-          activeIndex={props.activeIndex}
+          activeIndex={props.index}
         />
         <MobilePageNavigation
           length={props.months.length}
-          activeIndex={props.activeIndex}
+          activeIndex={props.index}
         />
       </div>
 
@@ -60,11 +60,11 @@ export default function EntriesPage(props: EntriesPageProps) {
       <div className="justify-end">
         <PageNavigation
           length={props.months.length}
-          activeIndex={props.activeIndex}
+          activeIndex={props.index}
         />
         <MobilePageNavigation
           length={props.months.length}
-          activeIndex={props.activeIndex}
+          activeIndex={props.index}
         />
       </div>
     </div>
