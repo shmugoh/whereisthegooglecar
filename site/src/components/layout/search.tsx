@@ -37,10 +37,25 @@ export const Search = () => {
   // Dropdown Hook
   const [open, setOpen] = useState(false);
 
-  // Grab Services, Countries, and FirstDate
-  const services = api.grab.grabServices.useQuery().data ?? [];
-  const countries = api.grab.grabCountries.useQuery().data ?? [];
-  const firstDateRequest = api.grab.grabFirstDate.useQuery().data;
+  // Grab Services
+  const services =
+    api.grab.grabServices.useQuery(undefined, {
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+    }).data ?? [];
+
+  // Grab Countries
+  const countries =
+    api.grab.grabCountries.useQuery(undefined, {
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+    }).data ?? [];
+
+  // Grab Date
+  const firstDateRequest = api.grab.grabFirstDate.useQuery(undefined, {
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  }).data;
   /// Process First Date
   let firstDate: Date;
   if (firstDateRequest?.date) {
