@@ -57,7 +57,7 @@ export const queryRouter = createTRPCRouter({
       }
       // country
       if (country) {
-        whereClause.country = country;
+        whereClause.country = country === "OTHERS" ? "others" : country;
       }
 
       const data = await ctx.db.spottings
@@ -142,7 +142,7 @@ export const queryRouter = createTRPCRouter({
       }
 
       if (country) {
-        whereClause.country = country;
+        whereClause.country = country === "OTHERS" ? "others" : country;
       }
 
       const data = await ctx.db.spottings
