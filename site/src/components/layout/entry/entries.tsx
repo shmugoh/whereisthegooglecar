@@ -1,7 +1,14 @@
 import { api } from "~/utils/api";
 import { CardSet } from "~/components/layout/entry/card";
 import InfiniteScroll from "react-infinite-scroll-component";
-import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  Ref,
+  MutableRefObject,
+} from "react";
 import { HomeSkeleton } from "~/components/layout/entry/skeleton";
 import {
   PageNavigation,
@@ -17,31 +24,47 @@ type EntriesPageProps = {
 };
 
 type BaseEntriesPageProps = {
+  months: MutableRefObject<Date[]>;
+  month: MutableRefObject<Date>;
+  activeIndex: MutableRefObject<number>;
   cardSets: never[];
-  fetchData: () => void;
-  continueFetching: boolean;
-  showCompany?: boolean;
+  showCompany: boolean;
 };
 
 export function BaseEntriesPage(props: BaseEntriesPageProps) {
   return (
-    <InfiniteScroll
-      dataLength={props.cardSets.length}
-      next={props.fetchData}
-      hasMore={props.continueFetching}
-      className="flex w-full flex-col items-center gap-4"
-      loader={<HomeSkeleton />}
-    >
-      {props.cardSets.map((data, index) => (
+    <div className="flex w-full flex-col justify-between gap-4 md:min-h-[730px]">
+      <div className="justify-start">
+        <PageNavigation
+          length={props.months.current.length}
+          activeIndex={props.activeIndex.current}
+        />
+        <MobilePageNavigation
+          length={props.months.current.length}
+          activeIndex={props.activeIndex.current}
+        />
+      </div>
+
+      <div className="justify-center">
         <CardSet
-          key={index}
-          month={data.month}
-          year={data.year}
-          info={data.data}
+          month={props.month.current.getUTCMonth()}
+          year={props.month.current.getUTCFullYear().toString()}
+          info={props.cardSets}
           showCompany={props.showCompany}
         />
-      ))}
-    </InfiniteScroll>
+      </div>
+
+      <div className="justify-end">
+        <PageNavigation
+          length={props.months.current.length}
+          activeIndex={props.activeIndex.current}
+        />
+        <MobilePageNavigation
+          length={props.months.current.length}
+          activeIndex={props.activeIndex.current}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -125,42 +148,16 @@ export default function EntriesPage(props: EntriesPageProps) {
   }, [router.query.page, months.current]);
 
   if (error !== 200) {
-    console.log("hello bro");
     return <Error statusCode={error} />;
   }
 
   return (
-    <div className="flex w-full flex-col justify-between gap-4 md:min-h-[730px]">
-      <div className="justify-start">
-        <PageNavigation
-          length={months.current.length}
-          activeIndex={activeIndex.current}
-        />
-        <MobilePageNavigation
-          length={months.current.length}
-          activeIndex={activeIndex.current}
-        />
-      </div>
-
-      <div className="justify-center">
-        <CardSet
-          month={month.current.getUTCMonth()}
-          year={month.current.getUTCFullYear().toString()}
-          info={cardSets}
-          showCompany={props.showCompany}
-        />
-      </div>
-
-      <div className="justify-end">
-        <PageNavigation
-          length={months.current.length}
-          activeIndex={activeIndex.current}
-        />
-        <MobilePageNavigation
-          length={months.current.length}
-          activeIndex={activeIndex.current}
-        />
-      </div>
-    </div>
+    <BaseEntriesPage
+      months={months}
+      month={month}
+      activeIndex={activeIndex}
+      cardSets={cardSets}
+      showCompany={props.showCompany ?? false}
+    />
   );
 }
