@@ -56,7 +56,7 @@ export function DropdownBox({
                   ?.label.slice(0, 4)
               : values
                   .find((values) => values.value === value)
-                  ?.label.slice(0, 7) + (value.length > 7 ? "..." : "")
+                  ?.label.slice(0, 6) + (value.length > 6 ? "..." : "")
             : name}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>

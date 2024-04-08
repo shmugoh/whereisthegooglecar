@@ -89,7 +89,7 @@ export const Search = () => {
                 control={form.control}
                 name="services"
                 render={({ field }) => (
-                  <div className="flex w-1/2 items-center gap-2 p-2">
+                  <div className="flex w-40 items-center gap-2 p-2">
                     <FilterIcon className="h-4 w-4 text-gray-500" />
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -113,7 +113,7 @@ export const Search = () => {
                 control={form.control}
                 name="countries"
                 render={({ field }) => (
-                  <div className="flex w-1/2 items-center gap-2 p-2">
+                  <div className="flex w-40 items-center gap-2 p-2">
                     <FlagIcon className="h-4 w-4 text-gray-500" />
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
