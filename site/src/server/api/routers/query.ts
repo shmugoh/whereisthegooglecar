@@ -251,7 +251,14 @@ export const queryRouter = createTRPCRouter({
         })
         .then((data) => {
           if (data) {
-            return data;
+            return {
+              ...data,
+              date: data.date.toISOString(),
+              createdAt: data.createdAt.toISOString(),
+              updatedAt: data.updatedAt.toISOString(),
+              channel_id: data.channel_id.toString(),
+              message_id: data.message_id.toString(),
+            };
           } else {
             throw new TRPCError({
               code: "NOT_FOUND",
