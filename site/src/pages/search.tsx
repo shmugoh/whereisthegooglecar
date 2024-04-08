@@ -42,7 +42,6 @@ export default function Search() {
   // fetch/refetch data once queries are set/changed
   useEffect(() => {
     if (town ?? date ?? services ?? countries) {
-      console.log("new queries!");
       setIsLoading(true);
 
       // without setting a timeout, the current

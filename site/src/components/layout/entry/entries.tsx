@@ -129,28 +129,32 @@ export default function EntriesPage(props: EntriesPageProps) {
   }, []);
 
   const grabMonths = useCallback(async () => {
-    let data;
+    try {
+      let data;
 
-    // if coming from search
-    if (props.startDate !== undefined && props.endDate !== undefined) {
-      data = await monthMutation.mutateAsync({
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        company: props.company!,
-        startDate: props.startDate,
-        endDate: props.endDate,
-        town: props.town!,
-        country: props.country!,
-      });
-      // if coming from normal
-    } else {
-      data = await monthMutation.mutateAsync({
-        startDate: new Date(props.maxYear ?? 2006, 0),
-        endDate: currentDate,
-        company: props.company,
-      });
+      // if coming from search
+      if (props.startDate !== undefined && props.endDate !== undefined) {
+        data = await monthMutation.mutateAsync({
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+          company: props.company!,
+          startDate: props.startDate,
+          endDate: props.endDate,
+          town: props.town!,
+          country: props.country!,
+        });
+      } else {
+        // if coming from normal
+        data = await monthMutation.mutateAsync({
+          startDate: new Date(props.maxYear ?? 2006, 0),
+          endDate: currentDate,
+          company: props.company,
+        });
+      }
+
+      months.current = data;
+    } catch (error) {
+      setError(404);
     }
-
-    months.current = data;
   }, []);
   useEffect(() => {
     void grabMonths();
@@ -191,7 +195,12 @@ export default function EntriesPage(props: EntriesPageProps) {
   }, [router.query.page, months.current]);
 
   if (error !== 200) {
-    return <Error statusCode={error} />;
+    return (
+      <Error
+        statusCode={error}
+        message={error === 404 ? "No data found" : null}
+      />
+    );
   }
 
   return (
