@@ -28,7 +28,7 @@ type EntriesPageProps = {
 };
 
 type BaseEntriesPageProps = {
-  months: MutableRefObject<Date[]>;
+  months: MutableRefObject<{ date: Date; count: number }[]>;
   month: MutableRefObject<Date>;
   activeIndex: MutableRefObject<number>;
   cardSets: never[];
@@ -82,7 +82,7 @@ export default function EntriesPage(props: EntriesPageProps) {
 
   // states & references
   const [cardSets, setCardSets] = useState([]);
-  const months = useRef<Date[]>([]);
+  const months = useRef<{ date: Date; count: number }[]>([]);
   const month = useRef<Date>(new Date());
   const activeIndex = useRef<number>(1);
 
@@ -166,7 +166,7 @@ export default function EntriesPage(props: EntriesPageProps) {
       return;
     }
     if (months.current[0]) {
-      month.current = months.current[0];
+      month.current = months.current[0].date;
     }
 
     void fetchData();
@@ -187,7 +187,7 @@ export default function EntriesPage(props: EntriesPageProps) {
       }
 
       activeIndex.current = Number(router.query.page);
-      month.current = months.current[Number(router.query.page) - 1];
+      month.current = months.current[Number(router.query.page) - 1]?.date;
 
       setCardSets([]);
       void fetchData();

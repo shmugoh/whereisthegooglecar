@@ -92,7 +92,21 @@ export const queryRouter = createTRPCRouter({
                   index
                 );
               });
-            return uniqueDates;
+
+            // grab count
+            const dataWithCounts = uniqueDates.map((uniqueDate) => {
+              const count = data.filter((item) => {
+                const date = new Date(
+                  item.date.getUTCFullYear(),
+                  item.date.getUTCMonth(),
+                  1,
+                );
+                return date.getTime() === uniqueDate.getTime();
+              }).length;
+              return { date: uniqueDate, count: count };
+            });
+
+            return dataWithCounts;
           }
         });
 
