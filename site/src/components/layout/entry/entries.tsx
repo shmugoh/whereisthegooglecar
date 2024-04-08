@@ -184,7 +184,6 @@ export default function EntriesPage(props: EntriesPageProps) {
 
       activeIndex.current = Number(router.query.page);
       month.current = months.current[Number(router.query.page) - 1];
-      console.log(month.current);
 
       setCardSets([]);
       void fetchData();

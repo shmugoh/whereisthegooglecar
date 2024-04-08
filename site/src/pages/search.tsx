@@ -1,10 +1,8 @@
 import React, { useCallback, useState, useEffect, useRef } from "react";
 import { api } from "~/utils/api";
-import EntriesPage, {
-  BaseEntriesPage,
-} from "~/components/layout/entry/entries";
+import EntriesPage from "~/components/layout/entry/entries";
 import { useRouter } from "next/router";
-import Error from "~/pages/_error";
+import { HomeSkeleton } from "~/components/layout/entry/skeleton";
 
 type SearchProps = {
   town?: string;
@@ -24,11 +22,11 @@ export default function Search() {
   const query = router.query as SearchProps;
   const { town, date, services, countries } = query;
   const [isReady, setIsReady] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // initialize date
   const startDate = useRef<Date>(new Date());
   const endDate = useRef<Date>(new Date());
-
   const initDate = useCallback((date: string) => {
     if (date) {
       type DateObject = {
@@ -41,25 +39,34 @@ export default function Search() {
     }
   }, []);
 
-  // grabs months once queries are set
+  // fetch/refetch data once queries are set/changed
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    if (town || date || services || countries) {
-      initDate(query.date);
-      setIsReady(true);
+    if (town ?? date ?? services ?? countries) {
+      console.log("new queries!");
+      setIsLoading(true);
+
+      // without setting a timeout, the current
+      // entriespage won't be cleared
+      setTimeout(() => {
+        initDate(query.date);
+        setIsReady(true);
+        setIsLoading(false);
+      }, 1);
     }
   }, [town, date, services, countries]);
 
-  if (isReady) {
-    return (
-      <EntriesPage
-        company={services}
-        country={countries}
-        town={town}
-        startDate={startDate.current}
-        endDate={endDate.current}
-        showCompany={true}
-      />
-    );
+  if (isLoading ?? !isReady) {
+    return <HomeSkeleton />;
   }
+
+  return (
+    <EntriesPage
+      company={services}
+      country={countries}
+      town={town}
+      startDate={startDate.current}
+      endDate={endDate.current}
+      showCompany={true}
+    />
+  );
 }
