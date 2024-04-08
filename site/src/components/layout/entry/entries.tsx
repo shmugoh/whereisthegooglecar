@@ -18,7 +18,11 @@ import { useRouter } from "next/router";
 import Error from "~/pages/_error";
 
 type EntriesPageProps = {
-  company: string;
+  company: string | undefined;
+  country?: string | undefined;
+  town?: string | undefined;
+  startDate?: Date;
+  endDate?: Date;
   showCompany?: boolean;
   maxYear?: number;
 };
@@ -86,26 +90,65 @@ export default function EntriesPage(props: EntriesPageProps) {
 
   // fetch data
   const dataMutation = api.query.queryByMonth.useMutation({});
+  const dataSearchMutation = api.query.queryByFilter.useMutation({});
   const monthMutation = api.query.queryByFilterMonth.useMutation({});
 
   const fetchData = useCallback(async () => {
+    let data;
+
     setCardSets([]); // clear current data
 
-    const data = await dataMutation.mutateAsync({
-      company: props.company,
-      month: (month.current.getUTCMonth() + 1).toString(),
-      year: month.current.getUTCFullYear().toString(),
-    });
+    // if from search
+    if (props.startDate !== undefined && props.endDate !== undefined) {
+      data = await dataSearchMutation.mutateAsync({
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        company: props.company!,
+        startDate: new Date(
+          month.current.getUTCFullYear(),
+          month.current.getUTCMonth(),
+          1,
+        ),
+        endDate: new Date(
+          month.current.getUTCFullYear(),
+          month.current.getUTCMonth() + 1,
+          0,
+        ),
+        town: props.town!,
+        country: props.country!,
+      });
+      // if from normal
+    } else {
+      data = await dataMutation.mutateAsync({
+        company: props.company!,
+        month: (month.current.getUTCMonth() + 1).toString(),
+        year: month.current.getUTCFullYear().toString(),
+      });
+    }
 
     setCardSets(data as never[]); // set new data
   }, []);
 
   const grabMonths = useCallback(async () => {
-    const data = await monthMutation.mutateAsync({
-      startDate: new Date(props.maxYear ?? 2006, 0),
-      endDate: currentDate,
-      company: props.company,
-    });
+    let data;
+
+    // if coming from search
+    if (props.startDate !== undefined && props.endDate !== undefined) {
+      data = await monthMutation.mutateAsync({
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        company: props.company!,
+        startDate: props.startDate,
+        endDate: props.endDate,
+        town: props.town!,
+        country: props.country!,
+      });
+      // if coming from normal
+    } else {
+      data = await monthMutation.mutateAsync({
+        startDate: new Date(props.maxYear ?? 2006, 0),
+        endDate: currentDate,
+        company: props.company,
+      });
+    }
 
     months.current = data;
   }, []);
@@ -141,6 +184,7 @@ export default function EntriesPage(props: EntriesPageProps) {
 
       activeIndex.current = Number(router.query.page);
       month.current = months.current[Number(router.query.page) - 1];
+      console.log(month.current);
 
       setCardSets([]);
       void fetchData();
