@@ -14,21 +14,14 @@ import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Form, FormControl, FormField } from "~/components/ui/form";
 import { DropdownBox } from "~/components/layout/combobox";
-import { DatePickerWithRange as Calendar } from "./calendar";
 
-import { CalendarIcon, SearchIcon, FilterIcon, FlagIcon } from "lucide-react";
+import { SearchIcon, FilterIcon, FlagIcon } from "lucide-react";
 
 import { api } from "~/utils/api";
 
 // define form schema
 const formSchema = z.object({
   town: z.string().optional(),
-  date: z
-    .object({
-      from: z.date().optional(),
-      to: z.date().optional(),
-    })
-    .optional(),
   services: z.string().optional(),
   countries: z.string().optional(),
 });
@@ -51,22 +44,6 @@ export const Search = () => {
       refetchOnWindowFocus: false,
     }).data ?? [];
 
-  // Grab Date
-  const firstDateRequest = api.grab.grabFirstDate.useQuery(undefined, {
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-  }).data;
-  /// Process First Date
-  let firstDate: Date;
-  if (firstDateRequest?.date) {
-    firstDate = new Date(
-      firstDateRequest.date.getUTCFullYear(),
-      firstDateRequest.date.getUTCMonth(),
-    );
-  } else {
-    firstDate = new Date(2006, 0);
-  }
-
   // Initialize Router
   const router = useRouter();
 
@@ -75,7 +52,6 @@ export const Search = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       town: "",
-      date: { from: undefined, to: undefined },
       services: "",
       countries: "",
     },
@@ -85,7 +61,6 @@ export const Search = () => {
 
     const query = {
       town: values.town,
-      date: JSON.stringify(processDate(values.date)),
       services: values.services,
       countries: values.countries,
     };
@@ -95,27 +70,6 @@ export const Search = () => {
       query: query,
     });
   }
-
-  // Process Date
-  const processDate = (
-    date?: // if type matches z.object
-    | {
-          from?: Date | undefined;
-          to?: Date | undefined;
-        }
-      // else if none
-      | undefined,
-  ) => {
-    /// if both are empty, set default
-    if (date?.from == undefined && date?.to == undefined)
-      return { from: new Date(firstDate), to: new Date() };
-    /// if both are empty, set to same day
-    if (date.from && date.to == undefined) {
-      return { from: date.from, to: date.from };
-    }
-    // else, return both
-    return { from: date?.from, to: date?.to };
-  };
 
   // Layout
   return (
@@ -178,20 +132,6 @@ export const Search = () => {
                 )}
               />
             </div>
-
-            <DropdownMenuSeparator />
-
-            {/* Date */}
-            <FormField
-              control={form.control}
-              name="date"
-              render={({ field }) => (
-                <div className="flex items-center gap-2 p-2">
-                  <CalendarIcon className="h-4 w-4 text-gray-500" />
-                  <Calendar value={field.value} onChange={field.onChange} />
-                </div>
-              )}
-            />
 
             <DropdownMenuSeparator />
 

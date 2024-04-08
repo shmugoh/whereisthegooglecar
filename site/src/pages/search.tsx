@@ -25,29 +25,26 @@ export default function Search() {
   const [isLoading, setIsLoading] = useState(false);
 
   // initialize date
-  const startDate = useRef<Date>(new Date());
-  const endDate = useRef<Date>(new Date());
-  const initDate = useCallback((date: string) => {
-    if (date) {
-      type DateObject = {
-        from: string;
-        to: string;
-      };
-      const dateObject = JSON.parse(date) as DateObject;
-      startDate.current = new Date(dateObject.from);
-      endDate.current = new Date(dateObject.to);
-    }
-  }, []);
+  // i decided to remove date picking off, as i
+  // consider pagination to be much easier on switching
+  // between months/years... and it wasn't properly implemented
+  // maybe for next time
+  const grabFirstDate = api.grab.grabFirstDate.useQuery(undefined, {
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  }).data;
+  const startDate = new Date(grabFirstDate?.date ?? new Date(2004, 0));
+  const endDate = new Date();
 
   // fetch/refetch data once queries are set/changed
   useEffect(() => {
-    if (town ?? date ?? services ?? countries) {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if (town || date || services || countries) {
       setIsLoading(true);
 
       // without setting a timeout, the current
       // entriespage won't be cleared
       setTimeout(() => {
-        initDate(query.date);
         setIsReady(true);
         setIsLoading(false);
       }, 1);
@@ -63,8 +60,8 @@ export default function Search() {
       company={services}
       country={countries}
       town={town}
-      startDate={startDate.current}
-      endDate={endDate.current}
+      startDate={startDate}
+      endDate={endDate}
       showCompany={true}
     />
   );
