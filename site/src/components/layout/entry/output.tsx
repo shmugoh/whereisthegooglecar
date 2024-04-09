@@ -6,6 +6,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
+import { cn } from "~/lib/utils";
 
 const ButtonBluePrint = (props: {
   type: string;
@@ -51,10 +52,17 @@ const ButtonBluePrint = (props: {
   );
 };
 
-export const TextBluePrint = (props: { text: string; size: "base" | "lg" }) => {
+export const TextBluePrint = (props: {
+  text: string;
+  size: "base" | "lg";
+  className?: string;
+}) => {
   return (
     <div
-      className={`text-${props.size} font-regular text-slate-600 dark:text-slate-300`}
+      className={cn(
+        `text-${props.size} font-regular text-slate-600 dark:text-slate-300`,
+        props.className,
+      )}
     >
       {props.text}
     </div>

@@ -8,6 +8,7 @@ import { AspectRatio } from "~/components/ui/aspect-ratio";
 import { LocationButton, SourceButton, TextBluePrint } from "./output";
 import { ImagePreview } from "~/components/layout/entry/image";
 import EditDialog from "../form/edit";
+import ServiceBadge from "./service_badge";
 
 export const PageComponent = (props: pageProps) => {
   // handle aspect ratio (for mobile)
@@ -37,9 +38,17 @@ export const PageComponent = (props: pageProps) => {
       </div>
 
       {/* Description */}
-      <div className="flex items-start justify-between self-stretch">
-        <TextBluePrint text={props.data.town} size="lg" />
-        <div className="flex gap-4">
+      <div className="flex flex-col items-start justify-between gap-2 self-stretch md:flex-row">
+        <div className="flex w-full gap-4">
+          <ServiceBadge service={props.data.company} />
+
+          <TextBluePrint
+            text={props.data.town}
+            size="lg"
+            className="w-full text-right md:text-left"
+          />
+        </div>
+        <div className="flex w-full justify-between gap-4  md:w-fit md:flex-row md:justify-normal">
           <SourceButton url={props.data.sourceUrl} size="lg" />
 
           {props.data.locationUrl && (

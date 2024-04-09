@@ -23,6 +23,7 @@ import { HomeSkeleton } from "~/components/layout/entry/skeleton";
 import { convertDate } from "~/utils/date";
 import twemoji from "@twemoji/api";
 import { env } from "~/env";
+import ServiceBadge from "./service_badge";
 
 const monthNames = [
   "January",
@@ -69,14 +70,7 @@ export const SpottingCard = (props: cardProps) => {
           <CardDescription className="flex items-center justify-between gap-2 break-all">
             <TextBluePrint text={props.town} size="base" />
 
-            {props.company && (
-              <Badge variant={"secondary"} className="h-fit w-24">
-                <p className="w-full text-center">
-                  {props.company.charAt(0).toUpperCase() +
-                    props.company.slice(1)}
-                </p>
-              </Badge>
-            )}
+            <ServiceBadge service={props.company} className="h-fit" />
           </CardDescription>
         </CardHeader>
         <CardContent>
