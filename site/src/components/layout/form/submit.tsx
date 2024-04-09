@@ -12,7 +12,7 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 
-import { z } from "zod";
+import type { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import {
@@ -25,26 +25,13 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { format } from "date-fns";
+import { formSchema } from "./schema";
 
 import { CalendarIcon } from "lucide-react";
 import { IoCloudUploadOutline } from "react-icons/io5";
 
 import { cn } from "~/lib/utils";
 import Image from "next/image";
-
-const formSchema = z.object({
-  country: z
-    .string()
-    .min(4, { message: "Country must be at least 4 characters" }),
-  town: z.string().min(1, { message: "Town must at least have 1 character" }),
-  source: z
-    .string()
-    .min(4, { message: "Source must be at least 4 characters" }),
-  location: z.string().url().or(z.literal("")).optional(),
-  date: z.date(),
-  image: z.any(),
-  service: z.string().optional(),
-});
 
 export default function SubmitForm() {
   // image uploading

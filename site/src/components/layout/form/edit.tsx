@@ -18,7 +18,7 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 
-import { z } from "zod";
+import type { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import {
@@ -30,36 +30,36 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
+import { formSchema } from "./schema";
 
 import { cn } from "~/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 
-const formSchema = z.object({
-  country: z.string(),
-  town: z.string(),
-  source: z.string(),
-  location: z.string().url().optional(),
-  date: z.date(),
-});
+type EditDialogProps = {
+  size: "sm" | "lg";
+  country?: string;
+  town?: string;
+  source?: string;
+  location?: string;
+  service?: string;
+  date?: Date;
+};
 
-export default function EditDialog(props: { size: "sm" | "lg" }) {
-  // 1. Define your form.
+export default function EditDialog(props: EditDialogProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      country: "United States",
-      town: "San Francisco",
-      source: "https://twitter.com/peduarte/status/1442422346456527873",
-      location: "https://www.google.com/maps?q=37.7749,-122.4194",
-      date: new Date(),
+      country: props.country,
+      town: props.town,
+      source: props.source,
+      location: props.location,
+      date: props.date,
+      image: "",
     },
   });
 
-  // 2. Define a submit handler.
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
     console.log(values);
   }
 
@@ -178,6 +178,7 @@ export default function EditDialog(props: { size: "sm" | "lg" }) {
               )}
             />
 
+            {/* Location */}
             <FormField
               control={form.control}
               name="location"

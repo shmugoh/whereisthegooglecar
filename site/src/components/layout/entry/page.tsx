@@ -55,7 +55,14 @@ export const PageComponent = (props: pageProps) => {
             <LocationButton url={props.data.locationUrl} size="lg" />
           )}
 
-          <EditDialog size="lg" />
+          <EditDialog
+            size="lg"
+            date={new Date(props.dateFormatted)}
+            town={props.data.town}
+            country={props.data.countryEmoji}
+            source={props.data.sourceUrl}
+            location={props.data.locationUrl ?? undefined}
+          />
         </div>
       </div>
 
