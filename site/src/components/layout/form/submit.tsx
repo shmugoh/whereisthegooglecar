@@ -143,6 +143,18 @@ export default function SubmitForm() {
                   // onDrag={(Event) => console.log(0, Event)}
                   // onDragOver={(event) => console.log(1, event)}
                   onClick={onClick}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const file = e.dataTransfer.files[0];
+                    if (file) {
+                      const imageUrl = URL.createObjectURL(file);
+                      setImage(imageUrl);
+                      form.setValue("image", imageUrl);
+                    }
+                  }}
                 >
                   <AspectRatio
                     className="mx-auto content-center rounded-md border border-dashed p-2"
