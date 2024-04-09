@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { TopText } from "../entry/topText";
 
 import { Button } from "~/components/ui/button";
@@ -30,6 +30,7 @@ import { CalendarIcon } from "lucide-react";
 import { IoCloudUploadOutline } from "react-icons/io5";
 
 import { cn } from "~/lib/utils";
+import Image from "next/image";
 
 const formSchema = z.object({
   country: z
@@ -39,30 +40,39 @@ const formSchema = z.object({
   source: z
     .string()
     .min(4, { message: "Source must be at least 4 characters" }),
-  location: z.string().url().or(z.literal("")),
-  date: z.date({ required_error: "A date of spotting is required." }),
-  image: z.string(),
-  service: z.string(),
+  location: z.string().url().or(z.literal("")).optional(),
+  date: z.date(),
+  image: z.any(),
+  service: z.string().optional(),
 });
 
 export default function SubmitForm() {
-  // 1. Define your form.
+  // image uploading
+  const [image, setImage] = useState<string | undefined>();
+  const inputElement = useRef<HTMLInputElement>(null);
+
+  /// on clicking div
+  const onClick = () => {
+    if (inputElement.current) {
+      inputElement.current.click();
+    }
+  };
+
+  /// on uploading image
+  const onUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      const file = URL.createObjectURL(e.target.files[0]);
+      setImage(URL.createObjectURL(e.target.files[0]));
+      form.setValue("image", file);
+    }
+  };
+
+  // form configuration
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    // defaultValues: {
-    //   country: "United States",
-    //   town: "San Francisco",
-    //   source: "https://twitter.com/peduarte/status/1442422346456527873",
-    //   location: "https://www.google.com/maps?q=37.7749,-122.4194",
-    //   date: new Date(),
-    //   service: "Google",
-    // },
   });
 
-  // 2. Define a submit handler.
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
     console.log(values);
   }
 
@@ -128,17 +138,42 @@ export default function SubmitForm() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Image</FormLabel>
-                <div className="flex w-full items-center justify-center">
+                <div
+                  className="flex w-full items-center justify-center hover:cursor-pointer"
+                  // onDrag={(Event) => console.log(0, Event)}
+                  // onDragOver={(event) => console.log(1, event)}
+                  onClick={onClick}
+                >
                   <AspectRatio
                     className="mx-auto content-center rounded-md border border-dashed p-2"
-                    ratio={21 / 5}
+                    ratio={21 / 7}
                   >
-                    <div className="flex flex-col items-center justify-center space-y-4">
-                      <IoCloudUploadOutline className="h-10 w-10 md:h-16 md:w-16" />
-                      <p className="text-sm leading-7 md:text-base">
-                        Drag an image here or click to upload.
-                      </p>
-                    </div>
+                    <Input
+                      type="file"
+                      id="file"
+                      accept="image/png, image/jpeg"
+                      className="hidden"
+                      ref={inputElement}
+                      onChange={onUpload}
+                    />
+                    {image === undefined ? (
+                      <div className="flex flex-col items-center justify-center space-y-4">
+                        <IoCloudUploadOutline className="h-10 w-10 md:h-16 md:w-16" />
+                        <p className="text-sm leading-7 md:text-base">
+                          Drag an image here or click to upload.
+                        </p>
+                      </div>
+                    ) : (
+                      <Image
+                        src={image}
+                        alt={"User Uploaded Image"}
+                        fill
+                        className="rounded-md object-contain"
+                        style={{ zIndex: 1 }}
+                        loading={"eager"}
+                        unoptimized
+                      />
+                    )}
                   </AspectRatio>
                 </div>
                 {/* <FormControl>
