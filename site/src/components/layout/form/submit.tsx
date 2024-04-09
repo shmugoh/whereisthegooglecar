@@ -32,6 +32,7 @@ import { IoCloudUploadOutline } from "react-icons/io5";
 
 import { cn } from "~/lib/utils";
 import Image from "next/image";
+import { TurnstileWidget } from "~/components/turnstile-captcha";
 
 export default function SubmitForm() {
   // image uploading
@@ -276,6 +277,9 @@ export default function SubmitForm() {
           />
 
           {/* Footer */}
+
+          <TurnstileWidget />
+
           <Button type="submit">Submit</Button>
         </form>
       </Form>

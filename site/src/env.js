@@ -17,6 +17,7 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
+    CF_TURNSTILE_KEY: z.string(),
   },
 
   /**
@@ -27,6 +28,7 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_VERCEL_URL: z.string().url(),
     NEXT_PUBLIC_CDN_URL: z.string().url(),
+    NEXT_PUBLIC_CF_PUBLIC_KEY: z.string().default("1x00000000000000000000AA"),
   },
 
   /**
@@ -38,6 +40,9 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_CDN_URL: process.env.NEXT_PUBLIC_CDN_URL,
     NEXT_PUBLIC_VERCEL_URL: process.env.NEXT_PUBLIC_VERCEL_URL,
+
+    NEXT_PUBLIC_CF_PUBLIC_KEY: process.env.NEXT_PUBLIC_CF_PUBLIC_KEY,
+    CF_TURNSTILE_KEY: process.env.CF_TURNSTILE_KEY,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**

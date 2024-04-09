@@ -36,6 +36,8 @@ import { cn } from "~/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 
+import { TurnstileWidget } from "~/components/turnstile-captcha";
+
 type EditDialogProps = {
   size: "sm" | "lg";
   country?: string;
@@ -198,6 +200,8 @@ export default function EditDialog(props: EditDialogProps) {
             />
 
             {/* Footer */}
+            <TurnstileWidget />
+
             <DialogFooter>
               <Button type="submit">Submit</Button>
             </DialogFooter>
