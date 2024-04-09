@@ -29,6 +29,8 @@ export const queryRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       const { company, startDate, endDate, town, country } = input;
 
+      const ITERATION_NUMBER = 9;
+
       // write where clause
       const whereClause: any = {};
       // company
@@ -95,14 +97,16 @@ export const queryRouter = createTRPCRouter({
 
             // grab count
             const dataWithCounts = uniqueDates.map((uniqueDate) => {
-              const count = data.filter((item) => {
-                const date = new Date(
-                  item.date.getUTCFullYear(),
-                  item.date.getUTCMonth(),
-                  1,
-                );
-                return date.getTime() === uniqueDate.getTime();
-              }).length;
+              const count = Math.round(
+                data.filter((item) => {
+                  const date = new Date(
+                    item.date.getUTCFullYear(),
+                    item.date.getUTCMonth(),
+                    1,
+                  );
+                  return date.getTime() === uniqueDate.getTime();
+                }).length / ITERATION_NUMBER,
+              );
               return { date: uniqueDate, count: count };
             });
 
@@ -123,6 +127,8 @@ export const queryRouter = createTRPCRouter({
         country: z.string().toUpperCase().optional(),
 
         town: z.string().optional(),
+
+        iteration: z.number().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -163,6 +169,7 @@ export const queryRouter = createTRPCRouter({
         .findMany({
           where: whereClause,
           orderBy: { date: "desc" },
+          take: 9,
         })
         .then((data) => {
           if (data.length === 0) {
@@ -184,22 +191,23 @@ export const queryRouter = createTRPCRouter({
         company: z.string().toLowerCase(),
         month: z.string(),
         year: z.string(),
+        iteration: z.number().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
       const { company, month, year } = input;
 
       // obtains from cache
-      const cachedValue = await kv.hget(
-        `spottings:${company}:${month}:${year}`,
-        "data",
-      );
-      if (cachedValue) {
-        console.log(
-          `[CACHE - queryByMonth] Loading spottings:${company}:${month}:${year} from cache...`,
-        );
-        return cachedValue;
-      }
+      // const cachedValue = await kv.hget(
+      //   `spottings:${company}:${month}:${year}`,
+      //   "data",
+      // );
+      // if (cachedValue) {
+      //   console.log(
+      //     `[CACHE - queryByMonth] Loading spottings:${company}:${month}:${year} from cache...`,
+      //   );
+      //   return cachedValue;
+      // }
 
       // loads from database if cache is empty
       console.log(
@@ -220,6 +228,7 @@ export const queryRouter = createTRPCRouter({
             date: { gte: startDate, lte: endDate },
           },
           orderBy: { date: "desc" },
+          take: 9,
         })
         .then((data) => {
           if (data.length === 0) {
@@ -233,12 +242,12 @@ export const queryRouter = createTRPCRouter({
         });
 
       // registers to cache
-      console.log(
-        `[CACHE - queryByMonth] Caching spottings:${company}:${month}:${year}...`,
-      );
-      await kv.hset(`spottings:${company}:${month}:${year}`, {
-        data: data,
-      });
+      // console.log(
+      //   `[CACHE - queryByMonth] Caching spottings:${company}:${month}:${year}...`,
+      // );
+      // await kv.hset(`spottings:${company}:${month}:${year}`, {
+      //   data: data,
+      // });
 
       // load from database
       return data;
