@@ -18,6 +18,7 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .default("development"),
     CF_TURNSTILE_KEY: z.string(),
+    DISCORD_WEBHOOK: z.string().url(),
   },
 
   /**
@@ -28,7 +29,7 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_VERCEL_URL: z.string().url(),
     NEXT_PUBLIC_CDN_URL: z.string().url(),
-    NEXT_PUBLIC_CF_PUBLIC_KEY: z.string().default("1x00000000000000000000AA"),
+    NEXT_PUBLIC_CF_PUBLIC_KEY: z.string(),
   },
 
   /**
@@ -43,7 +44,8 @@ export const env = createEnv({
 
     NEXT_PUBLIC_CF_PUBLIC_KEY: process.env.NEXT_PUBLIC_CF_PUBLIC_KEY,
     CF_TURNSTILE_KEY: process.env.CF_TURNSTILE_KEY,
-    // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+
+    DISCORD_WEBHOOK: process.env.DISCORD_WEBHOOK,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

@@ -33,8 +33,12 @@ import { IoCloudUploadOutline } from "react-icons/io5";
 import { cn } from "~/lib/utils";
 import Image from "next/image";
 import { TurnstileWidget } from "~/components/turnstile-captcha";
+import { api } from "~/utils/api";
 
 export default function SubmitForm() {
+  // POST
+  const submitMutation = api.form.submitForm.useMutation({});
+
   // image uploading
   const [image, setImage] = useState<string | undefined>();
   const inputElement = useRef<HTMLInputElement>(null);
@@ -60,7 +64,12 @@ export default function SubmitForm() {
     resolver: zodResolver(formSchema),
   });
 
+  // on submitting
   function onSubmit(values: z.infer<typeof formSchema>) {
+    // const data = await submitMutation.mutateAsync({});
+    const {date, country, town, source, location, service} = values
+    
+    submitMutation.mutate({date: date, country: country, town: town, source: source, location: location, service: service});
     console.log(values);
   }
 
