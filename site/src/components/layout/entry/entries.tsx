@@ -34,6 +34,9 @@ type BaseEntriesPageProps = {
   activeIndex: MutableRefObject<number>;
   cardSets: never[];
   showCompany: boolean;
+
+  continueFetching: boolean;
+  fetchData: () => Promise<void>;
 };
 
 export function BaseEntriesPage(props: BaseEntriesPageProps) {
@@ -53,9 +56,9 @@ export function BaseEntriesPage(props: BaseEntriesPageProps) {
       <InfiniteScroll
         className="justify-center"
         dataLength={props.cardSets.length}
-        next={() => console.log("Fetch More Data")}
-        hasMore={false}
-        loader={<HomeSkeleton />}
+        next={props.fetchData}
+        hasMore={props.continueFetching}
+        loader={<HomeSkeleton ShowTitle={false} />}
       >
         <CardSet
           month={props.month.current.getUTCMonth()}
@@ -148,13 +151,15 @@ export default function EntriesPage(props: EntriesPageProps) {
     console.log("available pages: ", availablePages.current);
 
     if (
-      availablePages.current >= activePage.current &&
+      availablePages.current > activePage.current &&
       availablePages.current !== 0
     ) {
       console.log("not full. fetching more data!");
       setContinueFetching(true);
+      previousMonth.current = month.current;
       activePage.current += 1;
     } else {
+      setContinueFetching(false);
       console.log("Full lol");
     }
 
@@ -248,6 +253,8 @@ export default function EntriesPage(props: EntriesPageProps) {
       activeIndex={activeIndex}
       cardSets={cardSets}
       showCompany={props.showCompany ?? false}
+      continueFetching={continueFetching}
+      fetchData={fetchData}
     />
   );
 }
