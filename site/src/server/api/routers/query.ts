@@ -8,6 +8,8 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 import { kv } from "@vercel/kv";
 
+const PAGE_TAKE = 9;
+
 BigInt.prototype.toJSON = function () {
   const int = Number.parseInt(this.toString());
   return int ?? this.toString();
@@ -28,8 +30,6 @@ export const queryRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       const { company, startDate, endDate, town, country } = input;
-
-      const ITERATION_NUMBER = 9;
 
       // write where clause
       const whereClause: any = {};
@@ -105,7 +105,7 @@ export const queryRouter = createTRPCRouter({
                     1,
                   );
                   return date.getTime() === uniqueDate.getTime();
-                }).length / ITERATION_NUMBER,
+                }).length / PAGE_TAKE,
               );
               return { date: uniqueDate, count: count };
             });
@@ -128,11 +128,12 @@ export const queryRouter = createTRPCRouter({
 
         town: z.string().optional(),
 
-        iteration: z.number().optional(),
+        page: z.number().default(0),
       }),
     )
     .mutation(async ({ input, ctx }) => {
       const { company, startDate, endDate, town, country } = input;
+      const PAGE_SKIP = input.page * PAGE_TAKE;
 
       const whereClause: any = {};
 
@@ -169,7 +170,8 @@ export const queryRouter = createTRPCRouter({
         .findMany({
           where: whereClause,
           orderBy: { date: "desc" },
-          take: 9,
+          take: PAGE_TAKE,
+          skip: PAGE_SKIP,
         })
         .then((data) => {
           if (data.length === 0) {
@@ -191,11 +193,12 @@ export const queryRouter = createTRPCRouter({
         company: z.string().toLowerCase(),
         month: z.string(),
         year: z.string(),
-        iteration: z.number().optional(),
+        page: z.number().default(0),
       }),
     )
     .mutation(async ({ input, ctx }) => {
       const { company, month, year } = input;
+      const PAGE_SKIP = input.page * PAGE_TAKE;
 
       // obtains from cache
       // const cachedValue = await kv.hget(
@@ -228,7 +231,8 @@ export const queryRouter = createTRPCRouter({
             date: { gte: startDate, lte: endDate },
           },
           orderBy: { date: "desc" },
-          take: 9,
+          take: PAGE_TAKE,
+          skip: PAGE_SKIP,
         })
         .then((data) => {
           if (data.length === 0) {
