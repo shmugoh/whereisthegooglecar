@@ -1,19 +1,20 @@
 import { api } from "~/utils/api";
-import { CardSet } from "~/components/layout/entry/card";
 import InfiniteScroll from "react-infinite-scroll-component";
 import {
   useState,
   useEffect,
   useRef,
   useCallback,
-  Ref,
-  MutableRefObject,
+  type MutableRefObject,
 } from "react";
-import { HomeSkeleton } from "~/components/layout/entry/skeleton";
+
+import { CardSet } from "~/components/layout/entry/card";
 import {
   PageNavigation,
   MobilePageNavigation,
 } from "~/components/layout/pagination";
+import { HomeSkeleton } from "~/components/layout/entry/skeleton";
+
 import { useRouter } from "next/router";
 import Error from "~/pages/_error";
 
@@ -49,14 +50,20 @@ export function BaseEntriesPage(props: BaseEntriesPageProps) {
         />
       </div>
 
-      <div className="justify-center">
+      <InfiniteScroll
+        className="justify-center"
+        dataLength={props.cardSets.length}
+        next={() => console.log("Fetch More Data")}
+        hasMore={false}
+        loader={<HomeSkeleton />}
+      >
         <CardSet
           month={props.month.current.getUTCMonth()}
           year={props.month.current.getUTCFullYear().toString()}
           info={props.cardSets}
           showCompany={props.showCompany}
         />
-      </div>
+      </InfiniteScroll>
 
       <div className="justify-end">
         <PageNavigation
@@ -88,6 +95,12 @@ export default function EntriesPage(props: EntriesPageProps) {
 
   const [error, setError] = useState(200);
 
+  // infinite scroll states
+  const [continueFetching, setContinueFetching] = useState(false);
+  const previousMonth = useRef<Date>(new Date());
+  const activePage = useRef<number>(0);
+  const availablePages = useRef<number>(0);
+
   // fetch data
   const dataMutation = api.query.queryByMonth.useMutation({});
   const dataSearchMutation = api.query.queryByFilter.useMutation({});
@@ -96,7 +109,11 @@ export default function EntriesPage(props: EntriesPageProps) {
   const fetchData = useCallback(async () => {
     let data;
 
-    setCardSets([]); // clear current data
+    // clear current date if date is not the same && continue fetching is false
+    if (previousMonth.current !== month.current && continueFetching == false) {
+      console.log("month not the same... clearing all data!");
+      setCardSets([]); // clear current data
+    }
 
     // if from search
     if (props.startDate !== undefined && props.endDate !== undefined) {
@@ -115,6 +132,7 @@ export default function EntriesPage(props: EntriesPageProps) {
         ),
         town: props.town!,
         country: props.country!,
+        page: activePage.current,
       });
       // if from normal
     } else {
@@ -122,10 +140,25 @@ export default function EntriesPage(props: EntriesPageProps) {
         company: props.company!,
         month: (month.current.getUTCMonth() + 1).toString(),
         year: month.current.getUTCFullYear().toString(),
+        page: activePage.current,
       });
     }
 
-    setCardSets(data as never[]); // set new data
+    console.log("active page: ", activePage.current);
+    console.log("available pages: ", availablePages.current);
+
+    if (
+      availablePages.current >= activePage.current &&
+      availablePages.current !== 0
+    ) {
+      console.log("not full. fetching more data!");
+      setContinueFetching(true);
+      activePage.current += 1;
+    } else {
+      console.log("Full lol");
+    }
+
+    setCardSets((prevCardSets) => prevCardSets.concat(data as never[]));
   }, []);
 
   const grabMonths = useCallback(async () => {
@@ -167,6 +200,7 @@ export default function EntriesPage(props: EntriesPageProps) {
     }
     if (months.current[0]) {
       month.current = months.current[0].date;
+      availablePages.current = months.current[0].count;
     }
 
     void fetchData();
@@ -186,8 +220,12 @@ export default function EntriesPage(props: EntriesPageProps) {
         return;
       }
 
+      // reset all data
       activeIndex.current = Number(router.query.page);
       month.current = months.current[Number(router.query.page) - 1]?.date;
+      activePage.current = 0;
+      availablePages.current =
+        months.current[Number(router.query.page) - 1]?.count;
 
       setCardSets([]);
       void fetchData();

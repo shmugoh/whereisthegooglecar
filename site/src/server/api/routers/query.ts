@@ -97,7 +97,7 @@ export const queryRouter = createTRPCRouter({
 
             // grab count
             const dataWithCounts = uniqueDates.map((uniqueDate) => {
-              const count = Math.round(
+              const count = Math.floor(
                 data.filter((item) => {
                   const date = new Date(
                     item.date.getUTCFullYear(),
