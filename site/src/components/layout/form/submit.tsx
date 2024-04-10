@@ -67,9 +67,17 @@ export default function SubmitForm() {
   // on submitting
   function onSubmit(values: z.infer<typeof formSchema>) {
     // const data = await submitMutation.mutateAsync({});
-    const {date, country, town, source, location, service} = values
-    
-    submitMutation.mutate({date: date, country: country, town: town, source: source, location: location, service: service});
+    const { date, country, town, source, location, service } = values;
+
+    submitMutation.mutate({
+      date: date,
+      country: country,
+      town: town,
+      source: source,
+      location: location,
+      service: service,
+    });
+
     console.log(values);
   }
 

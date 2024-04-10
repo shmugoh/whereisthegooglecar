@@ -37,6 +37,7 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 
 import { TurnstileWidget } from "~/components/turnstile-captcha";
+import { api } from "~/utils/api";
 
 type EditDialogProps = {
   size: "sm" | "lg";
@@ -49,6 +50,9 @@ type EditDialogProps = {
 };
 
 export default function EditDialog(props: EditDialogProps) {
+  const editMutation = api.form.editForm.useMutation({});
+
+  // form default settings
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -61,7 +65,19 @@ export default function EditDialog(props: EditDialogProps) {
     },
   });
 
+  // on submitting
   function onSubmit(values: z.infer<typeof formSchema>) {
+    const { date, country, town, source, location, service } = values;
+
+    editMutation.mutate({
+      date: date,
+      country: country,
+      town: town,
+      source: source,
+      location: location,
+      service: service,
+    });
+
     console.log(values);
   }
 
