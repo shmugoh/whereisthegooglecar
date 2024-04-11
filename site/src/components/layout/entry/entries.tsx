@@ -115,7 +115,7 @@ export default function EntriesPage(props: EntriesPageProps) {
 
     // clear current date if date is not the same && continue fetching is false
     if (previousMonth.current !== month.current && continueFetching == false) {
-      console.log("month not the same... clearing all data!");
+      // console.log("month not the same... clearing all data!");
       setCardSets([]); // clear current data
     }
 
@@ -148,20 +148,20 @@ export default function EntriesPage(props: EntriesPageProps) {
       });
     }
 
-    console.log("active page: ", activePage.current);
-    console.log("available pages: ", availablePages.current);
+    // console.log("active page: ", activePage.current);
+    // console.log("available pages: ", availablePages.current);
 
     if (
       availablePages.current > activePage.current &&
       availablePages.current !== 0
     ) {
-      console.log("not full. fetching more data!");
+      // console.log("not full. fetching more data!");
       setContinueFetching(true);
       previousMonth.current = month.current;
       activePage.current += 1;
     } else {
       setContinueFetching(false);
-      console.log("Full lol");
+      // console.log("Full lol");
     }
 
     setCardSets((prevCardSets) => {
@@ -196,6 +196,7 @@ export default function EntriesPage(props: EntriesPageProps) {
           startDate: new Date(props.maxYear ?? 2006, 0),
           endDate: currentDate,
           company: props.company,
+          cache: true,
         });
       }
 
@@ -215,10 +216,8 @@ export default function EntriesPage(props: EntriesPageProps) {
       return;
     }
 
+    // set default query page if not set
     if (router.query.page === undefined && months.current.length !== 0) {
-      console.log(
-        "query page not found but found months... setting default query page",
-      );
       router.query.page = "1";
     }
 

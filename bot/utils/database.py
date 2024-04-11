@@ -171,11 +171,13 @@ class DatabaseManager:
         """
         service = service.lower() # lowercase to match the key in redis
         date = self.generate_cache_month(date)
-        self.redis.hdel(f"spottings:{service}:{date}", "data")
-        if service != "google":
-            self.redis.hdel(f"spottings:others:{date}", "data")
-            self.redis.hdel(f"spottings:{service}:{date}", "data")
-        self.redis.hdel(f"spottings:all:{date}", "data")
+        
+        # delete all available months from cache
+        self.redis.hdel(f"spottings:{service}", "months")
+        
+        # delete month from cache
+        self.redis.delete(f"spottings:{service}:{date}")
+        self.redis.delete(f"spottings:all:{date}")
         
     def clear_cache_spotting(self, id: str) -> None:
         '''
