@@ -120,17 +120,26 @@ export const queryRouter = createTRPCRouter({
 
             // grab count
             const dataWithCounts = uniqueDates.map((uniqueDate) => {
-              const count = Math.floor(
-                data.filter((item) => {
-                  const date = new Date(
-                    item.date.getUTCFullYear(),
-                    item.date.getUTCMonth(),
-                    1,
-                  );
-                  return date.getTime() === uniqueDate.getTime();
-                }).length / PAGE_TAKE,
-              );
-              return { date: uniqueDate, count: count };
+              // filter data for specific month
+              const filteredData = data.filter((item) => {
+                const date = new Date(
+                  item.date.getUTCFullYear(),
+                  item.date.getUTCMonth(),
+                  1,
+                );
+                return date.getTime() === uniqueDate.getTime();
+              });
+
+              // calculate count
+              const division = filteredData.length / PAGE_TAKE;
+              const count = division <= 1 ? 0 : Math.floor(division);
+
+              // return unique data with its count counterpart
+              return {
+                date: uniqueDate,
+                count: count,
+                realCount: filteredData.length,
+              };
             });
 
             return dataWithCounts;
@@ -230,7 +239,7 @@ export const queryRouter = createTRPCRouter({
       const { company, month, year, page } = input;
       const PAGE_SKIP = input.page * PAGE_TAKE;
 
-      // obtains from cache
+      // // obtains from cache
       const cachedValue = await kv.hget(
         `spottings:${company}:${month}:${year}`,
         `${page}`,
@@ -260,7 +269,7 @@ export const queryRouter = createTRPCRouter({
                 : company,
             date: { gte: startDate, lte: endDate },
           },
-          orderBy: { date: "desc" },
+          orderBy: [{ date: "desc" }, { id: "asc" }],
           take: PAGE_TAKE,
           skip: PAGE_SKIP,
         })
