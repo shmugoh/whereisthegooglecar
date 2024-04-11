@@ -208,24 +208,21 @@ export default function EntriesPage(props: EntriesPageProps) {
     void grabMonths();
   }, []);
 
-  // fetch data on mount
+  // fetch new data on mount or new query
   useEffect(() => {
-    if (months.current.length === 0) {
+    // none still not defined
+    if (router.query.page === undefined && months.current.length === 0) {
       return;
     }
-    if (months.current[0]) {
-      month.current = months.current[0].date;
-      availablePages.current = months.current[0].count;
+
+    if (router.query.page === undefined && months.current.length !== 0) {
+      console.log(
+        "query page not found but found months... setting default query page",
+      );
+      router.query.page = "1";
     }
 
-    void fetchData();
-  }, [months.current]);
-
-  // fetch new data on new query
-  useEffect(() => {
-    if (router.query.page === undefined || months.current.length === 0) {
-      return;
-    } else {
+    if (months.current.length !== 0) {
       // checks if query is within range
       if (
         Number(router.query.page) > months.current.length ||
