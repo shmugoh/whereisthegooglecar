@@ -58,13 +58,14 @@ export function BaseEntriesPage(props: BaseEntriesPageProps) {
         dataLength={props.cardSets.length}
         next={props.fetchData}
         hasMore={props.continueFetching}
-        loader={<HomeSkeleton ShowTitle={false} />}
+        loader={null}
       >
         <CardSet
           month={props.month.current.getUTCMonth()}
           year={props.month.current.getUTCFullYear().toString()}
           info={props.cardSets}
           showCompany={props.showCompany}
+          showSkeleton={props.continueFetching}
         />
       </InfiniteScroll>
 
