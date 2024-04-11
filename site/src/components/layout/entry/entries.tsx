@@ -167,7 +167,20 @@ export default function EntriesPage(props: EntriesPageProps) {
     setCardSets((prevCardSets) => {
       const mergedCardSets = prevCardSets.concat(data as never[]);
       const uniqueMessageIds = new Set<string>();
+      // remove duplicates and/or un-matching cards
       const result = mergedCardSets.filter(function (card) {
+        // check if card date matches with month.current
+        const cardDate = new Date(card.date);
+        const cardMonth = cardDate.getUTCMonth();
+        const cardYear = cardDate.getUTCFullYear();
+        const currentMonth = month.current.getUTCMonth();
+        const currentYear = month.current.getUTCFullYear();
+
+        // remove card if month and year don't match
+        if (cardMonth !== currentMonth || cardYear !== currentYear) {
+          return false;
+        }
+        // check for unique message_id
         const message_id = card.message_id;
         return !this.has(message_id) && this.add(message_id);
       }, uniqueMessageIds);
