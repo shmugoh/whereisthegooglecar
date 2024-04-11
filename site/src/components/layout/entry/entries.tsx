@@ -163,7 +163,16 @@ export default function EntriesPage(props: EntriesPageProps) {
       console.log("Full lol");
     }
 
-    setCardSets((prevCardSets) => prevCardSets.concat(data as never[]));
+    setCardSets((prevCardSets) => {
+      const mergedCardSets = prevCardSets.concat(data as never[]);
+      const uniqueMessageIds = new Set<string>();
+      const result = mergedCardSets.filter(function (card) {
+        const message_id = card.message_id;
+        return !this.has(message_id) && this.add(message_id);
+      }, uniqueMessageIds);
+
+      return result;
+    });
   }, []);
 
   const grabMonths = useCallback(async () => {
