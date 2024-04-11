@@ -18,7 +18,7 @@ import {
   TextBluePrint,
 } from "~/components/layout/entry/output";
 import { ImagePreview } from "~/components/layout/entry/image";
-import { HomeSkeleton } from "~/components/layout/entry/skeleton";
+import { CardSkeleton, HomeSkeleton } from "~/components/layout/entry/skeleton";
 
 import { convertDate } from "~/utils/date";
 import twemoji from "@twemoji/api";
@@ -121,6 +121,9 @@ export const CardSet = (props: cardSetProps) => {
             company={props.showCompany ? item.company : undefined}
           />
         ))}
+        {props.showSkeleton === true
+          ? Array.from({ length: 6 }, (_, i) => <CardSkeleton key={i} />)
+          : null}
       </div>
     </div>
   );

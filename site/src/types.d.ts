@@ -15,6 +15,7 @@ type cardSetProps = {
   year: string;
   info: never[];
   showCompany?: boolean;
+  showSkeleton?: boolean;
 };
 
 type pageProps = {

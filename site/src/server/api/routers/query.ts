@@ -8,6 +8,8 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 import { kv } from "@vercel/kv";
 
+const PAGE_TAKE = 9;
+
 BigInt.prototype.toJSON = function () {
   const int = Number.parseInt(this.toString());
   return int ?? this.toString();
@@ -24,10 +26,33 @@ export const queryRouter = createTRPCRouter({
         country: z.string().toUpperCase().optional(),
 
         town: z.string().optional(),
+
+        cache: z.boolean().optional().default(false),
       }),
     )
     .mutation(async ({ input, ctx }) => {
       const { company, startDate, endDate, town, country } = input;
+
+      // obtains from cache
+      if (input.cache) {
+        // build month
+        const cachedValue: Array<{ date: string | Date; count: number }> =
+          (await kv.hget(`spottings:${company}`, "months")) ?? [];
+        if (cachedValue.length !== 0) {
+          console.log(
+            `[CACHE - MONTHS] Loading spottings:${company}:months from cache...`,
+          );
+          cachedValue.forEach((element) => {
+            element.date = new Date(element.date);
+          });
+          return cachedValue;
+        }
+      }
+
+      // obtain from database
+      console.log(
+        `[DB - MONTHS] Loading spottings:${company}:months from DB...`,
+      );
 
       // write where clause
       const whereClause: any = {};
@@ -92,10 +117,42 @@ export const queryRouter = createTRPCRouter({
                   index
                 );
               });
-            return uniqueDates;
+
+            // grab count
+            const dataWithCounts = uniqueDates.map((uniqueDate) => {
+              // filter data for specific month
+              const filteredData = data.filter((item) => {
+                const date = new Date(
+                  item.date.getUTCFullYear(),
+                  item.date.getUTCMonth(),
+                  1,
+                );
+                return date.getTime() === uniqueDate.getTime();
+              });
+
+              // calculate count
+              const division = filteredData.length / PAGE_TAKE;
+              const count = division <= 1 ? 0 : Math.floor(division);
+
+              // return unique data with its count counterpart
+              return {
+                date: uniqueDate,
+                count: count,
+                realCount: filteredData.length,
+              };
+            });
+
+            return dataWithCounts;
           }
         });
 
+      // store to cache
+      if (input.cache) {
+        console.log(`[CACHE - MONTHS] Caching spottings:${company}:months...`);
+        await kv.hset(`spottings:${company}`, { months: data });
+      }
+
+      // load from database
       return data;
     }),
 
@@ -109,10 +166,13 @@ export const queryRouter = createTRPCRouter({
         country: z.string().toUpperCase().optional(),
 
         town: z.string().optional(),
+
+        page: z.number().default(0),
       }),
     )
     .mutation(async ({ input, ctx }) => {
       const { company, startDate, endDate, town, country } = input;
+      const PAGE_SKIP = input.page * PAGE_TAKE;
 
       const whereClause: any = {};
 
@@ -149,6 +209,8 @@ export const queryRouter = createTRPCRouter({
         .findMany({
           where: whereClause,
           orderBy: { date: "desc" },
+          take: PAGE_TAKE,
+          skip: PAGE_SKIP,
         })
         .then((data) => {
           if (data.length === 0) {
@@ -170,26 +232,28 @@ export const queryRouter = createTRPCRouter({
         company: z.string().toLowerCase(),
         month: z.string(),
         year: z.string(),
+        page: z.number().default(0),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const { company, month, year } = input;
+      const { company, month, year, page } = input;
+      const PAGE_SKIP = input.page * PAGE_TAKE;
 
-      // obtains from cache
+      // // obtains from cache
       const cachedValue = await kv.hget(
         `spottings:${company}:${month}:${year}`,
-        "data",
+        `${page}`,
       );
       if (cachedValue) {
         console.log(
-          `[CACHE - queryByMonth] Loading spottings:${company}:${month}:${year} from cache...`,
+          `[CACHE - queryByMonth] Loading spottings:${company}:${month}:${year}:${page} from cache...`,
         );
         return cachedValue;
       }
 
       // loads from database if cache is empty
       console.log(
-        `[DB - queryByMonth] Loading spottings:${company}:${month}:${year} from DB...`,
+        `[DB - queryByMonth] Loading spottings:${company}:${month}:${year}:${page} from DB...`,
       );
       const startDate = new Date(
         Date.UTC(parseInt(year), parseInt(month) - 1, 1),
@@ -205,13 +269,15 @@ export const queryRouter = createTRPCRouter({
                 : company,
             date: { gte: startDate, lte: endDate },
           },
-          orderBy: { date: "desc" },
+          orderBy: [{ date: "desc" }, { id: "asc" }],
+          take: PAGE_TAKE,
+          skip: PAGE_SKIP,
         })
         .then((data) => {
           if (data.length === 0) {
             throw new TRPCError({
               code: "NOT_FOUND",
-              message: `No data found for ${company} in ${month}/${year}`,
+              message: `No data found for ${company} in ${month}/${year}:${page}`,
             });
           } else {
             return data;
@@ -220,10 +286,10 @@ export const queryRouter = createTRPCRouter({
 
       // registers to cache
       console.log(
-        `[CACHE - queryByMonth] Caching spottings:${company}:${month}:${year}...`,
+        `[CACHE - queryByMonth] Caching spottings:${company}:${month}:${year}:${page}...`,
       );
       await kv.hset(`spottings:${company}:${month}:${year}`, {
-        data: data,
+        [page]: data,
       });
 
       // load from database
