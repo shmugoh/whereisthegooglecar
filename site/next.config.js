@@ -1,11 +1,16 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /**
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
  * for Docker builds.
  */
 await import("./src/env.js");
+const { withPlausibleProxy } = await import("next-plausible");
 
 /** @type {import("next").NextConfig} */
-const config = {
+// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+const config = withPlausibleProxy({
+  customDomain: "https://analytics.shmugo.co",
+})({
   reactStrictMode: true,
 
   /**
@@ -34,6 +39,6 @@ const config = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-};
+});
 
 export default config;

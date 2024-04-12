@@ -31,11 +31,7 @@ const DESCRIPTION =
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <>
-      <PlausibleProvider
-        selfHosted
-        customDomain="https://analytics.shmugo.co"
-        domain="whereisthegooglecar.com"
-      >
+      <PlausibleProvider domain="whereisthegooglecar.com">
         <Head>
           <link
             rel="apple-touch-icon"
