@@ -3,10 +3,12 @@ import React from "react";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Separator } from "~/components/ui/separator";
 
-export const HomeSkeleton = () => {
+export const HomeSkeleton = (props: { ShowTitle?: boolean }) => {
+  const { ShowTitle = true } = props;
+
   return (
     <div className="flex w-full flex-col gap-4">
-      <TitleSkeleton />
+      {ShowTitle ? <TitleSkeleton /> : <></>}
 
       <CardSetSkeleton />
     </div>
