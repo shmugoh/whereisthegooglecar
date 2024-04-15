@@ -1,22 +1,23 @@
-import Turnstile, { useTurnstile } from "react-turnstile";
-
+import Turnstile from "react-turnstile";
 import { env } from "~/env";
 
-export const TurnstileWidget = () => {
-  // const turnstile = useTurnstile();
+type TurnstileWidgetProps = {
+  setToken: (token: string) => void;
+};
+
+export const TurnstileWidget = ({ setToken }: TurnstileWidgetProps) => {
+  // return token
+  const handleToken = (token: string) => {
+    if (token) {
+      setToken(token);
+    }
+  };
 
   return (
     <Turnstile
       sitekey={env.NEXT_PUBLIC_CF_PUBLIC_KEY}
-
-      // onVerify={(token) => {
-      //   fetch("/login", {
-      //     method: "POST",
-      //     body: JSON.stringify({ token }),
-      //   }).then((response) => {
-      //     if (!response.ok) turnstile.reset();
-      //   });
-      // }}
+      onVerify={handleToken}
+      fixedSize
     />
   );
 };

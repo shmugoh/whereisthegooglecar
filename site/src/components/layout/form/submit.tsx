@@ -51,7 +51,15 @@ export default function SubmitForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (imageFile) {
       // grab values
-      const { date, country, town, source, location, service } = values;
+      const {
+        date,
+        country,
+        town,
+        source,
+        location,
+        service,
+        cf_turnstile_token,
+      } = values;
 
       // get signed url
       const imageChecksum = await computeSHA256(imageFile);
@@ -59,6 +67,7 @@ export default function SubmitForm() {
         fileSize: imageFile.size,
         fileType: imageFile.type,
         checksum: imageChecksum,
+        cf_turnstile_token: cf_turnstile_token,
       });
 
       if (signedURLResult.url && signedURLResult.key) {
@@ -83,6 +92,7 @@ export default function SubmitForm() {
           location: location,
           service: service,
           image: imageUrl,
+          cf_turnstile_token: cf_turnstile_token,
         });
       }
     }
@@ -115,6 +125,13 @@ export default function SubmitForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
   });
+
+  // add captcha token to form
+  // useEffect(() => {
+  //   if (captchaToken) {
+  //     form.setValue("cf_turnstile_token", captchaToken);
+  //   }
+  // }, [captchaToken]);
 
   return (
     <div className="space-y-4">
@@ -324,10 +341,20 @@ export default function SubmitForm() {
             )}
           />
 
-          {/* Footer */}
-
-          <TurnstileWidget />
-
+          <FormField
+            control={form.control}
+            name="cf_turnstile_token"
+            render={({ field }) => (
+              <FormItem>
+                <TurnstileWidget
+                  setToken={(token) =>
+                    form.setValue("cf_turnstile_token", token)
+                  }
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <Button type="submit">Submit</Button>
         </form>
       </Form>

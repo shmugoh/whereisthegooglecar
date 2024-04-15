@@ -8,9 +8,10 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { generateFileName } from "~/utils/sha256";
 
+// constants
 const DiscordWebHookURL = env.DISCORD_WEBHOOK_URL;
-
-// aws & post settings
+const allowedFileTypes = ["image/jpeg", "image/png"];
+const maxFileSize = 1048576 * 10; // 10 MB
 const s3 = new S3Client({
   region: env.AWS_BUCKET_REGION,
   credentials: {
@@ -18,20 +19,47 @@ const s3 = new S3Client({
     secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
   },
 });
-const allowedFileTypes = ["image/jpeg", "image/png"];
-const maxFileSize = 1048576 * 10; // 10 MB
+
+// turnstile validation
+async function validate_turnstile(token: string): Promise<boolean> {
+  // build form data
+  const formData = new FormData();
+  formData.append("secret", env.CF_TURNSTILE_KEY);
+  formData.append("response", token);
+
+  // build url & request
+  const url = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+  const result = await fetch(url, {
+    body: formData,
+    method: "POST",
+  });
+
+  // get response
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const response = await result.json();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
+  return response?.success;
+}
 
 export const formRouter = createTRPCRouter({
   presign_s3: publicProcedure
     .input(
       z.object({
-        // cf_turnstile: z.string(),
+        cf_turnstile_token: z.string(),
         checksum: z.string(),
         fileType: z.string(),
         fileSize: z.number(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      // verify cloudflare turnstile
+      const turnstile_response = await validate_turnstile(
+        input.cf_turnstile_token,
+      );
+      if (!turnstile_response) {
+        return { failure: "No Turnstile Token" };
+      }
+
       if (!allowedFileTypes.includes(input.fileType)) {
         return { failure: "File Type not allowed" };
       }
@@ -60,8 +88,12 @@ export const formRouter = createTRPCRouter({
     .input(formSchema)
     .mutation(async ({ input, ctx }) => {
       // verify cloudflare turnstile
-      // TODO
-      //
+      const turnstile_response = await validate_turnstile(
+        input.cf_turnstile_token,
+      );
+      if (!turnstile_response) {
+        return { failure: "No Turnstile Token" };
+      }
 
       // create webhook embed
       const embed = generateEmbed({
@@ -100,12 +132,17 @@ export const formRouter = createTRPCRouter({
         source: z.string(),
         location: z.string().url().optional(),
         service: z.string().optional(),
+        cf_turnstile_token: z.string(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
       // verify cloudflare turnstile
-      // TODO
-      //
+      const turnstile_response = await validate_turnstile(
+        input.cf_turnstile_token,
+      );
+      if (!turnstile_response) {
+        return { failure: "No Turnstile Token" };
+      }
 
       // create webhook embed
       const embed = generateEmbed({

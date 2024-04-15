@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 
 import {
   Dialog,
@@ -51,6 +51,7 @@ type EditDialogProps = {
 
 export default function EditDialog(props: EditDialogProps) {
   const editMutation = api.form.editForm.useMutation({});
+  const [captchaToken, setCaptchaToken] = useState<string>();
 
   // form default settings
   const form = useForm<z.infer<typeof formSchema>>({
@@ -67,7 +68,15 @@ export default function EditDialog(props: EditDialogProps) {
 
   // on submitting
   function onSubmit(values: z.infer<typeof formSchema>) {
-    const { date, country, town, source, location, service } = values;
+    const {
+      date,
+      country,
+      town,
+      source,
+      location,
+      service,
+      cf_turnstile_token,
+    } = values;
 
     editMutation.mutate({
       date: date,
@@ -76,6 +85,7 @@ export default function EditDialog(props: EditDialogProps) {
       source: source,
       location: location,
       service: service,
+      cf_turnstile_token: cf_turnstile_token,
     });
 
     console.log(values);
@@ -216,7 +226,20 @@ export default function EditDialog(props: EditDialogProps) {
             />
 
             {/* Footer */}
-            <TurnstileWidget />
+            <FormField
+              control={form.control}
+              name="cf_turnstile_token"
+              render={({ field }) => (
+                <FormItem>
+                  <TurnstileWidget
+                    setToken={(token) =>
+                      form.setValue("cf_turnstile_token", token)
+                    }
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <DialogFooter>
               <Button type="submit">Submit</Button>

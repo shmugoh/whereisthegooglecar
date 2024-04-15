@@ -12,4 +12,5 @@ export const formSchema = z.object({
   date: z.date(),
   image: z.string().url(),
   service: z.string().optional(),
+  cf_turnstile_token: z.string(),
 });
