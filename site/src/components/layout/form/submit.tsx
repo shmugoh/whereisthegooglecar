@@ -40,7 +40,7 @@ import { env } from "~/env";
 export default function SubmitForm() {
   // POST
   const submitMutation = api.form.submitForm.useMutation({});
-  const signedURLMutation = api.form.presignS3.useMutation({});
+  const signedURLMutation = api.form.presign_s3.useMutation({});
 
   // image uploading
   const [blobImage, setBlobImage] = useState<string | undefined>();
@@ -84,8 +84,6 @@ export default function SubmitForm() {
           service: service,
           image: imageUrl,
         });
-
-        console.log(imageUrl);
       }
     }
   }

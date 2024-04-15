@@ -22,7 +22,7 @@ const allowedFileTypes = ["image/jpeg", "image/png"];
 const maxFileSize = 1048576 * 10; // 10 MB
 
 export const formRouter = createTRPCRouter({
-  presignS3: publicProcedure
+  presign_s3: publicProcedure
     .input(
       z.object({
         // cf_turnstile: z.string(),
@@ -71,6 +71,7 @@ export const formRouter = createTRPCRouter({
         source: input.source,
         location: input.location,
         service: input.service,
+        imageUrl: input.image,
         type: "new",
       });
 
