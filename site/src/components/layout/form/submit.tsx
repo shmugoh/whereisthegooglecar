@@ -34,13 +34,14 @@ import { cn } from "~/lib/utils";
 import Image from "next/image";
 import { TurnstileWidget } from "~/components/turnstile-captcha";
 import { api } from "~/utils/api";
+import { Base64 } from "js-base64";
 
 export default function SubmitForm() {
   // POST
   const submitMutation = api.form.submitForm.useMutation({});
 
   // image uploading
-  const [image, setImage] = useState<string | undefined>();
+  const [blobImage, setBlobImage] = useState<string | undefined>();
   const inputElement = useRef<HTMLInputElement>(null);
 
   /// on clicking div
@@ -51,11 +52,18 @@ export default function SubmitForm() {
   };
 
   /// on uploading image
-  const onUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      const file = URL.createObjectURL(e.target.files[0]);
-      setImage(URL.createObjectURL(e.target.files[0]));
-      form.setValue("image", file);
+  const onUpload = (file: File | undefined) => {
+    if (file) {
+      // create blob url
+      const blobUrl = URL.createObjectURL(file);
+      setBlobImage(blobUrl);
+
+      // convert to base64
+      const baseImage = new FileReader();
+      baseImage.readAsDataURL(file);
+      baseImage.onload = () => {
+        form.setValue("image", Base64.encode(baseImage.result as string));
+      };
     }
   };
 
@@ -67,7 +75,7 @@ export default function SubmitForm() {
   // on submitting
   function onSubmit(values: z.infer<typeof formSchema>) {
     // const data = await submitMutation.mutateAsync({});
-    const { date, country, town, source, location, service } = values;
+    const { date, country, town, source, location, service, image } = values;
 
     submitMutation.mutate({
       date: date,
@@ -76,6 +84,7 @@ export default function SubmitForm() {
       source: source,
       location: location,
       service: service,
+      image: image,
     });
 
     console.log(values);
@@ -153,12 +162,8 @@ export default function SubmitForm() {
                   }}
                   onDrop={(e) => {
                     e.preventDefault();
-                    const file = e.dataTransfer.files[0];
-                    if (file) {
-                      const imageUrl = URL.createObjectURL(file);
-                      setImage(imageUrl);
-                      form.setValue("image", imageUrl);
-                    }
+                    const file = e.dataTransfer.files?.[0];
+                    onUpload(file);
                   }}
                 >
                   <AspectRatio
@@ -171,9 +176,9 @@ export default function SubmitForm() {
                       accept="image/png, image/jpeg"
                       className="hidden"
                       ref={inputElement}
-                      onChange={onUpload}
+                      onChange={(e) => onUpload(e.target.files?.[0])}
                     />
-                    {image === undefined ? (
+                    {blobImage === undefined ? (
                       <div className="flex flex-col items-center justify-center space-y-4">
                         <IoCloudUploadOutline className="h-10 w-10 md:h-16 md:w-16" />
                         <p className="text-sm leading-7 md:text-base">
@@ -182,7 +187,7 @@ export default function SubmitForm() {
                       </div>
                     ) : (
                       <Image
-                        src={image}
+                        src={blobImage}
                         alt={"User Uploaded Image"}
                         fill
                         className="rounded-md object-contain"

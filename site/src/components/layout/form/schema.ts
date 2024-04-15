@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Base64 } from "js-base64";
 
 export const formSchema = z.object({
   country: z
@@ -10,6 +11,6 @@ export const formSchema = z.object({
     .min(4, { message: "Source must be at least 4 characters" }),
   location: z.string().url().or(z.literal("")).optional(),
   date: z.date(),
-  image: z.any(),
+  image: z.string().refine(Base64.isValid),
   service: z.string().optional(),
 });
