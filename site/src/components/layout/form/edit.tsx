@@ -30,7 +30,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { formSchema } from "./schema";
+import { formSchema } from "../../../utils/formSchema";
 
 import { cn } from "~/lib/utils";
 import { format } from "date-fns";

@@ -25,7 +25,7 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { format } from "date-fns";
-import { formSchema } from "./schema";
+import { formSchema } from "~/utils/formSchema";
 
 import { CalendarIcon } from "lucide-react";
 import { IoCloudUploadOutline } from "react-icons/io5";

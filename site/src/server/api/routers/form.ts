@@ -2,22 +2,13 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { z } from "zod";
 import { env } from "~/env";
 import { generateEmbed } from "~/utils/embed_webhook";
+import { formSchema } from "~/utils/formSchema";
 
 const DiscordWebHookURL = env.DISCORD_WEBHOOK;
 
 export const formRouter = createTRPCRouter({
   submitForm: publicProcedure
-    .input(
-      z.object({
-        date: z.date(),
-        country: z.string(),
-        town: z.string(),
-        source: z.string(),
-        location: z.string().url().optional(),
-        service: z.string().optional(),
-        // image: z.string()
-      }),
-    )
+    .input(formSchema)
     .mutation(async ({ input, ctx }) => {
       // verify cloudflare turnstile
       // TODO
