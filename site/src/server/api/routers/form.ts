@@ -4,9 +4,58 @@ import { env } from "~/env";
 import { generateEmbed } from "~/utils/embed_webhook";
 import { formSchema } from "~/utils/formSchema";
 
-const DiscordWebHookURL = env.DISCORD_WEBHOOK;
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { generateFileName } from "~/utils/sha256";
+
+const DiscordWebHookURL = env.DISCORD_WEBHOOK_URL;
+
+// aws & post settings
+const s3 = new S3Client({
+  region: env.AWS_BUCKET_REGION,
+  credentials: {
+    accessKeyId: env.AWS_ACCESS_KEY,
+    secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+  },
+});
+const allowedFileTypes = ["image/jpeg", "image/png"];
+const maxFileSize = 1048576 * 10; // 10 MB
 
 export const formRouter = createTRPCRouter({
+  presignS3: publicProcedure
+    .input(
+      z.object({
+        // cf_turnstile: z.string(),
+        checksum: z.string(),
+        fileType: z.string(),
+        fileSize: z.number(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      if (!allowedFileTypes.includes(input.fileType)) {
+        return { failure: "File Type not allowed" };
+      }
+      if (input.fileSize > maxFileSize) {
+        return { failure: "File Size too large" };
+      }
+
+      const imageFileName = generateFileName(8);
+
+      const putObjectCommand = new PutObjectCommand({
+        Bucket: env.AWS_BUCKET_NAME,
+        Key: `submissions/${imageFileName}`,
+        ContentType: input.fileType,
+        ContentLength: input.fileSize,
+        ChecksumSHA256: input.checksum,
+      });
+
+      const signedURL = await getSignedUrl(s3, putObjectCommand, {
+        expiresIn: 60,
+      });
+
+      return { url: signedURL, key: `submissions/${imageFileName}` };
+    }),
+
   submitForm: publicProcedure
     .input(formSchema)
     .mutation(async ({ input, ctx }) => {

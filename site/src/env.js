@@ -18,7 +18,11 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .default("development"),
     CF_TURNSTILE_KEY: z.string(),
-    DISCORD_WEBHOOK: z.string().url(),
+    DISCORD_WEBHOOK_URL: z.string().url(),
+    AWS_BUCKET_NAME: z.string(),
+    AWS_BUCKET_REGION: z.string(),
+    AWS_ACCESS_KEY: z.string(),
+    AWS_SECRET_ACCESS_KEY: z.string(),
   },
 
   /**
@@ -45,7 +49,12 @@ export const env = createEnv({
     NEXT_PUBLIC_CF_PUBLIC_KEY: process.env.NEXT_PUBLIC_CF_PUBLIC_KEY,
     CF_TURNSTILE_KEY: process.env.CF_TURNSTILE_KEY,
 
-    DISCORD_WEBHOOK: process.env.DISCORD_WEBHOOK,
+    DISCORD_WEBHOOK_URL: process.env.DISCORD_WEBHOOK_URL,
+
+    AWS_BUCKET_NAME: process.env.AWS_BUCKET_NAME,
+    AWS_BUCKET_REGION: process.env.AWS_BUCKET_REGION,
+    AWS_ACCESS_KEY: process.env.AWS_ACCESS_KEY,
+    AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

@@ -6,7 +6,7 @@ export type SubmissionInput = {
   location?: string;
   service?: string;
 
-  image?: string;
+  imageUrl?: string;
 
   type: "new" | "edit";
 };
@@ -28,7 +28,7 @@ export function generateEmbed(input: SubmissionInput) {
     image:
       input.type === "new"
         ? {
-            url: "https://cdn.whereisthegooglecar.com/images/1227561801143812107.webp",
+            url: input.imageUrl,
           }
         : undefined,
   };

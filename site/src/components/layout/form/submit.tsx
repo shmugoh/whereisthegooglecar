@@ -12,7 +12,7 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 
-import type { z } from "zod";
+import { ZodString, type z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import {
@@ -34,15 +34,77 @@ import { cn } from "~/lib/utils";
 import Image from "next/image";
 import { TurnstileWidget } from "~/components/turnstile-captcha";
 import { api } from "~/utils/api";
-import { Base64 } from "js-base64";
+import { computeSHA256 } from "~/utils/sha256";
+import { env } from "~/env";
 
 export default function SubmitForm() {
   // POST
   const submitMutation = api.form.submitForm.useMutation({});
+  const signedURLMutation = api.form.presignS3.useMutation({});
 
   // image uploading
   const [blobImage, setBlobImage] = useState<string | undefined>();
+  const [imageFile, setImageFile] = useState<File | undefined>();
   const inputElement = useRef<HTMLInputElement>(null);
+
+  // on submitting form
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (imageFile) {
+      // grab values
+      const { date, country, town, source, location, service } = values;
+
+      // get signed url
+      const imageChecksum = await computeSHA256(imageFile);
+      const signedURLResult = await signedURLMutation.mutateAsync({
+        fileSize: imageFile.size,
+        fileType: imageFile.type,
+        checksum: imageChecksum,
+      });
+
+      if (signedURLResult.url && signedURLResult.key) {
+        // upload image to s3
+        await fetch(signedURLResult.url, {
+          method: "PUT",
+          headers: {
+            "Content-Type": imageFile.type,
+          },
+          body: imageFile,
+        });
+
+        // generate image url
+        const imageUrl = `${env.NEXT_PUBLIC_CDN_URL}/${signedURLResult.key}`;
+
+        // submit webhook
+        submitMutation.mutate({
+          date: date,
+          country: country,
+          town: town,
+          source: source,
+          location: location,
+          service: service,
+          image: imageUrl,
+        });
+
+        console.log(imageUrl);
+      }
+    }
+  }
+
+  /// on uploading image
+  const onFileUpload = (file: File | undefined) => {
+    // if preview still exists, revoke it
+    if (blobImage) {
+      URL.revokeObjectURL(blobImage);
+    }
+    // process image
+    if (file) {
+      // set file & blob url
+      setImageFile(file);
+      const blobUrl = URL.createObjectURL(file);
+      setBlobImage(blobUrl);
+      form.setValue("image", blobUrl);
+    }
+  };
 
   /// on clicking div
   const onClick = () => {
@@ -51,44 +113,10 @@ export default function SubmitForm() {
     }
   };
 
-  /// on uploading image
-  const onUpload = (file: File | undefined) => {
-    if (file) {
-      // create blob url
-      const blobUrl = URL.createObjectURL(file);
-      setBlobImage(blobUrl);
-
-      // convert to base64
-      const baseImage = new FileReader();
-      baseImage.readAsDataURL(file);
-      baseImage.onload = () => {
-        form.setValue("image", Base64.encode(baseImage.result as string));
-      };
-    }
-  };
-
   // form configuration
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
   });
-
-  // on submitting
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // const data = await submitMutation.mutateAsync({});
-    const { date, country, town, source, location, service, image } = values;
-
-    submitMutation.mutate({
-      date: date,
-      country: country,
-      town: town,
-      source: source,
-      location: location,
-      service: service,
-      image: image,
-    });
-
-    console.log(values);
-  }
 
   return (
     <div className="space-y-4">
@@ -163,7 +191,7 @@ export default function SubmitForm() {
                   onDrop={(e) => {
                     e.preventDefault();
                     const file = e.dataTransfer.files?.[0];
-                    onUpload(file);
+                    onFileUpload(file);
                   }}
                 >
                   <AspectRatio
@@ -176,7 +204,7 @@ export default function SubmitForm() {
                       accept="image/png, image/jpeg"
                       className="hidden"
                       ref={inputElement}
-                      onChange={(e) => onUpload(e.target.files?.[0])}
+                      onChange={(e) => onFileUpload(e.target.files?.[0])}
                     />
                     {blobImage === undefined ? (
                       <div className="flex flex-col items-center justify-center space-y-4">
