@@ -5,7 +5,7 @@ import flag
 
 from discord import Message
 from utils.database import DatabaseManager
-from utils.s3_upload import delete
+from utils.s3_upload import ImageUpload
 
 class Submission:
     def process_embed(self, message: Message):
@@ -33,7 +33,7 @@ class Submission:
 
             # generate preview
             preview = self.generate_embed(date=date, town=town, country=country, source=source, location=location,
-                                          service=service, image_url=image)
+                                            service=service, image_url=image)
 
             # return data
             submission_data = SubmissionData(date, town, country, source, location, service, image, preview, mode)
@@ -44,6 +44,14 @@ class Submission:
         {country} [{service}] [{date}](<{source}>) in [{town}](<{location}>)
         {image_url}
         '''
+
+    async def delete_submission(self, id: int, database: DatabaseManager, s3: ImageUpload):
+        data = await database.get_submission(id=id)
+        if data['imageUrl']:
+            image_url = data['imageUrl']
+            image_url_filename = image_url.split("/")[-1]
+            s3.delete(mode="submissions", id=image_url_filename, type=None) # there is no file type as the front-end automatically names it like that
+        await database.delete_submission(id=id)
 
 class SubmissionData:
     __slots__ = ["date", "town", "country", "source", "location", "service", "image", "preview", "mode"]

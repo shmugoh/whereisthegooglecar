@@ -43,7 +43,7 @@ class DatabaseManager:
         town: str,
         country: str,
         countryEmoji: str,
-        imageUrl: str,
+        imageUrl: str | None,
         sourceUrl: str,
         locationUrl: str,
         company: str,
@@ -79,6 +79,9 @@ class DatabaseManager:
         Delete a submission record in the database.
         """
         await self.database.execute("DELETE FROM submissions WHERE message_id=$1", str(id))
+        
+    async def get_submission(self, id: int) -> None:
+        return await self.database.fetchrow("SELECT * FROM spottings WHERE message_id=$1", str(id))
         
     #
     # -- Spotting Management --

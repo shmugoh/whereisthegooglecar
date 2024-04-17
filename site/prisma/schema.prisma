@@ -43,14 +43,14 @@ model submissions {
     town                String
     country             String
     countryEmoji        String
-    imageUrl            String
+    imageUrl            String?
     sourceUrl           String
     locationUrl         String?
     company             String      @default("google")
     message_id          BigInt
     preview_message_id  BigInt?
-    channel_id          BigInt?
-    channel             channel?     @relation(fields: [channel_id], references: [id])
+    output_channel_id   BigInt?
+    channel             channel?     @relation(fields: [output_channel_id], references: [id])
 }
 
 // id: 4,

@@ -75,7 +75,7 @@ class WebSubmission(commands.Cog, name="web_submission"):
       if channel_id != submission_channel_id:
         return
       message_id = payload.message_id
-      # await self.submission.delete(id=message_id)
+      await self.submission.delete(id=message_id)
       
     # App Commands
     ## Approve Submission
@@ -94,6 +94,7 @@ class WebSubmission(commands.Cog, name="web_submission"):
         await interaction.response.send_message("cannot delete message", ephemeral=True)
         return
       
+      # listener will be in charge of handling the rest
       try:
         await message.delete()
         await interaction.response.send_message("deleted message")
