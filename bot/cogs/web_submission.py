@@ -52,7 +52,6 @@ class WebSubmission(commands.Cog, name="web_submission"):
         date=submission_data.date, 
         town=submission_data.town, 
         country=submission_data.country, 
-        countryEmoji=submission_data.country, 
         sourceUrl=submission_data.source, 
         locationUrl=submission_data.location, 
         company=submission_data.service, 
@@ -100,6 +99,80 @@ class WebSubmission(commands.Cog, name="web_submission"):
         await interaction.response.send_message("deleted message")
       except Exception as e:
         await interaction.response.send_message("cannot delete message")
+        
+    # Slash Commands
+    @commands.hybrid_command(
+      name="edit_submission",
+      description="Edits a submission in the database.",
+    )
+    @app_commands.describe(
+      id="The Message ID of the spotting to edit",
+      date="The date of the spotting - Must follow the format: YYYY/MM/DD",
+      town="The town of the spotting",
+      country="The emoji country of the spotting",
+      source="The source of the spotting - URL if available; otherwise, the name of the source",
+      location="The location of the spotting - URL if available",
+      service="The service of the spotting - Must be a valid service in the database",
+      output_channel="The Channel to post it to",
+      output_thread="The thread to post it to"
+    )
+    @app_commands.guilds(discord.Object(id=guild_id))
+    # @commands.check_any(is_owner(), has_guild_permissions(manage_messages=True))
+    async def edit(self, context: Context, *, 
+      id: str = None,
+      date: str = None,
+      town: str = None,
+      country: str = None,
+      source: str = None,
+      location: str = None,
+      service: str = None,
+      channel: discord.TextChannel = None, 
+      thread: discord.Thread = None
+      ) -> None:
+      # checks if message's metadata matches web_submission ids
+      if context.channel.parent_id != submission_channel_id or context.channel.id != submission_channel_id:
+        context.send("wrong channel!")
+        return
+      
+      # checks if input's parent is thread (submission) or not
+      if id == None and context.channel.type == "public_thread" or "private_thread":
+        id = context.channel.id
+      else:
+        context.send("fail")
+        return
+      
+      # checks if channel and thread are not overlapping
+      if channel is None and thread is None:
+        await context.send("No channel or thread provided. Please provide one.")
+        return
+      # if both channel and thread are provided
+      if channel and thread:
+        await context.send("No channel or thread provided. Please provide one.")
+        return
+      
+      # sets the target to the channel or thread
+      if channel is not None:
+        target = channel
+      if thread is not None:
+        target = thread
+        
+      # grab defaults if some parameters haven't been parsed
+      submission_data = await self.database.get_submission(id=id)
+      if date == None:
+        date = submission_data['date']
+      if town == None:
+        town = submission_data['town']
+      if country == None:
+        country = submission_data['country']
+      if source == None:
+        source = submission_data['sourceUrl']
+      if location == None: 
+        location = submission_data['locationUrl']
+      if service == None:
+        service = submission_data['company']
+        
+      # edit straight to database
+      self.database.edit_submission(id=id, date=date, town=town, country=country, sourceUrl=source, locationUrl=location, company=service, output_channel_id=target.id)
         
 async def setup(bot) -> None:
     await bot.add_cog(WebSubmission(bot))

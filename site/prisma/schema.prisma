@@ -42,7 +42,6 @@ model submissions {
     date                DateTime
     town                String
     country             String
-    countryEmoji        String
     imageUrl            String?
     sourceUrl           String
     locationUrl         String?

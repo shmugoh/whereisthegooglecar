@@ -42,7 +42,6 @@ class DatabaseManager:
         date: datetime,
         town: str,
         country: str,
-        countryEmoji: str,
         imageUrl: str | None,
         sourceUrl: str,
         locationUrl: str,
@@ -53,11 +52,10 @@ class DatabaseManager:
         """
         # add to database
         await self.database.execute(
-            "INSERT INTO submissions (date, town, country, \"countryEmoji\", \"imageUrl\", \"sourceUrl\", \"locationUrl\", company, message_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+            "INSERT INTO submissions (date, town, country, \"imageUrl\", \"sourceUrl\", \"locationUrl\", company, message_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
             date,
             town,
             country,
-            countryEmoji,
             imageUrl,
             sourceUrl,
             locationUrl,
