@@ -80,9 +80,9 @@ class ImageUpload:
         logger.error(f"Failed to upload image {id}: {e}")
         raise Exception(f"S3 Upload: {e}")
 
-    def delete(self, id):
+    def delete(self, id, mode="images", type=".webp"):
       try:
-        self.s3.Object(self.aws_bucket, f'images/{id}.webp').delete()
+        self.s3.Object(self.aws_bucket, f'${mode}/{id}.{type}').delete()
         logger.info(f"Deleted image {id} from S3")
       except Exception as e:
         logger.error(f"Failed to delete image {id}: {e}")
