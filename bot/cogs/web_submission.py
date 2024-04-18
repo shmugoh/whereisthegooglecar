@@ -1,5 +1,5 @@
 import discord
-from discord import app_commands
+from discord import app_commands, ui
 from discord.ext import commands
 from discord.ext.commands import Context
 from discord.ext.commands import check_any, has_guild_permissions, is_owner
@@ -8,7 +8,9 @@ import os
 from utils.spotting import spotting
 from utils.database import DatabaseManager
 from utils.submission import Submission
-import re
+
+import requests
+from io import BytesIO
 
 guild_id = int(os.getenv("GUILD_ID"))
 submission_channel_id = int(os.getenv("CHANNEL_SUBMISSION_ID"))
@@ -77,14 +79,75 @@ class WebSubmission(commands.Cog, name="web_submission"):
       await self.submission.delete(id=message_id)
       
     # App Commands
-    ## Approve Submission
-    async def approve_submission_ctx(self, interaction: discord.Interaction, message: discord.Message) -> None:
+    ## Approve Submission  
+    async def approve_submission_ctx(self, interaction: discord.Interaction, message: discord.Message) -> None:    
       # checks if message's metadata matches web_submission ids
-      if message.author.id != submission_webhook_id and message.channel.id != submission_channel_id:
+      if (message.author.id != submission_webhook_id and message.channel.id != submission_channel_id):
         await interaction.response.send_message("cannot process message")
         return
+        
+      # get submission type
+      submission_data = self.submission.process_embed(discord.Message)
       
-      await interaction.response.send_message('hii')
+      if submission_data.mode == 'new':
+        # get submission data
+        submission_data = await self.database.get_submission(id=message.id)
+        channel_data = await self.database.get_channels()
+        submission_output_channel_id = await submission_data['output_channel_id']
+        ## see if channel is in database
+        try:
+          channel_index = [channel['id'] for channel in channel_data].index(submission_output_channel_id)
+        except ValueError:
+          await interaction.response.send_message(f"cannot upload to channel <#{submission_channel_id}> - not in database")
+          return
+        ## grab channel type
+        submission_ouput_channel_type = channel_data[channel_index]['type']
+        if submission_ouput_channel_type == 'TextChannel':
+          submission_output_channel = discord.TextChannel(id=submission_output_channel_id, guild=guild_id)
+        elif submission_ouput_channel_type == 'Thread':
+          submission_output_channel = discord.Thread(id=submission_output_channel_id, guild=guild_id)
+
+      # build modal with data
+      class ModalApproval(discord.ui.Modal):
+        date = ui.TextInput(label="Date - Format must be YYYY/MM/DD", required=True)
+        town = ui.TextInput(label="Town", required=True)
+        country = ui.TextInput(label="Country - must be a Flag Emoji", required=True)
+        sourceUrl = ui.TextInput(label="Source - must be either an URL or username", required=True)
+        locationUrl = ui.TextInput(label="Location - must be a Google Maps link - Optional")
+        service = ui.TextInput(label="Service - Optional")
+        
+        async def on_submit(self, interaction: discord.Interaction) -> None:
+          if submission_data.mode == 'new':
+            # grab image
+            await interaction.response.send_message('downloading image...', ephemeral=True)
+            image_url = submission_data['imageUrl']
+            image_filename = image_url.split('/')[-1]
+            image_response = requests.get(image_url)
+            image_bytes = BytesIO(image_response.content)
+            image_file = discord.File(image_bytes, filename=image_filename)
+            
+            # generate message
+            await interaction.response.send_message('generating message image...', ephemeral=True)
+            
+            if self.locationUrl is not None or self.locationUrl.length != 0:
+              spotting_message = f'''
+              ${self.country} [{self.date}](<{self.sourceUrl}>) in [{self.town}](<{self.locationUrl}>)
+              '''
+            else:
+              spotting_message = f'''
+              ${self.country} [{self.date}](<{self.sourceUrl}>) in {self.town}
+              '''
+          
+            # submit message - channel listener will handle the rest
+            await interaction.response.send_message('sending message...', ephemeral=True)
+            await submission_output_channel.send(content=spotting_message, file=image_file)
+            await interaction.response.send('done!')
+          else:
+            # TODO
+            await self.database.update_spotting(id=submission_data)
+      
+      # submit modal
+      await interaction.response.send_modal(ModalApproval())
     
     ## Delete Submission
     async def delete_submission_ctx(self, interaction: discord.Interaction, message: discord.Message) -> None:
