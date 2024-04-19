@@ -81,7 +81,7 @@ class DatabaseManager:
         await self.database.execute("DELETE FROM submissions WHERE message_id=$1", str(id))
         
     async def get_submission(self, id: int) -> None:
-        return await self.database.fetchrow("SELECT * FROM spottings WHERE message_id=$1", str(id))
+        return await self.database.fetchrow("SELECT * FROM submissions WHERE message_id=$1", id)
         
     #
     # -- Spotting Management --
