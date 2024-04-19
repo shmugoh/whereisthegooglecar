@@ -20,7 +20,7 @@ class Listener(commands.Cog, name="listener"):
       The code in this event is executed every time someone sends a message within
       a channel that the bot synchronizes with.
       """
-      if message.author == self.bot.user or message.guild.id != self.bot.guild_id:
+      if message.guild.id != self.bot.guild_id:
         return
       
       # get channel index from channels db

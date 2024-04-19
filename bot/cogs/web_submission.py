@@ -88,14 +88,14 @@ class WebSubmission(commands.Cog, name="web_submission"):
         return
         
       # get submission type
-      submission_embed = self.submission.process_embed(discord.Message)
+      submission_embed = self.submission.process_embed(message)
       
-      # pre-handling for new - grab set channel/thread
+      # pre-handling for new - grab set channel/thread to submit to
       if submission_embed.mode == 'new':
         # get submission data
         submission_data = await self.bot.database.get_submission(id=message.id)
         channel_data = await self.bot.database.get_channels()
-        submission_output_channel_id = await submission_data['output_channel_id']
+        submission_output_channel_id = submission_data['output_channel_id']
         ## see if channel is in database
         try:
           channel_index = [channel['id'] for channel in channel_data].index(submission_output_channel_id)
@@ -103,32 +103,35 @@ class WebSubmission(commands.Cog, name="web_submission"):
           await interaction.response.send_message(f"cannot upload to channel <#{submission_channel_id}> - not in database")
           return
         ## grab channel type
-        submission_ouput_channel_type = channel_data[channel_index]['type']
-        if submission_ouput_channel_type == 'TextChannel':
-          submission_output_channel = discord.TextChannel(id=submission_output_channel_id, guild=guild_id)
-        elif submission_ouput_channel_type == 'Thread':
-          submission_output_channel = discord.Thread(id=submission_output_channel_id, guild=guild_id)
+        submission_output_channel_type = channel_data[channel_index]['type']
+        if submission_output_channel_type == 'TextChannel':
+          submission_output_channel = interaction.guild.get_channel(submission_output_channel_id)
+        elif submission_output_channel_type == 'Thread':
+          submission_output_channel = interaction.guild.get_thread(submission_output_channel_id)
+      
       # pre-handling for edit - find channel/thread
       elif submission_embed.mode == 'edit':
         pass
         # do stuff
+      
+      # if no mode is set
       else:
         await interaction.response.send('invalid submission mode');
         return
 
       # build modal with data
-      class ModalApproval(discord.ui.Modal):
-        date = ui.TextInput(label="Date - Format must be YYYY/MM/DD", required=True)
-        town = ui.TextInput(label="Town", required=True)
-        country = ui.TextInput(label="Country - must be a Flag Emoji", required=True)
-        sourceUrl = ui.TextInput(label="Source - must be either an URL or username", required=True)
-        locationUrl = ui.TextInput(label="Location - must be a Google Maps link - Optional")
-        service = ui.TextInput(label="Service - Optional")
+      class ModalApproval(discord.ui.Modal, title="New Submission - Final Changes"):
+        date = ui.TextInput(label="Date - Format must be YYYY/MM/DD", required=True, default=date_utils.stringify_date(submission_data['date']))
+        town = ui.TextInput(label="Town", required=True, default=submission_data['town'])
+        country = ui.TextInput(label="Country - must be a Flag Emoji", required=True, default=submission_data['country'])
+        sourceUrl = ui.TextInput(label="Source - must be either an URL or username", required=True, default=submission_data['sourceUrl'])
+        locationUrl = ui.TextInput(label="Location - must be GMaps link - Optional", default=submission_data['locationUrl'])
         
         async def on_submit(self, interaction: discord.Interaction) -> None:
-          if submission_data.mode == 'new':
+          # new submission handling
+          if submission_data['mode'] == 'new':
             # grab image
-            await interaction.response.send_message('downloading image...', ephemeral=True)
+            # og_message = await interaction.response.send_message('downloading image...', ephemeral=True)
             image_url = submission_data['imageUrl']
             image_filename = image_url.split('/')[-1]
             image_response = requests.get(image_url)
@@ -136,22 +139,19 @@ class WebSubmission(commands.Cog, name="web_submission"):
             image_file = discord.File(image_bytes, filename=image_filename)
             
             # generate message
-            await interaction.response.send_message('generating message image...', ephemeral=True)
-            
-            if self.locationUrl is not None or self.locationUrl.length != 0:
-              spotting_message = f'''
-              ${self.country} [{self.date}](<{self.sourceUrl}>) in [{self.town}](<{self.locationUrl}>)
-              '''
-            else:
-              spotting_message = f'''
-              ${self.country} [{self.date}](<{self.sourceUrl}>) in {self.town}
-              '''
+            # await interaction.response.send_message('generating message content...', ephemeral=True)
+            spotting_message = Submission.generate_embed(Submission, date=date_utils.convert_date(self.date.value), town=self.town.value, country=self.country.value, 
+                                                        source=self.sourceUrl.value, location=self.locationUrl.value, service=submission_data['company'])
           
             # submit message - channel listener will handle the rest
-            await interaction.response.send_message('sending message...', ephemeral=True)
+            # await interaction.response.send_message('sending message...', ephemeral=True)
             await submission_output_channel.send(content=spotting_message, file=image_file)
-            await interaction.response.send('done!')
-          else:
+            await interaction.response.send_message('done!', ephmeral=True)
+
+            # TODO: lock thread
+          
+          # edit submission handling
+          elif submission_data.mode == 'edit':
             # TODO
             await self.bot.database.update_spotting(id=submission_data)
       
