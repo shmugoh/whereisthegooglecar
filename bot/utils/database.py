@@ -78,7 +78,7 @@ class DatabaseManager:
         """
         Delete a submission record in the database.
         """
-        await self.database.execute("DELETE FROM submissions WHERE message_id=$1", str(id))
+        await self.database.execute("DELETE FROM submissions WHERE message_id=$1", id)
         
     async def get_submission(self, id: int) -> None:
         return await self.database.fetchrow("SELECT * FROM submissions WHERE message_id=$1", id)

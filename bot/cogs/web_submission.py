@@ -47,7 +47,11 @@ class WebSubmission(commands.Cog, name="web_submission"):
         return
         
       # process embed
-      submission_data = self.submission.process_embed(message=message)
+      try:
+        submission_data = self.submission.process_embed(message=message)
+      except IndexError:
+        # not an embed
+        return
       
       # submit to database
       await self.bot.database.add_submission(
@@ -77,7 +81,12 @@ class WebSubmission(commands.Cog, name="web_submission"):
       if channel_id != submission_channel_id:
         return
       message_id = payload.message_id
-      await self.submission.delete(id=message_id)
+      
+      # attempt to delete submission
+      try: await self.submission.delete_submission(id=message_id, database=self.bot.database, s3=self.bot.s3)
+      
+      # if message wasn't originally a submission or not on database
+      except TypeError: pass
       
     # App Commands
     ## Approve Submission  

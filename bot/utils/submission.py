@@ -39,9 +39,13 @@ class Submission:
 
     def generate_embed(self, date: datetime, town: str, country: str, source: str, location: str, service: str, image_url: str = None):
         # initialize embed content and booleans
-        embed_content = f"{country} [{service}]"
+        embed_content = f"{country}"
         sourceIsUrl = False
         locationisUrl = False
+        
+        # service
+        if service and service != "N/A":
+            embed_content += f" [{service}]"
         
         # formatted date
         formattedDate = date_utils.stringify_date(date)
@@ -80,7 +84,7 @@ class Submission:
             image_url = data['imageUrl']
             image_url_filename = image_url.split("/")[-1]
             s3.delete(mode="submissions", id=image_url_filename, type=None) # there is no file type as the front-end automatically names it like that
-        await database.delete_submission(id=id)
+            await database.delete_submission(id=id)
 
 class SubmissionData:
     __slots__ = ["date", "town", "country", "source", "location", "service", "image", "preview", "mode"]
