@@ -8,6 +8,7 @@ import os
 from utils.spotting import spotting
 from utils.database import DatabaseManager
 from utils.submission import Submission
+import utils.date_utils as date_utils
 
 import requests
 from io import BytesIO
@@ -224,6 +225,9 @@ class WebSubmission(commands.Cog, name="web_submission"):
             
       if date == None:
         date = submission_data['date']
+      else:
+        # convert from string to datetime
+        date = date_utils.convert_date(date)
       if town == None:
         town = submission_data['town']
       if country == None:

@@ -1,8 +1,8 @@
-from datetime import datetime
-
 from discord import Message
 from utils.database import DatabaseManager
 from utils.s3_upload import ImageUpload
+import utils.date_utils as date_utils
+from datetime import datetime
 
 class Submission:
     def process_embed(self, message: Message):
@@ -17,7 +17,7 @@ class Submission:
 
             # grab values
             date = embed.fields[0].value
-            date = datetime.strptime(date, '%Y/%m/%d') # datetime obj
+            date = date_utils.convert_date(date) # datetime obj
             town = embed.fields[1].value
             country = embed.fields[2].value
             source = embed.fields[3].value
@@ -37,11 +37,42 @@ class Submission:
             submission_data = SubmissionData(date, town, country, source, location, service, image, preview, mode)
             return submission_data
 
-    def generate_embed(self, date: str, town: str, country: str, source: str, location: str, service: str, image_url: str):
-        return f'''
-        {country} [{service}] [{date}](<{source}>) in [{town}](<{location}>)
-        {image_url}
-        '''
+    def generate_embed(self, date: datetime, town: str, country: str, source: str, location: str, service: str, image_url: str = None):
+        # initialize embed content and booleans
+        embed_content = f"{country} [{service}]"
+        sourceIsUrl = False
+        locationisUrl = False
+        
+        # formatted date
+        formattedDate = date_utils.stringify_date(date)
+        
+        # source (with url)
+        if source and source.startswith('http'):
+            sourceIsUrl = True
+            embed_content += f" [{formattedDate}](<{source}>)"
+        else:
+            embed_content += f" {formattedDate}"
+        
+        # location (with url)
+        if location and location.startswith('http'):
+            locationisUrl = True
+            embed_content += f" in [{town}](<{location}>)"
+        else:
+            embed_content += f" in {town}"
+            
+        # source (no url)
+        if source and source != "N/A" and sourceIsUrl is False:
+            embed_content += f"\n__source:__ {source}"
+        # location (no url)
+        if location and location != "N/A" and locationisUrl is False:
+            embed_content += f"\n__location:__ {location}"
+        
+        # image url
+        if image_url:
+            embed_content += f"\n\n{image_url}"
+        
+        # return built embed
+        return embed_content
 
     async def delete_submission(self, id: int, database: DatabaseManager, s3: ImageUpload):
         data = await database.get_submission(id=id)
