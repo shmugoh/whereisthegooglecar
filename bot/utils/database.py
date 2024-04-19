@@ -46,19 +46,21 @@ class DatabaseManager:
         sourceUrl: str,
         locationUrl: str,
         company: str,
+        mode: str,
     ) -> None:
         """
         Add a new submission to the database
         """
         # add to database
         await self.database.execute(
-            "INSERT INTO submissions (date, town, country, \"imageUrl\", \"sourceUrl\", \"locationUrl\", company, message_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+            "INSERT INTO submissions (date, town, country, \"imageUrl\", \"sourceUrl\", \"locationUrl\", mode, company, message_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
             date,
             town,
             country,
             imageUrl,
             sourceUrl,
             locationUrl,
+            mode,
             company,
             message_id
         )
@@ -70,7 +72,7 @@ class DatabaseManager:
         columns = kwargs.keys()
         values = kwargs.values()
         query = "UPDATE submissions SET " + ", ".join(f"\"{column}\"=${i+1}" for i, column in enumerate(columns)) + " WHERE message_id=$" + str(len(columns) + 1)
-        await self.database.execute(query, *values, str(id))
+        await self.database.execute(query, *values, id)
 
     async def delete_submission(self, id: int) -> None:
         """

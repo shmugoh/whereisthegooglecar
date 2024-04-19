@@ -46,10 +46,10 @@ class WebSubmission(commands.Cog, name="web_submission"):
         return
         
       # process embed
-      submission_data = self.submission.process_embed(discord.Message)
+      submission_data = self.submission.process_embed(message=message)
       
       # submit to database
-      await self.database.add_submission(
+      await self.bot.database.add_submission(
         message_id=message.id, 
         date=submission_data.date, 
         town=submission_data.town, 
@@ -57,16 +57,16 @@ class WebSubmission(commands.Cog, name="web_submission"):
         sourceUrl=submission_data.source, 
         locationUrl=submission_data.location, 
         company=submission_data.service, 
-        imageUrl=message.attachments[0].url
+        imageUrl=submission_data.image,
+        mode=submission_data.mode
       )
-      
+            
       # generate thread & preview
       submission_thread = await message.create_thread(name=f"{submission_data.date} in {submission_data.town}")
       preview_message = await submission_thread.send(submission_data.preview)
       
       # submit preview id to database
-      await self.database.edit_submission(id=message.id, preview_message_id=preview_message.id)
-        
+      await self.bot.database.edit_submission(id=message.id, preview_message_id=preview_message.id)
       
     # on submission delete
     @commands.Cog.listener()
@@ -87,12 +87,13 @@ class WebSubmission(commands.Cog, name="web_submission"):
         return
         
       # get submission type
-      submission_data = self.submission.process_embed(discord.Message)
+      submission_embed = self.submission.process_embed(discord.Message)
       
-      if submission_data.mode == 'new':
+      # pre-handling for new - grab set channel/thread
+      if submission_embed.mode == 'new':
         # get submission data
-        submission_data = await self.database.get_submission(id=message.id)
-        channel_data = await self.database.get_channels()
+        submission_data = await self.bot.database.get_submission(id=message.id)
+        channel_data = await self.bot.database.get_channels()
         submission_output_channel_id = await submission_data['output_channel_id']
         ## see if channel is in database
         try:
@@ -106,6 +107,13 @@ class WebSubmission(commands.Cog, name="web_submission"):
           submission_output_channel = discord.TextChannel(id=submission_output_channel_id, guild=guild_id)
         elif submission_ouput_channel_type == 'Thread':
           submission_output_channel = discord.Thread(id=submission_output_channel_id, guild=guild_id)
+      # pre-handling for edit - find channel/thread
+      elif submission_embed.mode == 'edit':
+        pass
+        # do stuff
+      else:
+        await interaction.response.send('invalid submission mode');
+        return
 
       # build modal with data
       class ModalApproval(discord.ui.Modal):
@@ -144,7 +152,7 @@ class WebSubmission(commands.Cog, name="web_submission"):
             await interaction.response.send('done!')
           else:
             # TODO
-            await self.database.update_spotting(id=submission_data)
+            await self.bot.database.update_spotting(id=submission_data)
       
       # submit modal
       await interaction.response.send_modal(ModalApproval())
@@ -176,8 +184,8 @@ class WebSubmission(commands.Cog, name="web_submission"):
       source="The source of the spotting - URL if available; otherwise, the name of the source",
       location="The location of the spotting - URL if available",
       service="The service of the spotting - Must be a valid service in the database",
-      output_channel="The Channel to post it to",
-      output_thread="The thread to post it to"
+      channel="The Channel to post it to",
+      thread="The thread to post it to"
     )
     @app_commands.guilds(discord.Object(id=guild_id))
     # @commands.check_any(is_owner(), has_guild_permissions(manage_messages=True))
@@ -220,7 +228,7 @@ class WebSubmission(commands.Cog, name="web_submission"):
         target = thread
         
       # grab defaults if some parameters haven't been parsed
-      submission_data = await self.database.get_submission(id=id)
+      submission_data = await self.bot.database.get_submission(id=id)
       if date == None:
         date = submission_data['date']
       if town == None:
@@ -235,7 +243,7 @@ class WebSubmission(commands.Cog, name="web_submission"):
         service = submission_data['company']
         
       # edit straight to database
-      self.database.edit_submission(id=id, date=date, town=town, country=country, sourceUrl=source, locationUrl=location, company=service, output_channel_id=target.id)
+      self.bot.database.edit_submission(id=id, date=date, town=town, country=country, sourceUrl=source, locationUrl=location, company=service, output_channel_id=target.id)
         
 async def setup(bot) -> None:
     await bot.add_cog(WebSubmission(bot))

@@ -1,7 +1,4 @@
-import re
-import datetime
-
-import flag
+from datetime import datetime
 
 from discord import Message
 from utils.database import DatabaseManager
@@ -13,13 +10,14 @@ class Submission:
         if embed:
             # grab title & mode
             title = embed.title
-            if "new" in embed.title.lower():
+            if "new" in title.lower():
                 mode = "new"
-            elif "edit" in embed.title.lower():
+            elif "edit" in title.lower():
                 mode = "edit"
 
             # grab values
             date = embed.fields[0].value
+            date = datetime.strptime(date, '%Y/%m/%d') # datetime obj
             town = embed.fields[1].value
             country = embed.fields[2].value
             source = embed.fields[3].value
