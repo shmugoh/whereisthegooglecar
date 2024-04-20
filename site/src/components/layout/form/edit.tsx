@@ -62,7 +62,7 @@ export default function EditDialog(props: EditDialogProps) {
       source: props.source,
       location: props.location,
       date: props.date,
-      image: "",
+      image: "https://whereisthegooglecar.com",
     },
   });
 
@@ -178,6 +178,21 @@ export default function EditDialog(props: EditDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Country</FormLabel>
+                  <FormControl>
+                    <Input placeholder="shadcn" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Service */}
+            <FormField
+              control={form.control}
+              name="service"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Service</FormLabel>
                   <FormControl>
                     <Input placeholder="shadcn" {...field} />
                   </FormControl>
