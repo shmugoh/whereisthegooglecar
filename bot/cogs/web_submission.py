@@ -13,6 +13,8 @@ import utils.date_utils as date_utils
 import requests
 from io import BytesIO
 
+import flag
+
 guild_id = int(os.getenv("GUILD_ID"))
 submission_channel_id = int(os.getenv("CHANNEL_SUBMISSION_ID"))
 submission_webhook_id = int(os.getenv("WEBHOOK_SUBMISSION_ID"))
@@ -107,14 +109,19 @@ class WebSubmission(commands.Cog, name="web_submission"):
         await interaction.response.send_message("cannot process message")
         return
         
+      # grab database (as the modal's class will not have access to self.bot)
+      bot_submission = self.submission
+      bot_database = self.bot.database
+      bot_s3 = self.bot.s3 # for deleting
+        
       # get submission type
       submission_embed = self.submission.process_embed(message)
       
       # check if compatible modes are set
       if submission_embed.mode == "new" or "edit":
         # pre-handling grab set channel/thread to submit to
-        submission_data = await self.bot.database.get_submission(id=message.id)
-        channel_data = await self.bot.database.get_channels()
+        submission_data = await bot_database.get_submission(id=message.id)
+        channel_data = await bot_database.get_channels()
         submission_output_channel_id = submission_data['output_channel_id']        
         ## see if channel is in database
         try:
@@ -159,38 +166,39 @@ class WebSubmission(commands.Cog, name="web_submission"):
             await submission_output_channel.send(content=spotting_message, file=image_file)
           
           # edit submission handling
-          elif submission_data.mode == 'edit':
+          elif submission_data['mode'] == 'edit':
             # edit to database
-            await self.bot.database.update_spotting(date=date_utils.convert_date(self.date.value), countryEmoji=self.country.value, town=self.town.value,
-                                                    sourceUrl=self.sourceUrl.value, locationUrl=self.locationUrl.value, company=submission_embed.service)
+            await bot_database.update_spotting(id=submission_embed.output_message_id, date=date_utils.convert_date(self.date.value), 
+                                              country=flag.dflagize(self.country.value), countryEmoji=self.country.value, town=self.town.value,
+                                              sourceUrl=self.sourceUrl.value, locationUrl=self.locationUrl.value, company=submission_embed.service)
             
             # notify changes
             ## get message
             output_message = await submission_output_channel.fetch_message(submission_embed.output_message_id)
             
             ## create message notification content
-            submission_notify_message = await submission_notify_thread.send(content=f'''
-            Contributor <@JUNE> has approved an edit that alters your spotting. Here are the details of the changes:
-            ```
-            {spotting_message}
-            ```
-            If you do not agree with these changes, feel free to edit your original message to reverse the edit.
-            ''')
+            submission_notify_message = (
+                f'Contributor <@{message.author.id}> has approved an edit that changes your spotting submission. Here are the details of the changes:\n'
+                '```\n'
+                f'{spotting_message}\n'
+                '```\n'
+                'If you do not agree with these changes, feel free to edit your original message to reverse the edit.'
+            )
             
             ## create thread (if channel type is textchannel)
             if submission_output_channel_type == "TextChannel":
-              submission_notify_thread = await output_message.create_thread(name=f"{submission_data.date} in {submission_data.town}")
+              # TODO: check if a thread already exists
+              submission_notify_thread = await output_message.create_thread(name=f"{self.date.value} in {self.town.value}")
               await submission_notify_thread.send(submission_notify_message)
             ## send reply (if channel type is thread)
             elif submission_output_channel_type == 'Thread':
               await output_message.reply(submission_notify_message)
           
           # pos-handling
-          await self.bot.database.delete_submission(id=message.id)
           thread = message.channel.get_thread(message.id)
           await thread.send("changes have been approved. locking...")
           await thread.edit(locked=True)
-          # TODO: lock thread
+          await bot_submission.delete_submission(id=message.id, database=bot_database, s3=bot_s3)
       
       # submit modal
       await interaction.response.send_modal(ModalApproval())
