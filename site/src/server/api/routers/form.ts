@@ -67,7 +67,7 @@ export const formRouter = createTRPCRouter({
         return { failure: "File Size too large" };
       }
 
-      const imageFileName = generateFileName(8);
+      const imageFileName = `${generateFileName(8)}.${input.fileType.split("/")[1]}`;
 
       const putObjectCommand = new PutObjectCommand({
         Bucket: env.AWS_BUCKET_NAME,

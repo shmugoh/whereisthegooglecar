@@ -288,7 +288,7 @@ class WebSubmission(commands.Cog, name="web_submission"):
         location = submission_data['locationUrl']
       if service == None:
         service = submission_data['company']
-      if channel or thread == None and submission_data == 'new':
+      if (channel is None or thread is None) and (submission_data == 'new'):
         target = submission_data['output_channel_id']
       
       # submit new preview
