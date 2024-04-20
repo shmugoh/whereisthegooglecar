@@ -87,6 +87,7 @@ class Submission:
 
     async def delete_submission(self, id: int, database: DatabaseManager, s3: ImageUpload):
         data = await database.get_submission(id=id)
+        if data == None: raise NameError
         if data['imageUrl']:
             image_url = data['imageUrl']
             image_url_filename = image_url.split("/")[-1]

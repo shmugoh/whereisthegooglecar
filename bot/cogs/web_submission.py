@@ -99,7 +99,7 @@ class WebSubmission(commands.Cog, name="web_submission"):
       try: await self.submission.delete_submission(id=message_id, database=self.bot.database, s3=self.bot.s3)
       
       # if message wasn't originally a submission or not on database
-      except TypeError: pass
+      except NameError: pass
       
     # App Commands
     ## Approve Submission  
@@ -208,6 +208,11 @@ class WebSubmission(commands.Cog, name="web_submission"):
       # checks if message's metadata matches web_submission ids
       if message.author.id != submission_webhook_id and message.channel.id != submission_channel_id:
         await interaction.response.send_message("cannot delete message", ephemeral=True)
+        return
+        
+      submission_data = await self.bot.database.get_submission(id=message.id)
+      if submission_data == None:
+        await interaction.response.send_message("not a submission. not deleting")
         return
       
       # listener will be in charge of handling the rest
