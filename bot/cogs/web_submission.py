@@ -67,11 +67,11 @@ class WebSubmission(commands.Cog, name="web_submission"):
       )
             
       # generate thread & preview
-      submission_thread = await message.create_thread(name=f"{submission_data.date} in {submission_data.town}")
+      submission_thread = await message.create_thread(name=f"{date_utils.stringify_date(submission_data.date)} in {submission_data.town}")
+      preview_message = await submission_thread.send(submission_data.preview)
       
       # new handling - submit preview to thread & database
       if submission_data.mode == 'new':
-        preview_message = await submission_thread.send(submission_data.preview)
         await self.bot.database.edit_submission(id=message.id, output_message_id=preview_message.id)
       
       # edit handling - submit output message_id from embed
@@ -110,12 +110,12 @@ class WebSubmission(commands.Cog, name="web_submission"):
       # get submission type
       submission_embed = self.submission.process_embed(message)
       
-      # pre-handling for new - grab set channel/thread to submit to
-      if submission_embed.mode == 'new':
-        # get submission data
+      # check if compatible modes are set
+      if submission_embed.mode == "new" or "edit":
+        # pre-handling grab set channel/thread to submit to
         submission_data = await self.bot.database.get_submission(id=message.id)
         channel_data = await self.bot.database.get_channels()
-        submission_output_channel_id = submission_data['output_channel_id']
+        submission_output_channel_id = submission_data['output_channel_id']        
         ## see if channel is in database
         try:
           channel_index = [channel['id'] for channel in channel_data].index(submission_output_channel_id)
@@ -128,12 +128,6 @@ class WebSubmission(commands.Cog, name="web_submission"):
           submission_output_channel = interaction.guild.get_channel(submission_output_channel_id)
         elif submission_output_channel_type == 'Thread':
           submission_output_channel = interaction.guild.get_thread(submission_output_channel_id)
-      
-      # pre-handling for edit - find channel/thread
-      elif submission_embed.mode == 'edit':
-        pass
-        # do stuff
-      
       # if no mode is set
       else:
         await interaction.response.send('invalid submission mode');
@@ -148,32 +142,55 @@ class WebSubmission(commands.Cog, name="web_submission"):
         locationUrl = ui.TextInput(label="Location - must be GMaps link - Optional", default=submission_data['locationUrl'])
         
         async def on_submit(self, interaction: discord.Interaction) -> None:
+          # generate embed
+          spotting_message = Submission.generate_embed(Submission, date=date_utils.convert_date(self.date.value), town=self.town.value, country=self.country.value, 
+                                            source=self.sourceUrl.value, location=self.locationUrl.value, service=submission_data['company'])
+        
           # new submission handling
           if submission_data['mode'] == 'new':
             # grab image
-            # og_message = await interaction.response.send_message('downloading image...', ephemeral=True)
             image_url = submission_data['imageUrl']
             image_filename = image_url.split('/')[-1]
             image_response = requests.get(image_url)
             image_bytes = BytesIO(image_response.content)
             image_file = discord.File(image_bytes, filename=image_filename)
-            
-            # generate message
-            # await interaction.response.send_message('generating message content...', ephemeral=True)
-            spotting_message = Submission.generate_embed(Submission, date=date_utils.convert_date(self.date.value), town=self.town.value, country=self.country.value, 
-                                                        source=self.sourceUrl.value, location=self.locationUrl.value, service=submission_data['company'])
-          
+                
             # submit message - channel listener will handle the rest
-            # await interaction.response.send_message('sending message...', ephemeral=True)
             await submission_output_channel.send(content=spotting_message, file=image_file)
-            await interaction.response.send_message('done!', ephmeral=True)
-
-            # TODO: lock thread
           
           # edit submission handling
           elif submission_data.mode == 'edit':
-            # TODO
-            await self.bot.database.update_spotting(id=submission_data)
+            # edit to database
+            await self.bot.database.update_spotting(date=date_utils.convert_date(self.date.value), countryEmoji=self.country.value, town=self.town.value,
+                                                    sourceUrl=self.sourceUrl.value, locationUrl=self.locationUrl.value, company=submission_embed.service)
+            
+            # notify changes
+            ## get message
+            output_message = await submission_output_channel.fetch_message(submission_embed.output_message_id)
+            
+            ## create message notification content
+            submission_notify_message = await submission_notify_thread.send(content=f'''
+            Contributor <@JUNE> has approved an edit that alters your spotting. Here are the details of the changes:
+            ```
+            {spotting_message}
+            ```
+            If you do not agree with these changes, feel free to edit your original message to reverse the edit.
+            ''')
+            
+            ## create thread (if channel type is textchannel)
+            if submission_output_channel_type == "TextChannel":
+              submission_notify_thread = await output_message.create_thread(name=f"{submission_data.date} in {submission_data.town}")
+              await submission_notify_thread.send(submission_notify_message)
+            ## send reply (if channel type is thread)
+            elif submission_output_channel_type == 'Thread':
+              await output_message.reply(submission_notify_message)
+          
+          # pos-handling
+          await self.bot.database.delete_submission(id=message.id)
+          thread = message.channel.get_thread(message.id)
+          await thread.send("changes have been approved. locking...")
+          await thread.edit(locked=True)
+          # TODO: lock thread
       
       # submit modal
       await interaction.response.send_modal(ModalApproval())
@@ -274,6 +291,7 @@ class WebSubmission(commands.Cog, name="web_submission"):
         await self.bot.database.edit_submission(id=id, date=date, town=town, country=country, sourceUrl=source, locationUrl=location, company=service)
       
       return
-
+#
 async def setup(bot) -> None:
+
     await bot.add_cog(WebSubmission(bot))
