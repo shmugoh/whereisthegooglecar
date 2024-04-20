@@ -11,6 +11,8 @@ export type SubmissionInput = {
   imageUrl?: string;
 
   type: "new" | "edit";
+
+  id?: string;
 };
 
 export function generateEmbed(input: SubmissionInput) {
@@ -27,6 +29,7 @@ export function generateEmbed(input: SubmissionInput) {
       { name: "Source", value: input.source },
       { name: "Location", value: input.location ? input.location : "N/A" },
       { name: "Service", value: input.service ? input.service : "N/A" },
+      { name: "Message ID (Edit):", value: input.id ? input.id : "N/A" },
     ],
     image:
       input.type === "new"

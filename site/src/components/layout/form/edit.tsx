@@ -47,6 +47,7 @@ type EditDialogProps = {
   location?: string;
   service?: string;
   date?: Date;
+  id: string;
 };
 
 export default function EditDialog(props: EditDialogProps) {
@@ -86,6 +87,7 @@ export default function EditDialog(props: EditDialogProps) {
       location: location,
       service: service,
       cf_turnstile_token: cf_turnstile_token,
+      id: props.id,
     });
 
     console.log(values);

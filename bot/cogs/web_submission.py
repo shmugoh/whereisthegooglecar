@@ -68,10 +68,21 @@ class WebSubmission(commands.Cog, name="web_submission"):
             
       # generate thread & preview
       submission_thread = await message.create_thread(name=f"{submission_data.date} in {submission_data.town}")
-      preview_message = await submission_thread.send(submission_data.preview)
       
-      # submit preview id to database
-      await self.bot.database.edit_submission(id=message.id, preview_message_id=preview_message.id)
+      # new handling - submit preview to thread & database
+      if submission_data.mode == 'new':
+        preview_message = await submission_thread.send(submission_data.preview)
+        await self.bot.database.edit_submission(id=message.id, output_message_id=preview_message.id)
+      
+      # edit handling - submit output message_id from embed
+      if submission_data.mode == 'edit':
+        # get original channel id
+        original_submission = await self.bot.database.find_spotting(id=submission_data.output_message_id)
+        original_channel_id = original_submission['channel_id']
+        
+        # submit to database
+        await self.bot.database.edit_submission(id=message.id, output_message_id=int(submission_data.output_message_id), output_channel_id=int(original_channel_id))
+        # asyncpg would break if i don't make these two integers WITHIN the function itself
       
     # on submission delete
     @commands.Cog.listener()
@@ -247,7 +258,7 @@ class WebSubmission(commands.Cog, name="web_submission"):
         location = submission_data['locationUrl']
       if service == None:
         service = submission_data['company']
-      if channel or thread == None:
+      if channel or thread == None and submission_data == 'new':
         target = submission_data['output_channel_id']
         
       # submit new preview
@@ -255,7 +266,7 @@ class WebSubmission(commands.Cog, name="web_submission"):
       preview_message_response = await context.send(preview_message_content)
 
       # edit new info to database
-      await self.bot.database.edit_submission(id=id, date=date, town=town, country=country, sourceUrl=source, locationUrl=location, company=service, output_channel_id=target, preview_message_id=preview_message_response.id)
+      await self.bot.database.edit_submission(id=id, date=date, town=town, country=country, sourceUrl=source, locationUrl=location, company=service, output_channel_id=target, output_message_id=preview_message_response.id)
       return
 
 async def setup(bot) -> None:

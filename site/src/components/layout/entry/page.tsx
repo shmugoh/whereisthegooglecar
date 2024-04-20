@@ -62,6 +62,7 @@ export const PageComponent = (props: pageProps) => {
             country={props.data.countryEmoji}
             source={props.data.sourceUrl}
             location={props.data.locationUrl ?? undefined}
+            id={props.data.message_id}
           />
         </div>
       </div>

@@ -23,7 +23,14 @@ class Submission:
             source = embed.fields[3].value
             location = embed.fields[4].value
             service = embed.fields[5].value
-
+            
+            # set optional variables to undefined
+            ## output_message_id [edit]
+            try:
+                output_message_id = embed.fields[6].value
+            except IndexError: # id doesn't exist
+                output_message_id = None
+            ## imageUrl [new]
             if embed.image and mode == "new":
                 image = embed.image.url
             else:
@@ -34,7 +41,7 @@ class Submission:
                                             service=service, image_url=image)
 
             # return data
-            submission_data = SubmissionData(date, town, country, source, location, service, image, preview, mode)
+            submission_data = SubmissionData(date, town, country, source, location, service, image, preview, mode, output_message_id)
             return submission_data
 
     def generate_embed(self, date: datetime, town: str, country: str, source: str, location: str, service: str, image_url: str = None):
@@ -84,12 +91,12 @@ class Submission:
             image_url = data['imageUrl']
             image_url_filename = image_url.split("/")[-1]
             s3.delete(mode="submissions", id=image_url_filename, type=None) # there is no file type as the front-end automatically names it like that
-            await database.delete_submission(id=id)
+        await database.delete_submission(id=id)
 
 class SubmissionData:
-    __slots__ = ["date", "town", "country", "source", "location", "service", "image", "preview", "mode"]
+    __slots__ = ["date", "town", "country", "source", "location", "service", "image", "preview", "mode", "output_message_id"]
 
-    def __init__(self, date, town, country, source, location, service, image, preview, mode):
+    def __init__(self, date, town, country, source, location, service, image, preview, mode, output_message_id):
         self.date = date
         self.town = town
         self.country = country
@@ -99,3 +106,4 @@ class SubmissionData:
         self.image = image
         self.preview = preview
         self.mode = mode
+        self.output_message_id = output_message_id

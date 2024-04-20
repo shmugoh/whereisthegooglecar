@@ -133,6 +133,7 @@ export const formRouter = createTRPCRouter({
         location: z.string().url().optional(),
         service: z.string().optional(),
         cf_turnstile_token: z.string(),
+        id: z.string(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -153,6 +154,7 @@ export const formRouter = createTRPCRouter({
         location: input.location,
         service: input.service,
         type: "edit",
+        id: input.id,
       });
 
       // submit webhook
