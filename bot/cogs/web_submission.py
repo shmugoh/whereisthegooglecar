@@ -103,10 +103,17 @@ class WebSubmission(commands.Cog, name="web_submission"):
       
     # App Commands
     ## Approve Submission  
-    async def approve_submission_ctx(self, interaction: discord.Interaction, message: discord.Message) -> None:    
+    async def approve_submission_ctx(self, interaction: discord.Interaction, message: discord.Message) -> None:   
+      # create embed
+      embed = discord.Embed(
+        title=f"Web Submission Submission - Approval",
+        color = discord.Color.red()
+      )
+    
       # checks if message's metadata matches web_submission ids
       if (message.author.id != submission_webhook_id and message.channel.id != submission_channel_id):
-        await interaction.response.send_message("cannot process message")
+        embed.description = "Cannot process submission: Wrong Channel/User."
+        await interaction.response.send_message(embed=embed.description, ephemeral=True)
         return
         
       # grab database (as the modal's class will not have access to self.bot)
@@ -123,12 +130,15 @@ class WebSubmission(commands.Cog, name="web_submission"):
         submission_data = await bot_database.get_submission(id=message.id)
         channel_data = await bot_database.get_channels()
         submission_output_channel_id = submission_data['output_channel_id']        
+        
         ## see if channel is in database
         try:
           channel_index = [channel['id'] for channel in channel_data].index(submission_output_channel_id)
         except ValueError:
-          await interaction.response.send_message(f"cannot upload to channel <#{submission_channel_id}> - not in database")
+          embed.description = f"Cannot upload to channel <#{submission_channel_id}>: Not in Database"
+          await interaction.response.send_message(embed=embed, ephemeral=True)
           return
+          
         ## grab channel type
         submission_output_channel_type = channel_data[channel_index]['type']
         if submission_output_channel_type == 'TextChannel':
@@ -179,14 +189,13 @@ class WebSubmission(commands.Cog, name="web_submission"):
             ## create message notification content
             submission_notify_message = (
                 f'Contributor <@{message.author.id}> has approved an edit that changes your spotting submission. Here are the details of the changes:\n'
-                '```\n'
                 f'{spotting_message}\n'
-                '```\n'
                 'If you do not agree with these changes, feel free to edit your original message to reverse the edit.'
             )
             
             ## create thread (if channel type is textchannel)
             if submission_output_channel_type == "TextChannel":
+              output_message.thr
               # TODO: check if a thread already exists
               submission_notify_thread = await output_message.create_thread(name=f"{self.date.value} in {self.town.value}")
               await submission_notify_thread.send(submission_notify_message)
@@ -195,8 +204,10 @@ class WebSubmission(commands.Cog, name="web_submission"):
               await output_message.reply(submission_notify_message)
           
           # pos-handling
+          embed.description = f"Changes have been approved by <@{message.author.id}>. Locking thread..."
+          embed.color = discord.Color.green()
           thread = message.channel.get_thread(message.id)
-          await thread.send("changes have been approved. locking...")
+          await thread.send(embed=embed)
           await thread.edit(locked=True)
           await bot_submission.delete_submission(id=message.id, database=bot_database, s3=bot_s3)
       
@@ -205,22 +216,33 @@ class WebSubmission(commands.Cog, name="web_submission"):
     
     ## Delete Submission
     async def delete_submission_ctx(self, interaction: discord.Interaction, message: discord.Message) -> None:
+      # create embed
+      embed = discord.Embed(
+        title=f"Web Submission Submission - Remove",
+        color = discord.Color.red()
+      )
+      
       # checks if message's metadata matches web_submission ids
       if message.author.id != submission_webhook_id and message.channel.id != submission_channel_id:
-        await interaction.response.send_message("cannot delete message", ephemeral=True)
+        embed.description = "Cannot remove submission: Wrong Channel/User."
+        await interaction.response.send_message(embed=embed, ephemeral=True)
         return
         
       submission_data = await self.bot.database.get_submission(id=message.id)
       if submission_data == None:
-        await interaction.response.send_message("not a submission. not deleting")
+        embed.description = "Cannot remove submission: Invalid Submission."
+        await interaction.response.send_message(embed=embed, ephemeral=True)
         return
       
       # listener will be in charge of handling the rest
       try:
         await message.delete()
-        await interaction.response.send_message("deleted message")
+        embed.description = "Deleted Submission"
+        embed.color = discord.Color.green()
+        await interaction.response.send_message(embed=embed, ephemeral=True)
       except Exception as e:
-        await interaction.response.send_message("cannot delete message")
+        embed.description = f"Cannot remove submission: {e}"
+        await interaction.response.send_message(embed=embed, ephemeral=True)
         
     # Slash Commands
     @commands.hybrid_command(
@@ -249,60 +271,73 @@ class WebSubmission(commands.Cog, name="web_submission"):
       channel: discord.TextChannel = None, 
       thread: discord.Thread = None
       ) -> None:
+      # create embed
+      embed = discord.Embed(
+        title=f"Web Submission Submission - Edit",
+        color = discord.Color.red()
+      )
+      
       # checks if message's metadata matches web_submission ids
       if (context.channel.parent_id != submission_channel_id) and (context.channel.type != "public_thread" or "private_thread"):
-        await context.send("pls speak within thread")
+        embed.description = "Wrong Channel Type. Try again by running this command within the submission's thread."
+        await context.send(embed=embed, ephemeral=True)
         return
     
       # grab from database for default values
       id = context.channel.id
       submission_data = await self.bot.database.get_submission(id=id)
 
-      # checks if channel and thread are not overlapping
-      if channel is None and thread is None and submission_data['output_channel_id'] is None:
-        await context.send("No channel or thread provided. Please provide one.")
-        return
-      # if both channel and thread are provided
-      if channel and thread and submission_data['output_channel_id'] is None:
-        await context.send("No channel or thread provided. Please provide one.")
+      # checks if channel and thread are not provided
+      # ...or if they're both provided
+      # as long as output channel id hasn't been set within the db
+      if (channel is None and thread is None and submission_data['output_channel_id'] is None) or (channel and thread and submission_data['output_channel_id'] is None):
+        embed.description = "Target Channel/Thread hasn't been set yet to this submission yet. Please set one and try again."
+        await context.send(embed=embed, ephemeral=True)
         return
       
-      # sets the target to the channel or thread
-      if channel is not None and submission_data['output_channel_id'] is None:
-        target = channel.id
-      if thread is not None and submission_data['output_channel_id'] is None:
-        target = thread.id
-            
-      if date == None:
-        date = submission_data['date']
-      else:
-        # convert from string to datetime
-        date = date_utils.convert_date(date)
-      if town == None:
-        town = submission_data['town']
-      if country == None:
-        country = submission_data['country']
-      if source == None:
-        source = submission_data['sourceUrl']
-      if location == None: 
-        location = submission_data['locationUrl']
-      if service == None:
-        service = submission_data['company']
-      if (channel is None or thread is None) and (submission_data == 'new'):
-        target = submission_data['output_channel_id']
+      ## set parameters && defaults
+      try:
+        # sets the target to the channel or thread
+        if channel is not None and submission_data['output_channel_id'] is None:
+          target = channel.id
+        if thread is not None and submission_data['output_channel_id'] is None:
+          target = thread.id
+              
+        if date == None:
+          date = submission_data['date']
+        else:
+          # convert from string to datetime
+          date = date_utils.convert_date(date)
+        if town == None:
+          town = submission_data['town']
+        if country == None:
+          country = submission_data['country']
+        if source == None:
+          source = submission_data['sourceUrl']
+        if location == None: 
+          location = submission_data['locationUrl']
+        if service == None:
+          service = submission_data['company']
+        if (channel is None or thread is None) and (submission_data == 'new'):
+          target = submission_data['output_channel_id']
+        
+        # submit new preview
+        preview_message_content = self.submission.generate_embed(date=date, town=town, country=country, source=source, location=location, service=service, image_url=submission_data['imageUrl'])
+        
+        # edit to database
+        if submission_data['mode'] == 'new':
+          # [new]: parameters + output channel id & output message id (preview)
+          await self.bot.database.edit_submission(id=id, date=date, town=town, country=country, sourceUrl=source, locationUrl=location, company=service, output_channel_id=target, output_message_id=preview_message_response.id)
+        if submission_data['mode'] == 'edit':
+          # [edit]: parameters (output channel id and output message id is OG Message)
+          await self.bot.database.edit_submission(id=id, date=date, town=town, country=country, sourceUrl=source, locationUrl=location, company=service)
+      except Exception as e:
+        embed.description = f"Could not edit submission: {e}"
+        await context.send(embed=embed, ephemeral=True)
+        return
       
-      # submit new preview
-      preview_message_content = self.submission.generate_embed(date=date, town=town, country=country, source=source, location=location, service=service, image_url=submission_data['imageUrl'])
+      # succeed
       preview_message_response = await context.send(preview_message_content)
-      
-      # edit to database
-      if submission_data['mode'] == 'new':
-        # [new]: parameters + output channel id & output message id (preview)
-        await self.bot.database.edit_submission(id=id, date=date, town=town, country=country, sourceUrl=source, locationUrl=location, company=service, output_channel_id=target, output_message_id=preview_message_response.id)
-      if submission_data['mode'] == 'edit':
-        # [edit]: parameters (output channel id and output message id is OG Message)
-        await self.bot.database.edit_submission(id=id, date=date, town=town, country=country, sourceUrl=source, locationUrl=location, company=service)
-      
       return
 #
 async def setup(bot) -> None:
