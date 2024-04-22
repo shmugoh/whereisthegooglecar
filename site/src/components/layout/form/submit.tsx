@@ -27,7 +27,7 @@ import {
 import { format } from "date-fns";
 import { formSchema } from "~/utils/formSchema";
 
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
 import { IoCloudUploadOutline } from "react-icons/io5";
 
 import { cn } from "~/lib/utils";
@@ -36,6 +36,7 @@ import { TurnstileWidget } from "~/components/turnstile-captcha";
 import { api } from "~/utils/api";
 import { computeSHA256 } from "~/utils/sha256";
 import { env } from "~/env";
+import SuccessPage from "./success";
 
 export default function SubmitForm() {
   // POST
@@ -47,9 +48,21 @@ export default function SubmitForm() {
   const [imageFile, setImageFile] = useState<File | undefined>();
   const inputElement = useRef<HTMLInputElement>(null);
 
+  // loading & error states
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loadingMessage, setLoadingMesasge] = useState("Processing Form...");
+
+  const [isError, setIsError] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const [isSuccess, setIsSuccess] = useState<boolean>(false);
+
   // on submitting form
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (imageFile) {
+      // disable button
+      setIsLoading(true);
+
       // grab values
       const {
         date,
@@ -62,6 +75,7 @@ export default function SubmitForm() {
       } = values;
 
       // get signed url
+      setLoadingMesasge("Uploading Image...");
       const imageChecksum = await computeSHA256(imageFile);
       const signedURLResult = await signedURLMutation.mutateAsync({
         fileSize: imageFile.size,
@@ -84,7 +98,8 @@ export default function SubmitForm() {
         const imageUrl = `${env.NEXT_PUBLIC_CDN_URL}/${signedURLResult.key}`;
 
         // submit webhook
-        submitMutation.mutate({
+        setLoadingMesasge("Submitting Form...");
+        const response = await submitMutation.mutateAsync({
           date: date,
           country: country,
           town: town,
@@ -94,6 +109,11 @@ export default function SubmitForm() {
           image: imageUrl,
           cf_turnstile_token: cf_turnstile_token,
         });
+
+        // set success page
+        if (!response.failure) {
+          setIsSuccess(true);
+        }
       }
     }
   }
@@ -132,6 +152,15 @@ export default function SubmitForm() {
   //     form.setValue("cf_turnstile_token", captchaToken);
   //   }
   // }, [captchaToken]);
+
+  if (isSuccess) {
+    return (
+      <div>
+        <TopText title="Submission Form" />
+        <SuccessPage />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -355,7 +384,14 @@ export default function SubmitForm() {
               </FormItem>
             )}
           />
-          <Button type="submit">Submit</Button>
+          {isLoading === false ? (
+            <Button type="submit">Submit</Button>
+          ) : (
+            <Button disabled>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {loadingMessage}
+            </Button>
+          )}
         </form>
       </Form>
     </div>
