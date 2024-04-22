@@ -1,5 +1,5 @@
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import { z } from "zod";
+import { literal, z } from "zod";
 import { env } from "~/env";
 import { generateEmbed } from "~/utils/embed_webhook";
 import { formSchema } from "~/utils/formSchema";
@@ -54,13 +54,21 @@ export const formRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       // verify cloudflare turnstile
-      const turnstile_response = await validate_turnstile(
-        input.cf_turnstile_token,
-      );
-      if (!turnstile_response) {
+      try {
+        const turnstile_response = await validate_turnstile(
+          input.cf_turnstile_token,
+        );
+        if (!turnstile_response) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Invalid Turnstile Token",
+          });
+        }
+      } catch (e) {
         throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Invalid Turnstile Token",
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "An internal error occurred while verifying Turnstile Captcha",
         });
       }
 
@@ -74,13 +82,15 @@ export const formRouter = createTRPCRouter({
         throw new TRPCError({
           code: "PAYLOAD_TOO_LARGE",
           message:
-            "File size too large. Please compress your image and try again.",
+            "File size is too large. Please compress your image down to 10MB and try again.",
         });
       }
 
       try {
+        // generate image filename for s3
         const imageFileName = `${generateFileName(8)}.${input.fileType.split("/")[1]}`;
 
+        // generate signed url for aws
         const putObjectCommand = new PutObjectCommand({
           Bucket: env.AWS_BUCKET_NAME,
           Key: `submissions/${imageFileName}`,
@@ -88,12 +98,15 @@ export const formRouter = createTRPCRouter({
           ContentLength: input.fileSize,
           ChecksumSHA256: input.checksum,
         });
-
         const signedURL = await getSignedUrl(s3, putObjectCommand, {
           expiresIn: 60,
         });
 
-        return { url: signedURL, key: `submissions/${imageFileName}` };
+        // return data
+        return {
+          code: 200,
+          message: { url: signedURL, key: `submissions/${imageFileName}` },
+        };
       } catch (e) {
         // return http error if something went wrong
         throw new TRPCError({
@@ -160,7 +173,7 @@ export const formRouter = createTRPCRouter({
         country: z.string(),
         town: z.string(),
         source: z.string(),
-        location: z.string().url().optional(),
+        location: z.string().url().optional().or(literal("")),
         service: z.string().optional(),
         cf_turnstile_token: z.string(),
         id: z.string(),
@@ -208,7 +221,7 @@ export const formRouter = createTRPCRouter({
         // return http error if something went wrong
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Something went wrong while uploading your image. Please try again.`,
+          message: `Something went wrong while submiting your form. Please try again.`,
         });
       }
     }),

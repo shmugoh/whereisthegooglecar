@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+import { useToast } from "~/components/ui/use-toast";
 
 import {
   Dialog,
@@ -38,6 +40,9 @@ import { CalendarIcon } from "lucide-react";
 
 import { TurnstileWidget } from "~/components/turnstile-captcha";
 import { api } from "~/utils/api";
+import { SubmitButton } from "./button";
+import { ErrorMessage } from "./error";
+import { SUCCESS_DESCRIPTION, SUCCESS_TITLE } from "./success";
 
 type EditDialogProps = {
   size: "sm" | "lg";
@@ -51,8 +56,17 @@ type EditDialogProps = {
 };
 
 export default function EditDialog(props: EditDialogProps) {
+  const { toast } = useToast();
+
   const editMutation = api.form.editForm.useMutation({});
-  const [captchaToken, setCaptchaToken] = useState<string>();
+
+  // loading & error states
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loadingMessage, setLoadingMesasge] = useState("Processing Form...");
+  const [errorMessage, setErrorMessage] = useState<string | null>("");
+  const [isSuccess, setIsSuccess] = useState<boolean>(false);
+
+  const [open, setOpen] = useState(false);
 
   // form default settings
   const form = useForm<z.infer<typeof formSchema>>({
@@ -68,7 +82,9 @@ export default function EditDialog(props: EditDialogProps) {
   });
 
   // on submitting
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+
     const {
       date,
       country,
@@ -79,22 +95,35 @@ export default function EditDialog(props: EditDialogProps) {
       cf_turnstile_token,
     } = values;
 
-    editMutation.mutate({
-      date: date,
-      country: country,
-      town: town,
-      source: source,
-      location: location,
-      service: service,
-      cf_turnstile_token: cf_turnstile_token,
-      id: props.id,
-    });
+    try {
+      // make call
+      const webhook_response = await editMutation.mutateAsync({
+        date: date,
+        country: country,
+        town: town,
+        source: source,
+        location: location,
+        service: service,
+        cf_turnstile_token: cf_turnstile_token,
+        id: props.id,
+      });
 
-    console.log(values);
+      // set success page
+      if (webhook_response.code == 200 || 201 || 204) {
+        setIsSuccess(true);
+        setOpen(false);
+        setLoadingMesasge("Submit");
+        toast({ title: SUCCESS_TITLE, description: SUCCESS_DESCRIPTION });
+      }
+    } catch (e) {
+      setIsLoading(false);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      setErrorMessage(e.message as string);
+    }
   }
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <a className="text-lg font-medium text-primary underline underline-offset-4 hover:cursor-pointer hover:text-primary/80">
           Edit
@@ -259,7 +288,11 @@ export default function EditDialog(props: EditDialogProps) {
             />
 
             <DialogFooter>
-              <Button type="submit">Submit</Button>
+              <SubmitButton
+                isLoading={isLoading}
+                loadingMessage={loadingMessage}
+              />
+              <ErrorMessage errorMessage={errorMessage} />
             </DialogFooter>
           </form>
         </Form>

@@ -23,6 +23,7 @@ export const fontSans = FontSans({
 });
 
 import { NextSeo } from "next-seo";
+import { Toaster } from "~/components/ui/toaster";
 
 const TITLE = "Where Is The Google Car";
 const DESCRIPTION =
@@ -89,6 +90,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
             </div>
             <Foot />
             <SpeedInsights />
+            <Toaster />
           </div>{" "}
         </ThemeProvider>
       </PlausibleProvider>

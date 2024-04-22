@@ -1,9 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { TopText } from "../entry/topText";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
 import { AspectRatio } from "~/components/ui/aspect-ratio";
 import { Calendar } from "~/components/ui/calendar";
 import {
@@ -12,7 +11,7 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 
-import { ZodString, type z } from "zod";
+import { type z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import {
@@ -27,7 +26,7 @@ import {
 import { format } from "date-fns";
 import { formSchema } from "~/utils/formSchema";
 
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { IoCloudUploadOutline } from "react-icons/io5";
 
 import { cn } from "~/lib/utils";
@@ -37,6 +36,8 @@ import { api } from "~/utils/api";
 import { computeSHA256 } from "~/utils/sha256";
 import { env } from "~/env";
 import SuccessPage from "./success";
+import { SubmitButton } from "./button";
+import { ErrorMessage } from "./error";
 
 export default function SubmitForm() {
   // POST
@@ -52,15 +53,14 @@ export default function SubmitForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loadingMessage, setLoadingMesasge] = useState("Processing Form...");
 
-  const [isError, setIsError] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState("");
-
+  const [errorMessage, setErrorMessage] = useState<string | null>("");
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
 
   // on submitting form
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (imageFile) {
-      // disable button
+      // disable button and remove error message
+      setErrorMessage(null);
       setIsLoading(true);
 
       // grab values
@@ -77,43 +77,51 @@ export default function SubmitForm() {
       // get signed url
       setLoadingMesasge("Uploading Image...");
       const imageChecksum = await computeSHA256(imageFile);
-      const signedURLResult = await signedURLMutation.mutateAsync({
-        fileSize: imageFile.size,
-        fileType: imageFile.type,
-        checksum: imageChecksum,
-        cf_turnstile_token: cf_turnstile_token,
-      });
 
-      if (signedURLResult.url && signedURLResult.key) {
-        // upload image to s3
-        await fetch(signedURLResult.url, {
-          method: "PUT",
-          headers: {
-            "Content-Type": imageFile.type,
-          },
-          body: imageFile,
-        });
-
-        // generate image url
-        const imageUrl = `${env.NEXT_PUBLIC_CDN_URL}/${signedURLResult.key}`;
-
-        // submit webhook
-        setLoadingMesasge("Submitting Form...");
-        const response = await submitMutation.mutateAsync({
-          date: date,
-          country: country,
-          town: town,
-          source: source,
-          location: location,
-          service: service,
-          image: imageUrl,
+      try {
+        const signedURLResponse = await signedURLMutation.mutateAsync({
+          fileSize: imageFile.size,
+          fileType: imageFile.type,
+          checksum: imageChecksum,
           cf_turnstile_token: cf_turnstile_token,
         });
 
-        // set success page
-        if (!response.failure) {
-          setIsSuccess(true);
+        // if aws signs url
+        if (signedURLResponse.message.url && signedURLResponse.message.key) {
+          // upload image to s3
+          await fetch(signedURLResponse.message.url, {
+            method: "PUT",
+            headers: {
+              "Content-Type": imageFile.type,
+            },
+            body: imageFile,
+          });
+
+          // generate image url
+          const imageUrl = `${env.NEXT_PUBLIC_CDN_URL}/${signedURLResponse.message.key}`;
+
+          // submit webhook
+          setLoadingMesasge("Submitting Form...");
+          const webhook_response = await submitMutation.mutateAsync({
+            date: date,
+            country: country,
+            town: town,
+            source: source,
+            location: location,
+            service: service,
+            image: imageUrl,
+            cf_turnstile_token: cf_turnstile_token,
+          });
+
+          // set success page
+          if (webhook_response.code == 200 || 201 || 204) {
+            setIsSuccess(true);
+          }
         }
+      } catch (e) {
+        setIsLoading(false);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        setErrorMessage(e.message as string);
       }
     }
   }
@@ -165,6 +173,7 @@ export default function SubmitForm() {
   return (
     <div className="space-y-4">
       <TopText title="Submission Form" />
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormLabel>
@@ -384,16 +393,14 @@ export default function SubmitForm() {
               </FormItem>
             )}
           />
-          {isLoading === false ? (
-            <Button type="submit">Submit</Button>
-          ) : (
-            <Button disabled>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {loadingMessage}
-            </Button>
-          )}
+
+          <SubmitButton isLoading={isLoading} loadingMessage={loadingMessage} />
+
+          <ErrorMessage errorMessage={errorMessage} />
         </form>
       </Form>
+
+      {/* error message in case backend returns failure */}
     </div>
   );
 }
