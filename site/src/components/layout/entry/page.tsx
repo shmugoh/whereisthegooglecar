@@ -48,7 +48,7 @@ export const PageComponent = (props: pageProps) => {
             className="w-full text-right md:text-left"
           />
         </div>
-        <div className="flex w-full justify-between gap-4  md:w-fit md:flex-row md:justify-normal">
+        <div className="flex w-full justify-end gap-4 md:w-fit md:flex-row md:justify-normal">
           <SourceButton url={props.data.sourceUrl} size="lg" />
 
           {props.data.locationUrl && (

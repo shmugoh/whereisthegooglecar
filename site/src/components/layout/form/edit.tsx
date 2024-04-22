@@ -36,7 +36,7 @@ import { formSchema } from "../../../utils/formSchema";
 
 import { cn } from "~/lib/utils";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, PencilIcon, PencilLineIcon } from "lucide-react";
 
 import { TurnstileWidget } from "~/components/turnstile-captcha";
 import { api } from "~/utils/api";
@@ -125,8 +125,8 @@ export default function EditDialog(props: EditDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <a className="text-lg font-medium text-primary underline underline-offset-4 hover:cursor-pointer hover:text-primary/80">
-          Edit
+        <a className="text-color-red hover:cursor-pointer hover:text-primary/80">
+          <PencilLineIcon className="h-full" />
         </a>
       </DialogTrigger>
 
