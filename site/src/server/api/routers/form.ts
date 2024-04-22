@@ -7,6 +7,7 @@ import { formSchema } from "~/utils/formSchema";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { generateFileName } from "~/utils/sha256";
+import { TRPCError } from "@trpc/server";
 
 // constants
 const DiscordWebHookURL = env.DISCORD_WEBHOOK_URL;
@@ -57,31 +58,49 @@ export const formRouter = createTRPCRouter({
         input.cf_turnstile_token,
       );
       if (!turnstile_response) {
-        return { failure: "No Turnstile Token" };
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Invalid Turnstile Token",
+        });
       }
 
       if (!allowedFileTypes.includes(input.fileType)) {
-        return { failure: "File Type not allowed" };
+        throw new TRPCError({
+          code: "METHOD_NOT_SUPPORTED",
+          message: "File Type not allowed.",
+        });
       }
       if (input.fileSize > maxFileSize) {
-        return { failure: "File Size too large" };
+        throw new TRPCError({
+          code: "PAYLOAD_TOO_LARGE",
+          message:
+            "File size too large. Please compress your image and try again.",
+        });
       }
 
-      const imageFileName = `${generateFileName(8)}.${input.fileType.split("/")[1]}`;
+      try {
+        const imageFileName = `${generateFileName(8)}.${input.fileType.split("/")[1]}`;
 
-      const putObjectCommand = new PutObjectCommand({
-        Bucket: env.AWS_BUCKET_NAME,
-        Key: `submissions/${imageFileName}`,
-        ContentType: input.fileType,
-        ContentLength: input.fileSize,
-        ChecksumSHA256: input.checksum,
-      });
+        const putObjectCommand = new PutObjectCommand({
+          Bucket: env.AWS_BUCKET_NAME,
+          Key: `submissions/${imageFileName}`,
+          ContentType: input.fileType,
+          ContentLength: input.fileSize,
+          ChecksumSHA256: input.checksum,
+        });
 
-      const signedURL = await getSignedUrl(s3, putObjectCommand, {
-        expiresIn: 60,
-      });
+        const signedURL = await getSignedUrl(s3, putObjectCommand, {
+          expiresIn: 60,
+        });
 
-      return { url: signedURL, key: `submissions/${imageFileName}` };
+        return { url: signedURL, key: `submissions/${imageFileName}` };
+      } catch (e) {
+        // return http error if something went wrong
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Something went wrong while uploading your image. Please try again.`,
+        });
+      }
     }),
 
   submitForm: publicProcedure
@@ -92,35 +111,46 @@ export const formRouter = createTRPCRouter({
         input.cf_turnstile_token,
       );
       if (!turnstile_response) {
-        return { failure: "No Turnstile Token" };
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Invalid Turnstile Token",
+        });
       }
 
-      // create webhook embed
-      const embed = generateEmbed({
-        date: input.date,
-        country: input.country,
-        town: input.town,
-        source: input.source,
-        location: input.location,
-        service: input.service,
-        imageUrl: input.image,
-        type: "new",
-      });
+      try {
+        // create webhook embed
+        const embed = generateEmbed({
+          date: input.date,
+          country: input.country,
+          town: input.town,
+          source: input.source,
+          location: input.location,
+          service: input.service,
+          imageUrl: input.image,
+          type: "new",
+        });
 
-      // submit webhook
-      const webhookResponse = await fetch(DiscordWebHookURL, {
-        method: "post",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(embed),
-      });
+        // submit webhook
+        const webhookResponse = await fetch(DiscordWebHookURL, {
+          method: "post",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(embed),
+        });
 
-      console.log(webhookResponse.status, webhookResponse.statusText);
-      return {
-        status: webhookResponse.status,
-        message: webhookResponse.statusText,
-      };
+        console.log(webhookResponse.status, webhookResponse.statusText);
+        return {
+          code: webhookResponse.status,
+          message: webhookResponse.statusText,
+        };
+      } catch (e) {
+        // return http error if something went wrong
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Something went wrong while uploading your image. Please try again.`,
+        });
+      }
     }),
 
   editForm: publicProcedure
@@ -142,34 +172,44 @@ export const formRouter = createTRPCRouter({
         input.cf_turnstile_token,
       );
       if (!turnstile_response) {
-        return { failure: "No Turnstile Token" };
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Invalid Turnstile Token",
+        });
       }
 
-      // create webhook embed
-      const embed = generateEmbed({
-        date: input.date,
-        country: input.country,
-        town: input.town,
-        source: input.source,
-        location: input.location,
-        service: input.service,
-        type: "edit",
-        id: input.id,
-      });
+      try {
+        // create webhook embed
+        const embed = generateEmbed({
+          date: input.date,
+          country: input.country,
+          town: input.town,
+          source: input.source,
+          location: input.location,
+          service: input.service,
+          type: "edit",
+          id: input.id,
+        });
 
-      // submit webhook
-      const webhookResponse = await fetch(DiscordWebHookURL, {
-        method: "post",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(embed),
-      });
+        // submit webhook
+        const webhookResponse = await fetch(DiscordWebHookURL, {
+          method: "post",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(embed),
+        });
 
-      console.log(webhookResponse.status, webhookResponse.statusText);
-      return {
-        status: webhookResponse.status,
-        message: webhookResponse.statusText,
-      };
+        return {
+          code: webhookResponse.status,
+          message: webhookResponse.statusText,
+        };
+      } catch {
+        // return http error if something went wrong
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Something went wrong while uploading your image. Please try again.`,
+        });
+      }
     }),
 });
