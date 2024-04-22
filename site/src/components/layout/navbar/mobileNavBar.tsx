@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { Search } from "~/components/layout/search";
 
 import { Donate } from "react-kofi-overlay";
 import { MdOutlineStreetview } from "react-icons/md";
@@ -22,7 +23,9 @@ type MobileNavBarProps = {
 };
 export default function MobileNavBar(props: MobileNavBarProps) {
   return (
-    <div className="flex w-full justify-end md:hidden">
+    <div className="flex w-full justify-end gap-4 md:hidden">
+      <Search />
+
       <Sheet>
         <SheetTrigger asChild>
           <Button size="icon" variant="ghost">

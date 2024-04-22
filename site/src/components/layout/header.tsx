@@ -21,7 +21,7 @@ export const Header = () => {
         <meta name="theme-color" content={theme === "dark" ? "#000" : "#fff"} />
       </Head>
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 max-w-screen-2xl items-center md:gap-4">
+        <div className="container flex h-14 max-w-screen-2xl items-center gap-4">
           {/* Title and Logo */}
           <Link href="/" className="flex items-center gap-2">
             <MdOutlineStreetview size={42} className="flex" />

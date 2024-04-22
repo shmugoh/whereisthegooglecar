@@ -75,8 +75,14 @@ export const Search = () => {
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="w-9 px-0">
+        <Button
+          variant="ghost"
+          className="h-full w-full gap-2 border bg-primary-foreground lg:flex lg:w-9 lg:border-0 lg:bg-inherit lg:px-0"
+        >
           <SearchIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all" />
+          <span className="inline-flex w-full text-muted-foreground lg:hidden">
+            Search...
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
