@@ -30,7 +30,7 @@ type DesktopNavBarProps = {
 };
 export default function DesktopNavBar(props: DesktopNavBarProps) {
   return (
-    <div className="hidden w-full md:relative md:flex">
+    <div className="hidden w-full lg:relative lg:flex">
       {/* Menu Buttons */}
       <NavigationMenu>
         <NavigationMenuList>

@@ -23,7 +23,7 @@ type MobileNavBarProps = {
 };
 export default function MobileNavBar(props: MobileNavBarProps) {
   return (
-    <div className="flex w-full justify-end gap-4 md:hidden">
+    <div className="flex w-full justify-end gap-4 lg:hidden">
       <Search />
 
       <Sheet>
