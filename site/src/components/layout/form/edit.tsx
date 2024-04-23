@@ -80,6 +80,7 @@ export default function EditDialog(props: EditDialogProps) {
       location: props.location,
       date: props.date,
       image: "https://whereisthegooglecar.com",
+      id: props.id,
     },
   });
 
@@ -95,6 +96,8 @@ export default function EditDialog(props: EditDialogProps) {
       location,
       service,
       cf_turnstile_token,
+      id,
+      image,
     } = values;
 
     try {
@@ -107,7 +110,8 @@ export default function EditDialog(props: EditDialogProps) {
         location: location,
         service: service,
         cf_turnstile_token: cf_turnstile_token,
-        id: props.id,
+        id: id,
+        image: image,
       });
 
       // set success page

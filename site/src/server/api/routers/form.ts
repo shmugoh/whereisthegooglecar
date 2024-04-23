@@ -167,18 +167,7 @@ export const formRouter = createTRPCRouter({
     }),
 
   editForm: publicProcedure
-    .input(
-      z.object({
-        date: z.date(),
-        country: z.string(),
-        town: z.string(),
-        source: z.string(),
-        location: z.string().url().optional().or(literal("")),
-        service: z.string().optional(),
-        cf_turnstile_token: z.string(),
-        id: z.string(),
-      }),
-    )
+    .input(formSchema)
     .mutation(async ({ input, ctx }) => {
       // verify cloudflare turnstile
       const turnstile_response = await validate_turnstile(

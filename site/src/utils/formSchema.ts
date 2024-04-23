@@ -10,7 +10,12 @@ export const formSchema = z.object({
     .min(4, { message: "Source must be at least 4 characters" }),
   location: z.string().url().or(z.literal("")).optional(),
   date: z.date(),
-  image: z.string().url(),
-  service: z.string().optional(),
+  service: z.string().default("Others"),
   cf_turnstile_token: z.string(),
+
+  // new only
+  image: z.string().url(),
+
+  // edit only
+  id: z.string(),
 });

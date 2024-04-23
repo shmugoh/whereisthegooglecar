@@ -41,6 +41,12 @@ import { ErrorMessage } from "./error";
 import { CustomCaption } from "../calendar";
 
 export default function SubmitForm() {
+  // form configuration
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { id: "" },
+  });
+
   // POST
   const submitMutation = api.form.submitForm.useMutation({});
   const signedURLMutation = api.form.presign_s3.useMutation({});
@@ -73,6 +79,7 @@ export default function SubmitForm() {
         location,
         service,
         cf_turnstile_token,
+        id,
       } = values;
 
       // get signed url
@@ -112,6 +119,7 @@ export default function SubmitForm() {
             service: service,
             image: imageUrl,
             cf_turnstile_token: cf_turnstile_token,
+            id: id,
           });
 
           // set success page
@@ -149,11 +157,6 @@ export default function SubmitForm() {
       inputElement.current.click();
     }
   };
-
-  // form configuration
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-  });
 
   // add captcha token to form
   // useEffect(() => {

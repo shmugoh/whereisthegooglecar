@@ -345,10 +345,10 @@ class WebSubmission(commands.Cog, name="web_submission"):
         # edit to database
         if submission_data['mode'] == 'new':
           # [new]: parameters + output channel id & output message id (preview)
-          await self.bot.database.edit_submission(id=id, date=date, town=town, country=country, sourceUrl=source, locationUrl=location, company=service, output_channel_id=target, output_message_id=preview_message_response.id)
+          await self.bot.database.edit_submission(id=id, date=date, town=town, country=country, sourceUrl=source, locationUrl=location, company=service.lower(), output_channel_id=target, output_message_id=preview_message_response.id)
         if submission_data['mode'] == 'edit':
           # [edit]: parameters (output channel id and output message id is OG Message)
-          await self.bot.database.edit_submission(id=id, date=date, town=town, country=country, sourceUrl=source, locationUrl=location, company=service)
+          await self.bot.database.edit_submission(id=id, date=date, town=town, country=country, sourceUrl=source, locationUrl=location, company=service.lower())
       except Exception as e:
         embed.description = f"Could not edit submission: {e}"
         await context.send(embed=embed, ephemeral=True)
