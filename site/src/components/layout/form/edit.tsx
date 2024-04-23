@@ -200,7 +200,10 @@ export default function EditDialog(props: EditDialogProps) {
                 <FormItem>
                   <FormLabel>Town</FormLabel>
                   <FormControl>
-                    <Input placeholder="shadcn" {...field} />
+                    <Input
+                      placeholder={props.town ?? "San Jose, California, USA"}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -215,7 +218,10 @@ export default function EditDialog(props: EditDialogProps) {
                 <FormItem>
                   <FormLabel>Country</FormLabel>
                   <FormControl>
-                    <Input placeholder="shadcn" {...field} />
+                    <Input
+                      placeholder={props.country ?? "United States"}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -230,7 +236,7 @@ export default function EditDialog(props: EditDialogProps) {
                 <FormItem>
                   <FormLabel>Service</FormLabel>
                   <FormControl>
-                    <Input placeholder="shadcn" {...field} />
+                    <Input placeholder={props.service ?? "Google"} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -245,7 +251,13 @@ export default function EditDialog(props: EditDialogProps) {
                 <FormItem>
                   <FormLabel>Source</FormLabel>
                   <FormControl>
-                    <Input placeholder="shadcn" {...field} />
+                    <Input
+                      placeholder={
+                        props.source ??
+                        "https://twitter.com/aiaddict1/status/1758281981509640247"
+                      }
+                      {...field}
+                    />
                   </FormControl>
                   <FormDescription>
                     Source of where the sighting was found. Could be either a
@@ -265,7 +277,13 @@ export default function EditDialog(props: EditDialogProps) {
                 <FormItem>
                   <FormLabel>Location (Optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="shadcn" {...field} />
+                    <Input
+                      placeholder={
+                        props.location ??
+                        "https://maps.app.goo.gl/5D5CK4LcDdmH9Fmr8"
+                      }
+                      {...field}
+                    />
                   </FormControl>
                   <FormDescription>
                     Location of where the sighting was taken. Must be a website
