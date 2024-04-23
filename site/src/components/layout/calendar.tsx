@@ -98,19 +98,8 @@ export function DatePickerWithRange({
     </div>
   );
 }
-function CustomCaption(props: CaptionProps) {
-  // grab first date from the database
-  const firstDateRequest = api.grab.grabFirstDate.useQuery().data;
-  let firstDate: Date;
-  if (firstDateRequest?.date) {
-    firstDate = new Date(
-      firstDateRequest.date.getUTCFullYear(),
-      firstDateRequest.date.getUTCMonth(),
-    );
-  } else {
-    firstDate = new Date(2006, 0);
-  }
 
+export function CustomCaption(props: CaptionProps) {
   // handle navigation
   const { goToMonth, nextMonth, previousMonth } = useNavigation();
   const handlePreviousMonth = () => {
@@ -157,7 +146,7 @@ function CustomCaption(props: CaptionProps) {
         <PopoverDatePicker
           name={format(props.displayMonth, "Y")}
           values={eachYearOfInterval({
-            start: startOfYear(firstDate),
+            start: startOfYear(new Date(2006, 0)),
             end: endOfYear(new Date()),
           })
             .map((year) => ({

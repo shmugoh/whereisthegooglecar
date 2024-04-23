@@ -35,7 +35,7 @@ import {
 import { formSchema } from "../../../utils/formSchema";
 
 import { cn } from "~/lib/utils";
-import { format } from "date-fns";
+import { addDays, format } from "date-fns";
 import { CalendarIcon, PencilIcon, PencilLineIcon } from "lucide-react";
 
 import { TurnstileWidget } from "~/components/turnstile-captcha";
@@ -43,6 +43,7 @@ import { api } from "~/utils/api";
 import { SubmitButton } from "./button";
 import { ErrorMessage } from "./error";
 import { SUCCESS_DESCRIPTION, SUCCESS_TITLE } from "./success";
+import { CustomCaption } from "../calendar";
 
 type EditDialogProps = {
   size: "sm" | "lg";
@@ -131,7 +132,7 @@ export default function EditDialog(props: EditDialogProps) {
       </DialogTrigger>
 
       {/* Form */}
-      <DialogContent className="max-w-[425px] lg:max-w-[800px]">
+      <DialogContent className="max-w-[425px]	 lg:max-w-[800px]">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Header */}
@@ -151,7 +152,7 @@ export default function EditDialog(props: EditDialogProps) {
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Date</FormLabel>
-                  <Popover>
+                  <Popover open={open} modal={true}>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
@@ -179,6 +180,10 @@ export default function EditDialog(props: EditDialogProps) {
                           date > new Date() || date < new Date("1900-01-01")
                         }
                         initialFocus
+                        numberOfMonths={1}
+                        fromYear={2006}
+                        toDate={addDays(new Date(), 0)}
+                        components={{ Caption: CustomCaption }}
                       />
                     </PopoverContent>
                   </Popover>

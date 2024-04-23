@@ -23,7 +23,7 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { format } from "date-fns";
+import { addDays, format } from "date-fns";
 import { formSchema } from "~/utils/formSchema";
 
 import { CalendarIcon } from "lucide-react";
@@ -38,6 +38,7 @@ import { env } from "~/env";
 import SuccessPage from "./success";
 import { SubmitButton } from "./button";
 import { ErrorMessage } from "./error";
+import { CustomCaption } from "../calendar";
 
 export default function SubmitForm() {
   // POST
@@ -218,6 +219,9 @@ export default function SubmitForm() {
                         date > new Date() || date < new Date("1900-01-01")
                       }
                       initialFocus
+                      fromYear={2006}
+                      toDate={addDays(new Date(), 0)}
+                      components={{ Caption: CustomCaption }}
                     />
                   </PopoverContent>
                 </Popover>
