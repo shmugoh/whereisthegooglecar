@@ -187,9 +187,12 @@ class WebSubmission(commands.Cog, name="web_submission"):
           # edit submission handling
           elif submission_data['mode'] == 'edit':
             # edit to database
+            country_emoji = self.country.value
+            country_code = str(flag.dflagize(self.country.value)).replace(":", "")
+            service_input = str(submission_embed.service).lower()
             await bot_database.update_spotting(id=submission_embed.output_message_id, date=date_utils.convert_date(self.date.value), 
-                                              country=flag.dflagize(self.country.value), countryEmoji=self.country.value, town=self.town.value,
-                                              sourceUrl=self.sourceUrl.value, locationUrl=self.locationUrl.value, company=submission_embed.service)
+                                              country=country_code, countryEmoji=country_emoji, town=self.town.value,
+                                              sourceUrl=self.sourceUrl.value, locationUrl=self.locationUrl.value, company=service_input)
             
             # notify changes
             ## get message
