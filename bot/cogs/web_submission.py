@@ -211,6 +211,7 @@ class WebSubmission(commands.Cog, name="web_submission"):
           await thread.send(embed=embed)
           await thread.edit(locked=True)
           await bot_submission.delete_submission(id=message.id, database=bot_database, s3=bot_s3)
+          await interaction.response.defer()
       
       # submit modal
       await interaction.response.send_modal(ModalApproval())
@@ -297,17 +298,18 @@ class WebSubmission(commands.Cog, name="web_submission"):
         await context.send(embed=embed, ephemeral=True)
         return
       
-      # checks if channel/thread are NOT registered in the db
-      channel_in_db = False
-      for channel_data in channels_data:
-        channel_data_id = channel_data['id']
-        if (channel != None and channel_data_id == channel.id) or (thread != None and channel_data_id == thread.id):
-          channel_in_db = True
-          break
-      if channel_in_db is False:
-        embed.description = "Channel/Thread has not been registered in the database. Please use a registered channel and try again."
-        await context.send(embed=embed, ephemeral=True)
-        return
+      # checks if input channel/thread are NOT registered in the db
+      if (channel is not None or thread is not None) and submission_data['mode'] == "new":
+        channel_in_db = False
+        for channel_data in channels_data:
+          channel_data_id = channel_data['id']
+          if (channel != None and channel_data_id == channel.id) or (thread != None and channel_data_id == thread.id):
+            channel_in_db = True
+            break
+        if channel_in_db is False:
+          embed.description = "Channel/Thread has not been registered in the database. Please use a registered channel and try again."
+          await context.send(embed=embed, ephemeral=True)
+          return
       
       ## set parameters && defaults
       try:

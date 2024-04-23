@@ -26,7 +26,7 @@ class Submission:
             if location == "N/A": location = None
             
             service = embed.fields[5].value
-            if service == "N/A": service = None
+            if service == "N/A": service = ""
             
             # set optional variables to undefined
             ## output_message_id [edit]
