@@ -163,8 +163,11 @@ class WebSubmission(commands.Cog, name="web_submission"):
         country = ui.TextInput(label="Country - must be a Flag Emoji", required=True, default=submission_data['country'])
         sourceUrl = ui.TextInput(label="Source - must be either an URL or username", required=True, default=submission_data['sourceUrl'])
         locationUrl = ui.TextInput(label="Location - must be GMaps link - Optional", default=submission_data['locationUrl'], required=False)
-        
+
         async def on_submit(self, interaction: discord.Interaction) -> None:
+          # defer interaction
+          await interaction.response.defer()
+        
           # generate embed
           spotting_message = Submission.generate_embed(Submission, date=date_utils.convert_date(self.date.value), town=self.town.value, country=self.country.value, 
                                             source=self.sourceUrl.value, location=self.locationUrl.value, service=submission_data['company'])
@@ -217,7 +220,6 @@ class WebSubmission(commands.Cog, name="web_submission"):
           await thread.send(embed=embed)
           await thread.edit(locked=True)
           await bot_submission.delete_submission(id=message.id, database=bot_database, s3=bot_s3)
-          await interaction.response.defer()
       
       # submit modal
       await interaction.response.send_modal(ModalApproval())
@@ -226,7 +228,7 @@ class WebSubmission(commands.Cog, name="web_submission"):
     async def delete_submission_ctx(self, interaction: discord.Interaction, message: discord.Message) -> None:
       # create embed
       embed = discord.Embed(
-        title=f"Web Submission Submission - Remove",
+        title=f"Web Submission - Remove",
         color = discord.Color.red()
       )
       
@@ -281,7 +283,7 @@ class WebSubmission(commands.Cog, name="web_submission"):
       ) -> None:
       # create embed
       embed = discord.Embed(
-        title=f"Web Submission Submission - Edit",
+        title=f"Web Submission - Edit",
         color = discord.Color.red()
       )
       
