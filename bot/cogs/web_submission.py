@@ -106,7 +106,7 @@ class WebSubmission(commands.Cog, name="web_submission"):
     async def approve_submission_ctx(self, interaction: discord.Interaction, message: discord.Message) -> None:   
       # create embed
       embed = discord.Embed(
-        title=f"Web Submission Submission - Approval",
+        title=f"Web Submission - Approval",
         color = discord.Color.red()
       )
     
@@ -128,6 +128,12 @@ class WebSubmission(commands.Cog, name="web_submission"):
       if submission_embed.mode == "new" or "edit":
         # pre-handling grab set channel/thread to submit to
         submission_data = await bot_database.get_submission(id=message.id)
+        # checks if submission is in database
+        if submission_data == None:
+          embed.description = "Cannot process submission: Submission does not exist."
+          await interaction.response.send_message(embed=embed, ephemeral=True)
+          return
+        
         channel_data = await bot_database.get_channels()
         submission_output_channel_id = submission_data['output_channel_id']        
         

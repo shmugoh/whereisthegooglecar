@@ -79,6 +79,7 @@ export default function EditDialog(props: EditDialogProps) {
       source: props.source,
       location: props.location,
       date: props.date,
+      service: props.service,
       image: "https://whereisthegooglecar.com",
       id: props.id,
     },
