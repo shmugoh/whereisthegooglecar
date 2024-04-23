@@ -151,7 +151,7 @@ class WebSubmission(commands.Cog, name="web_submission"):
         return
 
       # build modal with data
-      class ModalApproval(discord.ui.Modal, title="New Submission - Final Changes"):
+      class ModalApproval(discord.ui.Modal, title=f"{submission_embed.mode.capitalize()} Submission - Final Changes"):
         date = ui.TextInput(label="Date - Format must be YYYY/MM/DD", required=True, default=date_utils.stringify_date(submission_data['date']))
         town = ui.TextInput(label="Town", required=True, default=submission_data['town'])
         country = ui.TextInput(label="Country - must be a Flag Emoji", required=True, default=submission_data['country'])
@@ -188,15 +188,13 @@ class WebSubmission(commands.Cog, name="web_submission"):
             
             ## create message notification content
             submission_notify_message = (
-                f'Contributor <@{message.author.id}> has approved an edit that changes your spotting submission. Here are the details of the changes:\n'
+                f'Contributor <@{interaction.user.id}> has approved an edit that changes your spotting submission. Here are the details of the changes:\n'
                 f'{spotting_message}\n'
                 'If you do not agree with these changes, feel free to edit your original message to reverse the edit.'
             )
             
             ## create thread (if channel type is textchannel)
             if submission_output_channel_type == "TextChannel":
-              output_message.thr
-              # TODO: check if a thread already exists
               submission_notify_thread = await output_message.create_thread(name=f"{self.date.value} in {self.town.value}")
               await submission_notify_thread.send(submission_notify_message)
             ## send reply (if channel type is thread)
@@ -204,7 +202,7 @@ class WebSubmission(commands.Cog, name="web_submission"):
               await output_message.reply(submission_notify_message)
           
           # pos-handling
-          embed.description = f"Changes have been approved by <@{message.author.id}>. Locking thread..."
+          embed.description = f"Changes have been approved by <@{interaction.user.id}>. Locking thread..."
           embed.color = discord.Color.green()
           thread = message.channel.get_thread(message.id)
           await thread.send(embed=embed)
