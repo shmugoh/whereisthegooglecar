@@ -72,7 +72,7 @@ export default function about() {
         </div>
 
         <TopText title="FAQ" />
-        <div className="text-background-foreground">
+        <div className="text-background-foreground break-words">
           <span className="space-y-3.5">
             <h2 className="border-p scroll-m-20 text-3xl font-extrabold italic tracking-tight underline underline-offset-4">
               Where do you get your data?
@@ -129,25 +129,24 @@ export default function about() {
               submit it?
             </h2>
             <p>
-              Tweet us at{" "}
+              Submit your sighting in{" "}
               <Link
-                href="https://twitter.com/VirtualStreets_"
+                href="/submit"
                 className="list-disc font-medium text-primary underline underline-offset-4 [&>li]:mt-2"
               >
-                @VirtualStreets_
+                our site
               </Link>{" "}
-              on Twitter with the date, image, and location (if possible) to
-              submit your sighting. Once approved, your submission will be added
-              to the website, and a link will be sent.
+              with the date, image, and location (if possible) to submit your
+              spotting. Our contributors will review your submission and add it
+              to our database.
             </p>
           </span>
 
           <span className="space-y-3.5">
             <h2 className="border-p scroll-m-20 text-3xl font-extrabold italic tracking-tight underline underline-offset-4">
-              Are you affiliated with the previous whereisthegooglecar.com or
-              any of its owners?
+              Are you affiliated with the previous whereisthegooglecar.com?
             </h2>
-            <p>No.</p>
+            <p>No. We just happened to take the domain.</p>
           </span>
         </div>
       </div>

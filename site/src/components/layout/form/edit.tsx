@@ -44,6 +44,7 @@ import { SubmitButton } from "./button";
 import { ErrorMessage } from "./error";
 import { SUCCESS_DESCRIPTION, SUCCESS_TITLE } from "./success";
 import { CustomCaption } from "../calendar";
+import { ScrollArea } from "~/components/ui/scroll-area";
 
 type EditDialogProps = {
   size: "sm" | "lg";
@@ -132,7 +133,7 @@ export default function EditDialog(props: EditDialogProps) {
       </DialogTrigger>
 
       {/* Form */}
-      <DialogContent className="max-w-[425px]	 lg:max-w-[800px]">
+      <DialogContent className="max-h-[500px] max-w-[425px] overflow-y-auto lg:max-h-full lg:max-w-[800px]">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Header */}

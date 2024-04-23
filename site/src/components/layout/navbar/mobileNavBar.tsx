@@ -18,15 +18,34 @@ import { Search } from "~/components/layout/search";
 import { Donate } from "react-kofi-overlay";
 import { MdOutlineStreetview } from "react-icons/md";
 
+import { useRouter } from "next/router";
+import { useCallback, useEffect, useState } from "react";
+
 type MobileNavBarProps = {
   setTheme: (theme: string) => void;
 };
 export default function MobileNavBar(props: MobileNavBarProps) {
+  const [open, setOpen] = useState(false);
+  const { events } = useRouter();
+
+  const close = useCallback(() => {
+    setOpen(false);
+  }, []);
+
+  useEffect(() => {
+    // subscribe to next/router event
+    events.on("routeChangeStart", close);
+    return () => {
+      // unsubscribe to event on unmount to prevent memory leak
+      events.off("routeChangeStart", close);
+    };
+  }, [close, events]);
+
   return (
     <div className="flex w-full justify-end gap-4 lg:hidden">
       <Search />
 
-      <Sheet>
+      <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <Button size="icon" variant="ghost">
             <MenuIcon className="h-6 w-6" />
