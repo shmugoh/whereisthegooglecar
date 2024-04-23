@@ -41,6 +41,7 @@ export function generateEmbed(input: SubmissionInput) {
 
   return {
     username: "WhereIsTheGoogleCar - Form",
+    avatar_url: "https://www.whereisthegooglecar.com/apple-touch-icon.png",
     embeds: [embed],
   };
 }

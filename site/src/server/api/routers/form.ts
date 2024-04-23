@@ -15,8 +15,6 @@ const allowedFileTypes = ["image/jpeg", "image/png"];
 const maxFileSize = 1048576 * 10; // 10 MB
 const s3 = new S3Client({
   region: env.AWS_S3_BUCKET_REGION,
-  // endpoint: "https://s3.whereisthegooglecar.com",
-  // forcePathStyle: true,
   credentials: {
     accessKeyId: env.AWS_S3_ACCESS_KEY,
     secretAccessKey: env.AWS_S3_SECRET_ACCESS_KEY,
@@ -96,8 +94,6 @@ export const formRouter = createTRPCRouter({
         const putObjectCommand = new PutObjectCommand({
           Bucket: env.AWS_S3_BUCKET_NAME,
           Key: `submissions/${imageFileName}`,
-          // Bucket: "submissions",
-          // Key: imageFileName,
           ContentType: input.fileType,
           ContentLength: input.fileSize,
           ChecksumSHA256: input.checksum,
