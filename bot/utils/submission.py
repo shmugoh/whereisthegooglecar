@@ -21,8 +21,12 @@ class Submission:
             town = embed.fields[1].value
             country = embed.fields[2].value
             source = embed.fields[3].value
+            
             location = embed.fields[4].value
+            if location == "N/A": location = None
+            
             service = embed.fields[5].value
+            if service == "N/A": service = None
             
             # set optional variables to undefined
             ## output_message_id [edit]

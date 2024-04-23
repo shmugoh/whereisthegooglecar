@@ -156,7 +156,7 @@ class WebSubmission(commands.Cog, name="web_submission"):
         town = ui.TextInput(label="Town", required=True, default=submission_data['town'])
         country = ui.TextInput(label="Country - must be a Flag Emoji", required=True, default=submission_data['country'])
         sourceUrl = ui.TextInput(label="Source - must be either an URL or username", required=True, default=submission_data['sourceUrl'])
-        locationUrl = ui.TextInput(label="Location - must be GMaps link - Optional", default=submission_data['locationUrl'])
+        locationUrl = ui.TextInput(label="Location - must be GMaps link - Optional", default=submission_data['locationUrl'], required=False)
         
         async def on_submit(self, interaction: discord.Interaction) -> None:
           # generate embed
@@ -195,7 +195,10 @@ class WebSubmission(commands.Cog, name="web_submission"):
             
             ## create thread (if channel type is textchannel)
             if submission_output_channel_type == "TextChannel":
-              submission_notify_thread = await output_message.create_thread(name=f"{self.date.value} in {self.town.value}")
+              try:
+                submission_notify_thread = await output_message.create_thread(name=f"{self.date.value} in {self.town.value}")
+              except discord.errors.HTTPException:
+                submission_notify_thread = await interaction.guild.fetch_channel(output_message.id)
               await submission_notify_thread.send(submission_notify_message)
             ## send reply (if channel type is thread)
             elif submission_output_channel_type == 'Thread':
