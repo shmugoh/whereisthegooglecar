@@ -298,9 +298,10 @@ class WebSubmission(commands.Cog, name="web_submission"):
       ## set parameters && defaults
       try:
         # sets the target to the channel or thread
-        if channel is not None and submission_data['output_channel_id'] is None:
+        ## only works if mode is NEW, as EDIT already has the channel set
+        if (channel is not None) and (submission_data['mode'] == 'new'):
           target = channel.id
-        if thread is not None and submission_data['output_channel_id'] is None:
+        if (thread is not None) and (submission_data['mode'] == 'new'):
           target = thread.id
               
         if date == None:
@@ -318,12 +319,13 @@ class WebSubmission(commands.Cog, name="web_submission"):
           location = submission_data['locationUrl']
         if service == None:
           service = submission_data['company']
-        if (channel is None or thread is None) and (submission_data == 'new'):
+        if (channel is None and thread is None) and (submission_data['output_channel_id']):
           target = submission_data['output_channel_id']
         
         # submit new preview
         preview_message_content = self.submission.generate_embed(date=date, town=town, country=country, source=source, location=location, service=service, image_url=submission_data['imageUrl'])
-        
+        preview_message_response = await context.send(f"{preview_message_content}, <#{target}>")
+
         # edit to database
         if submission_data['mode'] == 'new':
           # [new]: parameters + output channel id & output message id (preview)
@@ -336,8 +338,6 @@ class WebSubmission(commands.Cog, name="web_submission"):
         await context.send(embed=embed, ephemeral=True)
         return
       
-      # succeed
-      preview_message_response = await context.send(preview_message_content)
       return
 #
 async def setup(bot) -> None:
