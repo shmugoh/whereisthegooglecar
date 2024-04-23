@@ -286,12 +286,25 @@ class WebSubmission(commands.Cog, name="web_submission"):
       # grab from database for default values
       id = context.channel.id
       submission_data = await self.bot.database.get_submission(id=id)
+      channels_data = await self.bot.database.get_channels()
 
       # checks if channel and thread are not provided
       # ...or if they're both provided
       # as long as output channel id hasn't been set within the db
       if (channel is None and thread is None and submission_data['output_channel_id'] is None) or (channel and thread and submission_data['output_channel_id'] is None):
         embed.description = "Target Channel/Thread hasn't been set yet to this submission yet. Please set one and try again."
+        await context.send(embed=embed, ephemeral=True)
+        return
+      
+      # checks if channel/thread are NOT registered in the db
+      channel_in_db = False
+      for channel_data in channels_data:
+        channel_data_id = channel_data['id']
+        if (channel != None and channel_data_id == channel.id) or (thread != None and channel_data_id == thread.id):
+          channel_in_db = True
+          break
+      if channel_in_db is False:
+        embed.description = "Channel/Thread has not been registered in the database. Please use a registered channel and try again."
         await context.send(embed=embed, ephemeral=True)
         return
       
@@ -324,7 +337,7 @@ class WebSubmission(commands.Cog, name="web_submission"):
         
         # submit new preview
         preview_message_content = self.submission.generate_embed(date=date, town=town, country=country, source=source, location=location, service=service, image_url=submission_data['imageUrl'])
-        preview_message_response = await context.send(f"{preview_message_content}, <#{target}>")
+        preview_message_response = await context.send(preview_message_content)
 
         # edit to database
         if submission_data['mode'] == 'new':
