@@ -2,14 +2,9 @@
 <img align="right" src="https://raw.githubusercontent.com/shmugoh/whereisthegooglecar/main/site/public/favicon.svg" width="10%">
 </image>
 
-<!-- <image>
-<img align="right" src="https://github.com/yourusername/whereisthegooglecar/raw/master/docs/logo.png" width="10%">
-</image> -->
 <h1>WhereIsTheGoogleCar</h1>
 
-<a href="https://railway.app/template/wCT-86?referralCode=HFLxLD" target="_blank"><img src="https://railway.app/button.svg" alt="Deploy on Railway" height="32px" /></a> <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fshmugoh%2Fwhereisthegooglecar%2Ftree%2Fmain%2Fsite&env=NEXT_PUBLIC_CDN_URL,NEXT_PUBLIC_VERCEL_URL,KV_URL,KV_REST_API_URL,KV_REST_API_TOKEN,KV_REST_API_READ_ONLY_TOKEN&repository-name=whereisthegooglecar" target="_blank"><img src="https://vercel.com/button" alt="Deploy with Vercel" height="35px" /></a>
-
-WhereIsTheGoogleCar is a monorepo project that tracks and logs all Google car sightings posted from the VirtualStreets Discord server.
+WhereIsTheGoogleCar is a monorepo project that tracks and logs Street View Vehicle Sightings posted from the VirtualStreets Discord server.
 This project has been made as an attempt to fulfill the legacy of whereisthegooglecar.com, with more accurate data.
 
 This monorepo consists of the following components.
@@ -22,7 +17,7 @@ To access the website contents, navigate to the `site` folder. To access the bot
 
 ## Getting Started - Local Development
 
-0. Initiate an AWS S3 Bucket (& CloudFront if needed), alongside IAM credentials with `s3:PutObject` permissions; passed over to the S3 Bucket Policy.
+0. Initiate an AWS S3 Bucket (& CloudFront if needed), alongside IAM credentials with `s3:PutObject`, `s3:GetObject` & `s3:DeleteObject` permissions; passed over to the S3 Bucket Policy.
 1. Rename `.env.example` to `.env`, and adjust to your settings.
 2. Initiate `docker-compose up -d`.
 3. Head over to the site folder.
@@ -36,7 +31,7 @@ and you'd be better off using `npm run dev` locally. Trust me, you don't want to
 
 ## Getting Started - Deploying
 
-0. Initiate an AWS S3 Bucket (& CloudFront if needed), alongside IAM credentials with `s3:PutObject` permissions; passed over to the S3 Bucket Policy.
+0. Initiate an AWS S3 Bucket (& CloudFront if needed), alongside IAM credentials with `s3:PutObject`, `s3:GetObject` & `s3:DeleteObject` permissions; passed over to the S3 Bucket Policy.
 1. In Vercel (or any other Redis serverless provider such as Upstash), initialize Redis
 2. Configure the environment variables asked in Railway, then proceed to deploy
    - You may wanna deploy twice, as the template has the PostgreSQL variables
@@ -47,22 +42,23 @@ and you'd be better off using `npm run dev` locally. Trust me, you don't want to
 
 - A bunch of ESLint & type errors on the site monorepo
 - Image compression is somewhat messy
-- No domain... yet
 - `/remove_channel` stopped working for some reason - issue of channel_id having a relation with the other spottings table
+- JSON is not serialized correctly
+- RegEx month & source doesn't work as intended
 
 ## Future Plans
 
-- Search Button
 - Improve bot logging
-- Manual Submission through bot
-- Manual Submission through site (I personally have my doubts for this, may or may not be a thing)
 - Better specific spotting page
   - Source embed by left; location by right
+- Refactor CSS
+- Assign S3 Domain
+- Improve Image Preview (Width and Height from Backend)
 
 ## Funding - Keep the site online!
 
-If you really love this project, consider the maintenance costs.
-Your contribution will help cover the costs for running this project to stay online
+If you really love this project, consider supporting the maintenance costs.
+Your contribution will help cover the costs for running this project to stay online!
 
 You can do so by donating on Ko-fi or sponsoring on GitHub. Every bit of support is greatly appreciated!
 

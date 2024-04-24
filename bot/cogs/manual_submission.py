@@ -14,7 +14,7 @@ import re
 guild_id = os.getenv("GUILD_ID")
 # i can't call self.bot.guild_id within the @app_commands.guilds decorator, so i have to hard-code it
 
-class Submission(commands.Cog, name="submission"):
+class ManualSubmission(commands.Cog, name="manual_submission"):
     def __init__(self, bot) -> None:
       self.bot = bot    
       
@@ -294,4 +294,4 @@ class Submission(commands.Cog, name="submission"):
         await bot_message.edit(embed=embed)
 
 async def setup(bot) -> None:
-    await bot.add_cog(Submission(bot))
+    await bot.add_cog(ManualSubmission(bot))

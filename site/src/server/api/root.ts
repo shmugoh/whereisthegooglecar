@@ -1,5 +1,6 @@
 import { queryRouter } from "~/server/api/routers/query";
-import { grabRouter } from "./routers/grab";
+import { grabRouter } from "~/server/api/routers/grab";
+import { formRouter } from "~/server/api/routers/form";
 import { createTRPCRouter } from "~/server/api/trpc";
 
 /**
@@ -10,6 +11,7 @@ import { createTRPCRouter } from "~/server/api/trpc";
 export const appRouter = createTRPCRouter({
   query: queryRouter,
   grab: grabRouter,
+  form: formRouter,
 });
 
 // export type definition of API

@@ -17,6 +17,12 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
+    CF_TURNSTILE_KEY: z.string(),
+    DISCORD_WEBHOOK_URL: z.string().url(),
+    AWS_S3_BUCKET_NAME: z.string(),
+    AWS_S3_BUCKET_REGION: z.string(),
+    AWS_S3_ACCESS_KEY: z.string(),
+    AWS_S3_SECRET_ACCESS_KEY: z.string(),
   },
 
   /**
@@ -27,6 +33,7 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_VERCEL_URL: z.string().url(),
     NEXT_PUBLIC_CDN_URL: z.string().url(),
+    NEXT_PUBLIC_CF_PUBLIC_KEY: z.string(),
   },
 
   /**
@@ -38,7 +45,16 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_CDN_URL: process.env.NEXT_PUBLIC_CDN_URL,
     NEXT_PUBLIC_VERCEL_URL: process.env.NEXT_PUBLIC_VERCEL_URL,
-    // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+
+    NEXT_PUBLIC_CF_PUBLIC_KEY: process.env.NEXT_PUBLIC_CF_PUBLIC_KEY,
+    CF_TURNSTILE_KEY: process.env.CF_TURNSTILE_KEY,
+
+    DISCORD_WEBHOOK_URL: process.env.DISCORD_WEBHOOK_URL,
+
+    AWS_S3_BUCKET_NAME: process.env.AWS_S3_BUCKET_NAME,
+    AWS_S3_BUCKET_REGION: process.env.AWS_S3_BUCKET_REGION,
+    AWS_S3_ACCESS_KEY: process.env.AWS_S3_ACCESS_KEY,
+    AWS_S3_SECRET_ACCESS_KEY: process.env.AWS_S3_SECRET_ACCESS_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

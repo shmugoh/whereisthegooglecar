@@ -31,7 +31,58 @@ class DatabaseManager:
         
     async def get_channels(self) -> dict:
         return await self.database.fetch("SELECT * FROM channel")
+        
+    #
+    # -- Submission Management --
+    ##
+    
+    async def add_submission(
+        self,
+        message_id: int,
+        date: datetime,
+        town: str,
+        country: str,
+        imageUrl: str | None,
+        sourceUrl: str,
+        locationUrl: str,
+        company: str,
+        mode: str,
+    ) -> None:
+        """
+        Add a new submission to the database
+        """
+        # add to database
+        await self.database.execute(
+            "INSERT INTO submissions (date, town, country, \"imageUrl\", \"sourceUrl\", \"locationUrl\", mode, company, message_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+            date,
+            town,
+            country,
+            imageUrl,
+            sourceUrl,
+            locationUrl,
+            mode,
+            company,
+            message_id
+        )
+        
+    async def edit_submission(self, id: int, **kwargs) -> None:
+        """
+        Edit a submission record in the database.
+        """
+        columns = kwargs.keys()
+        values = kwargs.values()
+        query = "UPDATE submissions SET " + ", ".join(f"\"{column}\"=${i+1}" for i, column in enumerate(columns)) + " WHERE message_id=$" + str(len(columns) + 1)
+        await self.database.execute(query, *values, id)
 
+    async def delete_submission(self, id: int) -> None:
+        """
+        Delete a submission record in the database.
+        """
+        await self.database.execute("DELETE FROM submissions WHERE message_id=$1", id)
+        
+    async def get_submission(self, id: int) -> None:
+        return await self.database.fetchrow("SELECT * FROM submissions WHERE message_id=$1", id)
+        
     #
     # -- Spotting Management --
     #
@@ -50,21 +101,6 @@ class DatabaseManager:
     ) -> None:
         """
         Add a new spotting to the database.
-
-        Args:
-            id (int): The Message ID of the spotting.
-            channel_id (int): The ID of the channel where the spotting was made.
-            date (datetime): The date of the spotting.
-            town (str): The town where the spotting was made.
-            country (str): The country where the spotting was made.
-            countryEmoji (str): The emoji representing the country.
-            imageUrl (str): The URL of the image associated with the spotting.
-            sourceUrl (str): The URL of the source of the spotting.
-            locationUrl (str): The URL of the location of the spotting.
-            company (str): The company associated with the spotting.
-
-        Returns:
-            None
         """
         
         # add to database
@@ -88,13 +124,6 @@ class DatabaseManager:
     async def update_spotting(self, id: int, **kwargs) -> None:
         """
         Update a spotting record in the database.
-
-        Args:
-            id (int): The Message ID of the spotting record to update.
-            **kwargs: Keyword arguments representing the columns and their new values.
-
-        Returns:
-            None
         """
         columns = kwargs.keys()
         values = kwargs.values()
@@ -111,12 +140,6 @@ class DatabaseManager:
     async def delete_spotting(self, id: int) -> None:
         """
         Deletes a spotting from the database based on the given ID.
-
-        Args:
-            id (int): The Message ID of the spotting to be deleted.
-
-        Returns:
-            None
         """
         
         # get month before purging from database
@@ -133,12 +156,6 @@ class DatabaseManager:
     async def delete_spottings(self, channel_id: int) -> None:
         """
         Deletes all spottings from the database based on the given channel ID.
-
-        Args:
-            channel_id (int): The ID of the channel where the spottings were made.
-
-        Returns:
-            None
         """
         await self.database.execute("DELETE FROM spottings WHERE channel_id=$1", channel_id)
         # as we're removing all spottings, it would take a long time to remove each cache
@@ -149,25 +166,12 @@ class DatabaseManager:
     async def find_spotting(self, id: int) -> dict:
         """
         Retrieves a spotting record from the database based on the given ID.
-
-        Args:
-            id (int): The Message ID of the spotting record to retrieve.
-
-        Returns:
-            dict: A dictionary containing the details of the spotting record.
             """
         return await self.database.fetchrow("SELECT * FROM spottings WHERE message_id=$1", str(id))
 
     def clear_cache_month(self, service, date) -> None:
         """
         Clears the cache for a specific month and service.
-
-        Args:
-            service (str): The name of the service.
-            date (datetime): The date in the format "MM:YYYY".
-
-        Returns:
-            None
         """
         service = service.lower() # lowercase to match the key in redis
         date = self.generate_cache_month(date)
@@ -185,24 +189,12 @@ class DatabaseManager:
     def clear_cache_spotting(self, id: str) -> None:
         '''
         Clears the cache for a specific spotting message.
-
-        Args:
-            id (str): The message ID of the spotting.
-
-        Returns:
-            None
         '''
         self.redis.hdel(f"spotting:{id}", "data")
 
     def generate_cache_month(self, date: datetime) -> str:
         """
         Generate a cache key for a given month and year.
-
-        Args:
-            date (datetime): The date for which the cache key is generated.
-
-        Returns:
-            str: The cache key in the format "month:year".
         """
         month = date.strftime("%m")
         if month.startswith("0"): # using a single digit here as REDIS' keys are registered with no leading zeros
