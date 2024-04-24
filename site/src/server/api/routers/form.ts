@@ -9,6 +9,8 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { generateFileName } from "~/utils/sha256";
 import { TRPCError } from "@trpc/server";
 
+import { kv } from "@vercel/kv";
+
 // constants
 const DiscordWebHookURL = env.DISCORD_WEBHOOK_URL;
 const allowedFileTypes = ["image/jpeg", "image/png"];
@@ -23,6 +25,14 @@ const s3 = new S3Client({
 
 // turnstile validation
 async function validate_turnstile(token: string): Promise<boolean> {
+  // check if token is in cache
+  const turnstile_cache = await kv.sismember("turnstile_tokens", token);
+  // remove token from cache if it exists
+  if (turnstile_cache == 1) {
+    await kv.srem("turnstile_tokens", token);
+    return true;
+  }
+
   // build form data
   const formData = new FormData();
   formData.append("secret", env.CF_TURNSTILE_KEY);
@@ -38,8 +48,15 @@ async function validate_turnstile(token: string): Promise<boolean> {
   // get response
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const response = await result.json();
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-  return response?.success;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+  const response_success: true | false = response?.success;
+
+  if (response_success) {
+    // add to cache
+    await kv.sadd("turnstile_tokens", token);
+    await kv.expire("turnstile_tokens", 25);
+  }
+  return response_success;
 }
 
 export const formRouter = createTRPCRouter({
