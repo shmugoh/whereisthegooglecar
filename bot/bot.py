@@ -340,6 +340,12 @@ class DiscordBot(commands.Bot):
             )
             await context.send(embed=embed, ephemeral=True)
         else:
+            embed = discord.Embed(
+                title="Unexpected Error",
+                description=str(error).capitalize(),
+                color=0xE02B2B,
+            )
+            await context.send(embed=embed, ephemeral=True)
             raise error
 
 

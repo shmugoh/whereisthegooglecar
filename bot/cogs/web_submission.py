@@ -20,6 +20,17 @@ submission_channel_id = int(os.getenv("CHANNEL_SUBMISSION_ID"))
 submission_webhook_id = int(os.getenv("WEBHOOK_SUBMISSION_ID"))
 # i can't call self.bot.guild_id within the @app_commands.guilds decorator, so i have to hard-code it
 
+def in_submission_channel(ctx: Context):
+  # get channel type string
+  channel_type = str(ctx.channel.type)
+
+  # if in thread
+  if channel_type == "public_thread" or channel_type == "private_thread":
+    return ctx.channel.parent_id == submission_channel_id
+  # if in channel
+  else:
+    return ctx.channel.id == submission_channel_id
+
 class WebSubmission(commands.Cog, name="web_submission"):
     def __init__(self, bot) -> None:
       self.bot = bot
@@ -109,6 +120,12 @@ class WebSubmission(commands.Cog, name="web_submission"):
         title=f"Web Submission - Approval",
         color = discord.Color.red()
       )
+      
+      # check if its ran in channel or not
+      if in_submission_channel(ctx=interaction) == False:
+        embed.description = "This command can only be used in the submission channel!"
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+        return
     
       # checks if message's metadata matches web_submission ids
       if (message.author.id != submission_webhook_id and message.channel.id != submission_channel_id):
@@ -235,6 +252,12 @@ class WebSubmission(commands.Cog, name="web_submission"):
         color = discord.Color.red()
       )
       
+      # check if its ran in channel or not
+      if in_submission_channel(ctx=interaction) == False:
+        embed.description = "This command can only be used in the submission channel!"
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+        return
+      
       # checks if message's metadata matches web_submission ids
       if message.author.id != submission_webhook_id and message.channel.id != submission_channel_id:
         embed.description = "Cannot remove submission: Wrong Channel/User."
@@ -273,7 +296,6 @@ class WebSubmission(commands.Cog, name="web_submission"):
       thread="The thread to post it to"
     )
     @app_commands.guilds(discord.Object(id=guild_id))
-    # @commands.check_any(is_owner(), has_guild_permissions(manage_messages=True))
     async def edit(self, context: Context, *, 
       date: str = None,
       town: str = None,
@@ -290,15 +312,31 @@ class WebSubmission(commands.Cog, name="web_submission"):
         color = discord.Color.red()
       )
       
+      # check if its ran in channel or not
+      if in_submission_channel(ctx=context) == False:
+        embed.description = "This command can only be used in the submission channel!"
+        await context.send(embed=embed, ephemeral=True)
+        return
+      
       # checks if message's metadata matches web_submission ids
-      if (context.channel.parent_id != submission_channel_id) and (context.channel.type != "public_thread" or "private_thread"):
+      try:
+        if (context.channel.parent_id != submission_channel_id) and (context.channel.type != "public_thread" or "private_thread"):
+          embed.description = "Wrong Channel Type. Try again by running this command within the submission's thread."
+          await context.send(embed=embed, ephemeral=True)
+          return
+      except AttributeError:
         embed.description = "Wrong Channel Type. Try again by running this command within the submission's thread."
         await context.send(embed=embed, ephemeral=True)
         return
-    
+        pass
+      
       # grab from database for default values
       id = context.channel.id
       submission_data = await self.bot.database.get_submission(id=id)
+      if submission_data == None:
+        embed.description = "Invalid Submission"
+        await context.send(embed=embed, ephemeral=True)
+        return
       channels_data = await self.bot.database.get_channels()
 
       # checks if channel and thread are not provided
