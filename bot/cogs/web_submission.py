@@ -130,7 +130,7 @@ class WebSubmission(commands.Cog, name="web_submission"):
       # checks if message's metadata matches web_submission ids
       if (message.author.id != submission_webhook_id and message.channel.id != submission_channel_id):
         embed.description = "Cannot process submission: Wrong Channel/User."
-        await interaction.response.send_message(embed=embed.description, ephemeral=True)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
         return
         
       # grab database (as the modal's class will not have access to self.bot)
