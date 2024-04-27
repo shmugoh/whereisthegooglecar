@@ -36,7 +36,7 @@ export const queryRouter = createTRPCRouter({
       // obtains from cache
       if (input.cache) {
         // build month
-        const cachedValue: Array<{ date: string | Date; count: number }> =
+        const cachedValue: Array<{ date: Date; pages: number; count: number }> =
           (await kv.hget(`spottings:${company}`, "months")) ?? [];
         if (cachedValue.length !== 0) {
           console.log(
@@ -137,8 +137,8 @@ export const queryRouter = createTRPCRouter({
               // return unique data with its count counterpart
               return {
                 date: uniqueDate,
-                count: count,
-                realCount: filteredData.length,
+                pages: count,
+                count: filteredData.length,
               };
             });
 

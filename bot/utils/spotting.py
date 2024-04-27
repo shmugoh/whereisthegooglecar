@@ -77,7 +77,15 @@ class spotting():
       
       # process image
       spotting_image_url = message.attachments[0].url
-      spotting_image_raw = s3.process(spotting_image_url)
+      spotting_image_process = s3.process(spotting_image_url)
+      
+      ## grab image metadata
+      spotting_image_raw = spotting_image_process['image']
+      spotting_image_res = spotting_image_process['image_res']
+      spotting_image_width = spotting_image_res[0]
+      spotting_image_height = spotting_image_res[1]
+      
+      # upload image
       spotting_image_s3 = s3.upload(spotting_image_raw, spotting_message_id)
 
       if spotting['source'] == None:
@@ -103,7 +111,9 @@ class spotting():
         spotting_image_s3,
         spotting['source'],
         spotting['location'],
-        spotting['service']
+        spotting['service'],
+        spotting_image_width,
+        spotting_image_height
       )
       
       return spotting

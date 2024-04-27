@@ -97,7 +97,9 @@ class DatabaseManager:
         imageUrl: str,
         sourceUrl: str,
         locationUrl: str,
-        company: str
+        company: str,
+        width: int,
+        height: int,
     ) -> None:
         """
         Add a new spotting to the database.
@@ -105,7 +107,7 @@ class DatabaseManager:
         
         # add to database
         await self.database.execute(
-            "INSERT INTO spottings (message_id, channel_id, date, town, country, \"countryEmoji\", \"imageUrl\", \"sourceUrl\", \"locationUrl\", company) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+            "INSERT INTO spottings (message_id, channel_id, date, town, country, \"countryEmoji\", \"imageUrl\", \"sourceUrl\", \"locationUrl\", company, width, height) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
             str(message_id),
             channel_id,
             date,
@@ -116,6 +118,8 @@ class DatabaseManager:
             sourceUrl,
             locationUrl,
             company,
+            width,
+            height,
         )
 
         # remove month data from cache (redis)

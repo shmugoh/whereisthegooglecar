@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import Image from "next/image";
 import { AspectRatio } from "~/components/ui/aspect-ratio";
@@ -7,26 +7,31 @@ export const ImagePreview = (props: {
   className?: string;
   url: string;
   alt: string;
-  loading?: "lazy" | "eager" | undefined;
+  width: number;
+  height: number;
 }) => {
+  const { width, height } = props;
+
   // handle aspect ratio (for mobile)
-  const [aspectRatio, setAspectRatio] = useState(16 / 9); // default aspect ratio
-
-  const handleLoadingComplete = ({
-    naturalWidth,
-    naturalHeight,
-  }: {
-    // type definitions
-    naturalWidth: number;
-    naturalHeight: number;
-  }) => {
-    // if on pc, stay with 16/9
-    if (window.innerWidth >= 1024) {
-      return;
+  const [aspectRatio, setAspectRatio] = useState(width / height); // default aspect ratio
+  const handleAspectRatio = (screenWidth: number) => {
+    if (screenWidth <= 768) {
+      setAspectRatio(width / height);
+    } else {
+      setAspectRatio(16 / 9);
     }
-
-    setAspectRatio(naturalWidth / naturalHeight);
   };
+
+  // window width listener
+  window.addEventListener("resize", (e) => {
+    const window = e.currentTarget as Window;
+    handleAspectRatio(window.innerWidth);
+  });
+
+  // window width on load
+  useEffect(() => {
+    handleAspectRatio(window.innerWidth);
+  }, []);
 
   return (
     <div className={props.className}>
@@ -37,8 +42,8 @@ export const ImagePreview = (props: {
           fill
           className="rounded-md object-contain"
           style={{ zIndex: 1 }}
-          onLoadingComplete={handleLoadingComplete}
-          loading={props.loading ?? "lazy"}
+          // onLoadingComplete={handleLoadingComplete}
+          loading={"eager"}
           unoptimized
         />
         {/* <div

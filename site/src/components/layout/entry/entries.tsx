@@ -59,6 +59,7 @@ export function BaseEntriesPage(props: BaseEntriesPageProps) {
         next={props.fetchData}
         hasMore={props.continueFetching}
         loader={null}
+        scrollThreshold={0.7}
       >
         <CardSet
           month={props.month.current.getUTCMonth()}
@@ -93,7 +94,7 @@ export default function EntriesPage(props: EntriesPageProps) {
 
   // states & references
   const [cardSets, setCardSets] = useState([]);
-  const months = useRef<{ date: Date; count: number }[]>([]);
+  const months = useRef<{ date: Date; pages: number; count: number }[]>([]);
   const month = useRef<Date>(new Date());
   const activeIndex = useRef<number>(1);
 
@@ -249,7 +250,7 @@ export default function EntriesPage(props: EntriesPageProps) {
       month.current = months.current[Number(router.query.page) - 1]?.date;
       activePage.current = 0;
       availablePages.current =
-        months.current[Number(router.query.page) - 1]?.count;
+        months.current[Number(router.query.page) - 1]?.pages;
 
       setCardSets([]);
       void fetchData();

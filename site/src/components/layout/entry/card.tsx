@@ -77,6 +77,8 @@ export const SpottingCard = (props: cardProps) => {
           <ImagePreview
             url={`${env.NEXT_PUBLIC_CDN_URL}/${props.imageUrl}`}
             alt={`Picture of a Google Car spotted in ${props.town} on ${date}.`}
+            width={props.width}
+            height={props.height}
           />
         </CardContent>
         <CardFooter className="flex justify-between">
@@ -119,6 +121,8 @@ export const CardSet = (props: cardSetProps) => {
             sourceUrl={item.sourceUrl}
             locationUrl={item.locationUrl}
             company={props.showCompany ? item.company : undefined}
+            width={item.width}
+            height={item.height}
           />
         ))}
         {props.showSkeleton === true

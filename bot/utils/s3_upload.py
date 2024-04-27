@@ -124,7 +124,7 @@ class ImageUpload:
           os.remove(temp.name)
         
         logger.info(f"Processed image {image_url}")
-        return output.getvalue()
+        return {"image": output.getvalue(), "image_res": image.size}
       except Exception as e:
         logger.error(f"Failed to process image {image_url}: {e}")
         raise Exception(f"S3 Processing: {e}")

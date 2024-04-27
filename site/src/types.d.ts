@@ -8,6 +8,8 @@ type cardProps = {
   sourceUrl: string;
   locationUrl?: string;
   company?: string;
+  width: number;
+  height: number;
 };
 
 type cardSetProps = {
