@@ -35,6 +35,8 @@ type pageProps = {
     updatedAt: string;
     message_id: string;
     channel_id: string;
+    width: number;
+    height: number;
   };
   dateFormatted: string;
 };

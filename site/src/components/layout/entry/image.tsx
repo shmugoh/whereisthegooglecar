@@ -22,13 +22,20 @@ export const ImagePreview = (props: {
     }
   };
 
-  // window width listener
-  window.addEventListener("resize", (e) => {
-    const window = e.currentTarget as Window;
-    handleAspectRatio(window.innerWidth);
-  });
+  useEffect(() => {
+    const handleResize = () => {
+      handleAspectRatio(window.innerWidth);
+    };
 
-  // window width on load
+    // Add event listener on component mount
+    window.addEventListener("resize", handleResize);
+
+    // Remove event listener on component unmount
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []); // Empty dependency array ensures the effect runs only once on mount
+
   useEffect(() => {
     handleAspectRatio(window.innerWidth);
   }, []);
@@ -43,6 +50,7 @@ export const ImagePreview = (props: {
           className="rounded-md object-contain"
           style={{ zIndex: 1 }}
           // onLoadingComplete={handleLoadingComplete}
+          priority
           loading={"eager"}
           unoptimized
         />

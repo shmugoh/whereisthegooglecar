@@ -11,25 +11,6 @@ import EditDialog from "../form/edit";
 import ServiceBadge from "./service_badge";
 
 export const PageComponent = (props: pageProps) => {
-  // handle aspect ratio (for mobile)
-  const [aspectRatio, setAspectRatio] = useState(16 / 9); // default aspect ratio
-
-  const handleLoadingComplete = ({
-    naturalWidth,
-    naturalHeight,
-  }: {
-    // type definitions
-    naturalWidth: number;
-    naturalHeight: number;
-  }) => {
-    // if on pc, stay with 16/9
-    if (window.innerWidth >= 1024) {
-      return;
-    }
-
-    setAspectRatio(naturalWidth / naturalHeight);
-  };
-
   return (
     <div className="flex flex-col items-center gap-4">
       {/* Top Title */}
@@ -76,7 +57,8 @@ export const PageComponent = (props: pageProps) => {
         className="w-full md:w-11/12"
         url={props.data.imageUrl}
         alt={`Picture of a ${props.data.company === "others" ? "Street View" : props.data.company.charAt(0).toUpperCase() + props.data.company.slice(1)} Car spotted in ${props.data.town} on ${props.dateFormatted}.`}
-        loading="eager"
+        width={props.data.width}
+        height={props.data.height}
       />
     </div>
   );
