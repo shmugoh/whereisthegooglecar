@@ -55,7 +55,7 @@ class Submission:
         
         # service
         if service and service != "N/A":
-            embed_content += f" [{service}]"
+            embed_content += f" [{service.capitalize()}]"
         
         # formatted date
         formattedDate = date_utils.stringify_date(date)
