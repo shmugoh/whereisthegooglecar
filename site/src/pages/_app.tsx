@@ -89,9 +89,9 @@ const MyApp: AppType = ({ Component, pageProps }) => {
               />
             </div>
             <Foot />
-            <SpeedInsights />
-            <Toaster />
           </div>{" "}
+          <Toaster />
+          <SpeedInsights />
         </ThemeProvider>
       </PlausibleProvider>
     </>
