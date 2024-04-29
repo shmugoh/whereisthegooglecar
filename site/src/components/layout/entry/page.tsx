@@ -38,7 +38,7 @@ export const PageComponent = (props: pageProps) => {
 
           <EditDialog
             size="lg"
-            date={new Date(props.dateFormatted)}
+            date={new Date(props.data.date)}
             town={props.data.town}
             country={props.data.countryEmoji}
             source={props.data.sourceUrl}
