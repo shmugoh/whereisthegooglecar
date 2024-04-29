@@ -54,11 +54,16 @@ export const PageComponent = (props: pageProps) => {
 
       {/* Image Preview */}
       <ImagePreview
-        className="w-full md:w-11/12"
+        className="w-full md:w-11/12 lg:hidden"
         url={props.data.imageUrl}
         alt={`Picture of a ${props.data.company === "others" ? "Street View" : props.data.company.charAt(0).toUpperCase() + props.data.company.slice(1)} Car spotted in ${props.data.town} on ${props.dateFormatted}.`}
-        width={props.data.width}
-        height={props.data.height}
+        ratio={props.data.width / props.data.height}
+      />
+      <ImagePreview
+        className="hidden w-full md:w-11/12 lg:block"
+        url={props.data.imageUrl}
+        alt={`Picture of a ${props.data.company === "others" ? "Street View" : props.data.company.charAt(0).toUpperCase() + props.data.company.slice(1)} Car spotted in ${props.data.town} on ${props.dateFormatted}.`}
+        ratio={16 / 9}
       />
     </div>
   );

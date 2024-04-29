@@ -73,12 +73,18 @@ export const SpottingCard = (props: cardProps) => {
             <ServiceBadge service={props.company} className="h-fit" />
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="hidden lg:block">
           <ImagePreview
             url={`${env.NEXT_PUBLIC_CDN_URL}/${props.imageUrl}`}
             alt={`Picture of a Google Car spotted in ${props.town} on ${date}.`}
-            width={props.width}
-            height={props.height}
+            ratio={16 / 9}
+          />
+        </CardContent>
+        <CardContent className="lg:hidden">
+          <ImagePreview
+            url={`${env.NEXT_PUBLIC_CDN_URL}/${props.imageUrl}`}
+            alt={`Picture of a Google Car spotted in ${props.town} on ${date}.`}
+            ratio={props.width / props.height}
           />
         </CardContent>
         <CardFooter className="flex justify-between">
