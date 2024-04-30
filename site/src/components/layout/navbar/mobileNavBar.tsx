@@ -102,6 +102,12 @@ export default function MobileNavBar(props: MobileNavBarProps) {
                 </Collapsible>
                 <Link
                   className="flex w-full items-center py-2 text-lg font-semibold"
+                  href="/map"
+                >
+                  Map
+                </Link>
+                <Link
+                  className="flex w-full items-center py-2 text-lg font-semibold"
                   href="/submit"
                 >
                   Submit Sighting

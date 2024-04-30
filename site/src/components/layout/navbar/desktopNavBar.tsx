@@ -59,6 +59,14 @@ export default function DesktopNavBar(props: DesktopNavBarProps) {
           </NavigationMenuItem>
 
           <NavigationMenuItem>
+            <Link href="/map" legacyBehavior passHref>
+              <NavigationMenuLink className={navigationMenuItemStyle}>
+                Map
+              </NavigationMenuLink>
+            </Link>
+          </NavigationMenuItem>
+
+          <NavigationMenuItem>
             <Link href="/submit" legacyBehavior passHref>
               <NavigationMenuLink className={navigationMenuItemStyle}>
                 Submit
