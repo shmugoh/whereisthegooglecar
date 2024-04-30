@@ -53,7 +53,11 @@ export default function Page(
     const TITLE = `${props.data.town} in ${SERVICE} - WhereIsTheGoogleCar`;
     const DESCRIPTION = `${SERVICE} Car in ${props.data.town} on ${dateFormatted}.`;
 
-    const OPENGRAPH_IMAGE = `${env.NEXT_PUBLIC_CDN_URL}/${props.data.imageUrl}`;
+    const OG_IMG_ENCODED = encodeURIComponent(props.data.imageUrl);
+    const OG_IMG_OPTIMIZED = encodeURIComponent(
+      `${env.NEXT_PUBLIC_VERCEL_URL}/_next/image?url=${OG_IMG_ENCODED}&w=1920&q=75`,
+    );
+    const OPENGRAPH_IMAGE = `${env.NEXT_PUBLIC_VERCEL_URL}/api/og?img=${OG_IMG_OPTIMIZED}`;
 
     return (
       <>
