@@ -137,6 +137,7 @@ class WebSubmission(commands.Cog, name="web_submission"):
       bot_submission = self.submission
       bot_database = self.bot.database
       bot_s3 = self.bot.s3 # for deleting
+      bot_id = self.bot.user.id
         
       # get submission type
       submission_embed = self.submission.process_embed(message)
@@ -222,16 +223,20 @@ class WebSubmission(commands.Cog, name="web_submission"):
                 'If you do not agree with these changes, feel free to edit your original message to reverse the edit.'
             )
             
-            ## create thread (if channel type is textchannel)
-            if submission_output_channel_type == "TextChannel":
-              try:
-                submission_notify_thread = await output_message.create_thread(name=f"{self.date.value} in {self.town.value}")
-              except discord.errors.HTTPException:
-                submission_notify_thread = await interaction.guild.fetch_channel(output_message.id)
-              await submission_notify_thread.send(submission_notify_message)
-            ## send reply (if channel type is thread)
-            elif submission_output_channel_type == 'Thread':
-              await output_message.reply(submission_notify_message)
+            ## check if output message is from bot (so no notification is applied)
+            if output_message.author.id == bot_id:
+              await output_message.edit(content=spotting_message)
+            else:
+              ## create thread (if channel type is textchannel)
+              if submission_output_channel_type == "TextChannel":
+                try:
+                  submission_notify_thread = await output_message.create_thread(name=f"{self.date.value} in {self.town.value}")
+                except discord.errors.HTTPException:
+                  submission_notify_thread = await interaction.guild.fetch_channel(output_message.id)
+                await submission_notify_thread.send(submission_notify_message)
+              ## send reply (if channel type is thread)
+              elif submission_output_channel_type == 'Thread':
+                await output_message.reply(submission_notify_message)
           
           # pos-handling
           embed.description = f"Changes have been approved by <@{interaction.user.id}>. Locking thread..."
