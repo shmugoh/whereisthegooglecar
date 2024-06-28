@@ -196,28 +196,29 @@ export const queryRouter = createTRPCRouter({
       );
 
       // build where clause
-      const whereClause: any = {};
+      const whereClause: queryClause = {};
       if (typeof month !== "undefined" && typeof year !== "undefined") {
         const startDate = new Date(Date.UTC(year, month - 1, 1));
         const endDate = new Date(Date.UTC(year, month, 0));
 
         whereClause.date = { gte: startDate, lte: endDate };
       }
-      if (company) {
-        whereClause.company === "others_rest"
+
+      if (input.company) {
+        input.company === "others_rest"
           ? { notIn: ["google", "apple", "yandex"] }
-          : company;
+          : (whereClause.company = company);
       }
+
       /// search queries
-      if (input.town) {
+      if (input.town !== undefined) {
         whereClause.town = {
           contains: input.town,
           mode: "insensitive",
         };
       }
-      if (input.country) {
-        whereClause.country =
-          input.country === "OTHERS" ? "others" : input.country;
+      if (input.country !== undefined) {
+        whereClause.country === "OTHERS" ? "others" : input.country;
       }
 
       // perform search to database
