@@ -1,0 +1,102 @@
+name: Bug Report
+description: File a bug report.
+title: "[BUG] - <title>"
+labels: ["bug"]
+assignees:
+  - shmugoh
+body:
+  # Environment
+  - type: dropdown
+    id: environment
+    attributes:
+      label: "Bot or Site?"
+      description: Where are you having the problem on?
+      multiple: true
+      options:
+        - Website
+        - Bot
+    validations:
+      required: true
+
+  # Summary
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: Summary of the unexpected issue
+
+    validations:
+      required: true
+
+  # Description
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Description of the unexpected issue
+    validations:
+      required: true
+
+  # Steps to Reproduce
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the issue
+    validations:
+      required: true
+
+  # Actual Result
+  - type: input
+    id: result
+    attributes:
+      label: Actual Result
+      description: Result of the issue
+    validations:
+      required: true
+
+  # Expected Result
+  - type: input
+    id: expected
+    attributes:
+      label: Expected Result
+      description: What you are expecting
+    validations:
+      required: true
+
+  # Input
+  - type: input
+    id: workaround
+    attributes:
+      label: Workaround
+      description: What do you do to mitigate this issue?
+
+  # Device Settings
+  - type: dropdown
+    id: browsers
+    attributes:
+      label: "Browsers - Only for Website"
+      description: What browsers are you seeing the problem on?
+      multiple: true
+      options:
+        - Firefox
+        - Chrome
+        - Safari
+        - Microsoft Edge
+        - Opera
+    validations:
+      required: false
+  - type: dropdown
+    id: os
+    attributes:
+      label: "OS - Only for Website"
+      description: What operating system are you using?
+      multiple: true
+      options:
+        - Windows
+        - Linux
+        - Mac
+        - Android
+        - iOS
+    validations:
+      required: false
