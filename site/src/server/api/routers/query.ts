@@ -206,7 +206,7 @@ export const queryRouter = createTRPCRouter({
 
       if (input.company) {
         input.company === "others_rest"
-          ? { notIn: ["google", "apple", "yandex"] }
+          ? (whereClause.company = { notIn: ["google", "apple", "yandex"] })
           : (whereClause.company = company);
       }
 
@@ -218,7 +218,9 @@ export const queryRouter = createTRPCRouter({
         };
       }
       if (input.country !== undefined) {
-        whereClause.country === "OTHERS" ? "others" : input.country;
+        input.country === "OTHERS"
+          ? (whereClause.country = "others")
+          : (whereClause.country = input.country);
       }
 
       // perform search to database

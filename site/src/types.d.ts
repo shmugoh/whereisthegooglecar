@@ -44,6 +44,6 @@ type pageProps = {
 interface queryClause {
   date?: { gte: Date; lte: Date };
   country?: string;
-  company?: string;
+  company?: { notIn: string[] } | string;
   town?: { contains: string; mode: "insensitive" };
 }
