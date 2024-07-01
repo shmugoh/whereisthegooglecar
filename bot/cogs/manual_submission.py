@@ -12,6 +12,7 @@ from utils.database import DatabaseManager
 import re
 
 guild_id = os.getenv("GUILD_ID")
+submission_channel_id = int(os.getenv("CHANNEL_SUBMISSION_ID"))
 # i can't call self.bot.guild_id within the @app_commands.guilds decorator, so i have to hard-code it
 
 class ManualSubmission(commands.Cog, name="manual_submission"):
@@ -31,11 +32,16 @@ class ManualSubmission(commands.Cog, name="manual_submission"):
       thread="The thread to rescan the spotting from",
     )
     @app_commands.guilds(discord.Object(id=guild_id))
-    @commands.check_any(is_owner(), has_guild_permissions(manage_messages=True))
+    @commands.check_any(is_owner(), has_guild_permissions(manage_messages=True), commands.has_any_role("Where Is The Google Car Team"))
     async def scan(self, context: Context, id: str, channel: discord.TextChannel = None, thread: discord.Thread = None) -> None:
       # passing channels here as a way to check if channel is in database
       # we are removing the previous spotting in database if it exits, as
       # one of its use cases is fully rescanning it if any sort of change has been made
+      
+      # enable/disable ephemeral depending on channel
+      ephemeral_status = True
+      if context.channel.id == submission_channel_id:
+        ephemeral_status = False
     
       # generate embed
       embed = discord.Embed(
@@ -43,7 +49,7 @@ class ManualSubmission(commands.Cog, name="manual_submission"):
         description = "Scanning Spotting...",
         color=discord.Color.blurple()
       )
-      bot_message = await context.send(embed=embed, ephemeral=True)
+      bot_message = await context.send(embed=embed, ephemeral=ephemeral_status)
     
       # if no channel or thread is provided
       if channel is None and thread is None:
@@ -95,7 +101,7 @@ class ManualSubmission(commands.Cog, name="manual_submission"):
           embed.color = discord.Color.red()
           embed.remove_footer()
           embed.description = "Channel not found in database. Please add it first."
-          await context.send(embed=embed, ephemeral=True)
+          await context.send(embed=embed, ephemeral=ephemeral_status)
           return
         
         # checks if message is spotting
@@ -137,7 +143,7 @@ class ManualSubmission(commands.Cog, name="manual_submission"):
         embed.color = discord.Color.red()
         embed.remove_footer()
         embed.description = f"An error occurred: {e}"
-        await context.send(embed=embed, ephemeral=True)
+        await context.send(embed=embed, ephemeral=ephemeral_status)
         
     @commands.hybrid_command(
       name="edit",
@@ -153,7 +159,7 @@ class ManualSubmission(commands.Cog, name="manual_submission"):
       service="The service of the spotting - Must be a valid service in the database",
     )
     @app_commands.guilds(discord.Object(id=guild_id))
-    @commands.check_any(is_owner(), has_guild_permissions(manage_messages=True))
+    @commands.check_any(is_owner(), has_guild_permissions(manage_messages=True), commands.has_any_role("Where Is The Google Car Team"))
     async def edit(self, context: Context, *, 
       id: str,
       date: str = None,
@@ -163,13 +169,19 @@ class ManualSubmission(commands.Cog, name="manual_submission"):
       location: str = None,
       service: str = None,
       ) -> None:
+      
+      # enable/disable ephemeral depending on channel
+      ephemeral_status = True
+      if context.channel.id == submission_channel_id:
+        ephemeral_status = False
+      
       # generate embed
       embed = discord.Embed(
         title=f"Manual Submission - Edit",
         description = "Editing Spotting...",
         color=discord.Color.blurple()
       )
-      bot_message = await context.send(embed=embed, ephemeral=True)
+      bot_message = await context.send(embed=embed, ephemeral=ephemeral_status)
       
       # find spotting in db
       id = int(id)
@@ -248,7 +260,7 @@ class ManualSubmission(commands.Cog, name="manual_submission"):
           embed.remove_footer()
           embed.color = discord.Color.red()
           embed.description = f"An error occurred: {e}"
-          await context.send(embed=embed, ephemeral=True)
+          await context.send(embed=embed, ephemeral=ephemeral_status)
       else:
         embed.remove_footer()
         embed.color = discord.Color.red()
@@ -263,15 +275,21 @@ class ManualSubmission(commands.Cog, name="manual_submission"):
       id="The ID of the spotting to delete",
     )
     @app_commands.guilds(discord.Object(id=guild_id))
-    @commands.check_any(is_owner(), has_guild_permissions(manage_messages=True))
-    async def delete(self, context: Context, id: str) -> None:      
+    @commands.check_any(is_owner(), has_guild_permissions(manage_messages=True), commands.has_any_role("Where Is The Google Car Team"))
+    async def delete(self, context: Context, id: str) -> None:
+    
+      # enable/disable ephemeral depending on channel
+      ephemeral_status = True
+      if context.channel.id == submission_channel_id:
+        ephemeral_status = False
+    
       # generate embed
       embed = discord.Embed(
         title=f"Manual Submission - Delete",
         description = "Deleting Spotting",
         color=discord.Color.blurple()
       )
-      bot_message = await context.send(embed=embed, ephemeral=True)
+      bot_message = await context.send(embed=embed, ephemeral=ephemeral_status)
       
       # find spotting in db
       id = int(id)

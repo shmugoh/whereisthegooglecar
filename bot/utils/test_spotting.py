@@ -105,12 +105,34 @@ class SpottingTests(unittest.TestCase):
         "🇮🇱 2011 in [Yad Vashem holocaust remembrance center, Jerusalem, Israel](<https://maps.app.goo.gl/mPTTuBqopx52vrXBA>) / source: https://www.yadvashem.org/blog/google-street-view-trike-comes-to-yad-vashem.html",
         "🇯🇵 2009 in Japan / Source:<https://noriyuki.cocolog-nifty.com/blog/2009/04/google-4312.html>",
         "🇨🇦 2009 in Mississauga, Ontario, Canada / Source:<https://www.iphoneincanada.ca/2009/08/07/google-street-view-almost-in-canada/>"
+
+        
+        # others
+        
+        """
+        🇨🇦 [Google] 2024/06/20 in [Kawartha Lakes, Ontario, Canada](<https://maps.app.goo.gl/moKWp3AE8N4RRE239>)
+        __source:__ hello world!
+        """,
+        
+        """
+        test [Others] [2024/06/28](<https://commons.wikimedia.org/wiki/File:Google'i_palgatud_Regio_auto_Tallinna_t%C3%A4navapilti_j%C3%A4%C3%A4dvustamas._Karu_t%C3%A4nav,_2014._aasta_juuli..jpg>) in test
+        """,
+        
+        """
+        test [Others] [2024/06/28](https://commons.wikimedia.org/wiki/File:Google'i_palgatud_Regio_auto_Tallinna_t%C3%A4navapilti_j%C3%A4%C3%A4dvustamas._Karu_t%C3%A4nav,_2014._aasta_juuli..jpg) in test
+        """,
+        
+        """
+        🇺🇸 [2024/01/09](<https://twitter.com/Dustola_1985/status/1744844670016827783>) near Stilwell, Oklahoma, USA
+        """,
     ]
         self.s = spotting()
 
     def test_all(self):
         for string in self.spottings:
-            print(self.s.process_spotting(string))
+            output = self.s.process_spotting(string)
+            print(output)
+            print(output["source"])
             print("---")
         # print(self.s.regex_town)
     

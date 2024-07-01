@@ -24,27 +24,27 @@ class spotting():
     self.regex_date = r"\d{4}(?:\/\d{2}(?:\/\d{2})?)?"
     # YYYY/MM/DD
     
-    self.regex_town = r"((?:in)|(?:-)) (\w.+(?=\()|\w.+(?=\/ )|\w.+(?=\/\w)|\w.+|(?:\[)(\w.+?)(?:\]))"
+    self.regex_town = r"((?:in)|(?:-)|(?:near))(?: the |\s)(\w.+(?=\()|\w.+(?=\/ )|\w.+(?=\/\w)|\w.+|(?:\[)(\w.+?)(?:\]))"
     # first separators is for legacy spottings that have a parenthesis or slash after the town name ( in Town Name( )
       # this is to avoid catching accidental text or slashes ([TOWN]/Source:) that might be in the same line
     # second separator is for catching legacy spottings with no parenthesis ( in Town Name )
     # third separator is for catching town names among brackets ( in [Town Name] )
     
     self.regex_source = r'''
-      [Ss]ource:?.*
-      (https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b[-a-zA-Z0-9()@:%_\+.~#?&//=]*)
+      [Ss]ource:?.*(https?:\/\/[^\s>]+)\s
       |
-      (?:[0-9]\])\((?:\<|)
-      (https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b[-a-zA-Z0-9()@:%_\+.~#?&//=]*)
-      (?:\>|)\)
+      \[\d{4}/\d{2}/\d{2}\]\(<?(https?:\/\/[^\s>]+)>?\)
       |
       \d .+?\w \((.+)\)
-      '''.replace("\n", "").replace(" ", "").replace("\\d.", "\\d .").replace("\\w\\", "\\w \\") # to remove the spaces and newlines
+      |
+      [Ss]ource:?\s*(?:__)?\s*(.+)
+      '''.replace("\n", "").replace("      ", "")
+    
     # first separator is for legacy spottings
     # second separator is for catching URLs after the date; among brackets, and sometimes angle brackets
       
     self.regex_location = r'''
-      location:?.*
+      [Ll]ocation:?.*
       (https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b[-a-zA-Z0-9()@:%_\+.~#?&//=]*)
       |
       (?:in \[\w.+])\((?:\<|)
@@ -236,6 +236,8 @@ class spotting():
         # match[2] is for the third separator
         elif match[2]: 
           return match[2]
+        elif match[3]:
+          return match[3]
     
     return None # optional, so that it doesn't throw an error if there's no match
     

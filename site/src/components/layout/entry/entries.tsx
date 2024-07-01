@@ -108,7 +108,6 @@ export default function EntriesPage(props: EntriesPageProps) {
 
   // fetch data
   const dataMutation = api.query.queryByMonth.useMutation({});
-  const dataSearchMutation = api.query.queryByFilter.useMutation({});
   const monthMutation = api.query.queryByFilterMonth.useMutation({});
 
   const fetchData = useCallback(async () => {
@@ -120,33 +119,25 @@ export default function EntriesPage(props: EntriesPageProps) {
       setCardSets([]); // clear current data
     }
 
-    // if from search
+    // normal queries & search queries have the same 4 fundamental variables to query
+    const commonData = {
+      company: props.company!,
+      month: month.current.getUTCMonth() + 1,
+      year: month.current.getUTCFullYear(),
+      page: activePage.current,
+    };
+
     if (props.startDate !== undefined && props.endDate !== undefined) {
-      data = await dataSearchMutation.mutateAsync({
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        company: props.company!,
-        startDate: new Date(
-          month.current.getUTCFullYear(),
-          month.current.getUTCMonth(),
-          1,
-        ),
-        endDate: new Date(
-          month.current.getUTCFullYear(),
-          month.current.getUTCMonth() + 1,
-          0,
-        ),
+      // if coming from search
+      data = await dataMutation.mutateAsync({
+        ...commonData,
         town: props.town!,
         country: props.country!,
-        page: activePage.current,
+        cache: false,
       });
-      // if from normal
     } else {
-      data = await dataMutation.mutateAsync({
-        company: props.company!,
-        month: (month.current.getUTCMonth() + 1).toString(),
-        year: month.current.getUTCFullYear().toString(),
-        page: activePage.current,
-      });
+      // if coming from front-page
+      data = await dataMutation.mutateAsync(commonData);
     }
 
     // console.log("active page: ", activePage.current);
