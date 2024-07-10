@@ -8,6 +8,7 @@
 # Project Folders
 !bot/**/*
 !site/**/*
+!api/**/*
 
 # Development Files
 !.env.example
