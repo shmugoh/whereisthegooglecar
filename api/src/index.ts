@@ -1,7 +1,7 @@
 import { Hono } from "hono";
-import spottings from "./spottings";
-import metadata from "./metadata";
-import form from "./form";
+import spottings from "./routes/spottings";
+import metadata from "./routes/metadata";
+import form from "./routes/form";
 
 const app = new Hono();
 
