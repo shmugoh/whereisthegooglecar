@@ -10,7 +10,8 @@
     "drizzle-orm": "^0.31.4",
     "hono": "^4.4.12",
     "pg": "^8.12.0",
-    "postgres": "^3.4.4"
+    "postgres": "^3.4.4",
+    "superjson": "^2.2.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240529.0",

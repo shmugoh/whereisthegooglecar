@@ -1,7 +1,4 @@
-import { drizzle } from "drizzle-orm/postgres-js";
 import { Hono } from "hono";
-import postgres from "postgres";
-import { spottings as spottings_schema } from "../db/schema";
 import { metadataController } from "../controllers/metadata.controller";
 
 export type Env = {
