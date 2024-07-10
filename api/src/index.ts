@@ -10,20 +10,10 @@ export type Env = {
   DATABASE_URL: string;
 };
 
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<{ Bindings: Env }>().basePath("/api/v2");
 
-app.get("/test", async (c) => {
-  const sql = postgres(c.env.DATABASE_URL);
-  const db = drizzle(sql);
-
-  const result = await db.select().from(spottings_schema);
-
-  console.log(result);
-  return c.body("Hello World!");
-});
-
-app.route("/api/v2/spottings", spottings);
-app.route("/api/v2/metadata", metadata);
-app.route("/api/v2/form", form);
+app.route("/spottings", spottings);
+app.route("/metadata", metadata);
+app.route("/form", form);
 
 export default app;

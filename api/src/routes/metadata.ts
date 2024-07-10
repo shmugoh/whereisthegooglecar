@@ -1,8 +1,20 @@
+import { drizzle } from "drizzle-orm/postgres-js";
 import { Hono } from "hono";
+import postgres from "postgres";
+import { spottings as spottings_schema } from "../db/schema";
+import { metadataController } from "../controllers/metadata.controller";
 
-const app = new Hono();
+export type Env = {
+  DATABASE_URL: string;
+};
 
-app.get("/services", (c) => c.json({ hello: "world!" }));
+const app = new Hono<{ Bindings: Env }>();
+
+app.get("/services", async (c) => {
+  const data = await metadataController.getServices(c);
+  return c.json(data);
+});
+
 app.get("/companies", (c) => c.json({ hello: "world!" }));
 app.get("/earliest-date", (c) => c.json({ hello: "world!" }));
 app.get("/available-months", (c) => c.json({ hello: "world!" }));
