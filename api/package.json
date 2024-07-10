@@ -2,11 +2,14 @@
   "name": "api",
   "scripts": {
     "dev": "wrangler dev src/index.ts",
-    "deploy": "wrangler deploy --minify src/index.ts"
+    "deploy": "wrangler deploy --minify src/index.ts",
+    "db:generate": "drizzle-kit generate --dialect=postgresql --schema=./src/db/schema.ts --out=./drizzle",
+    "db:migrate": "bun ./src/db/migrate.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.31.4",
     "hono": "^4.4.12",
+    "pg": "^8.12.0",
     "postgres": "^3.4.4"
   },
   "devDependencies": {
