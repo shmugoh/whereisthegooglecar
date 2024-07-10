@@ -24,6 +24,15 @@ app.get("/date-span", async (c) => {
   const data = await metadataController.getDateSpan(c);
   return c.json(data);
 });
-app.get("/available-months", (c) => c.json({ hello: "world!" }));
+
+// TODO: Grab the following parameters:
+// startDate, endDate
+// company
+// country, town
+// cache (boolean)
+app.get("/available-months", async (c) => {
+  const data = await metadataController.getAvailableMonths(c);
+  return c.json(data);
+});
 
 export default app;

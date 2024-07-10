@@ -1,4 +1,4 @@
-export const priorityOrder = [
+export const PRIORITY_ORDER = [
   "Google",
   "Apple",
   "Yandex",
@@ -10,4 +10,6 @@ export const priorityOrder = [
   "Gaode",
 ];
 
-export const othersEmoji = "🌐";
+export const OTHERS_EMOJI = "🌐";
+
+export const PAGINATION_TAKE = 9;
