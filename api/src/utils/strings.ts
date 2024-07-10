@@ -12,3 +12,14 @@ export function capitalizeLetter(s: string) {
 
   return stringBuff.trim();
 }
+
+export function buildCountryObject(
+  country_value: string,
+  country_emoji: string,
+  country_name: string
+) {
+  return {
+    label: `${country_emoji} - ${country_name}`,
+    value: country_value,
+  };
+}

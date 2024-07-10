@@ -15,7 +15,10 @@ app.get("/services", async (c) => {
   return c.json(data);
 });
 
-app.get("/companies", (c) => c.json({ hello: "world!" }));
+app.get("/countries", async (c) => {
+  const data = await metadataController.getCountries(c);
+  return c.json(data);
+});
 app.get("/earliest-date", (c) => c.json({ hello: "world!" }));
 app.get("/available-months", (c) => c.json({ hello: "world!" }));
 

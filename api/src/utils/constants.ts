@@ -9,3 +9,5 @@ export const priorityOrder = [
   "Tencent",
   "Gaode",
 ];
+
+export const othersEmoji = "🌐";
