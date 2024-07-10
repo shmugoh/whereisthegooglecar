@@ -84,6 +84,37 @@ class MetadataController {
       return error;
     }
   }
+
+  async getDateSpan(c: any) {
+    try {
+      // connect to database
+      const sql = postgres(c.env.DATABASE_URL);
+      const db = drizzle(sql);
+
+      // query
+      const earliestDateResult = await db
+        .selectDistinct({ date: spottings_schema.date })
+        .from(spottings_schema)
+        .orderBy(asc(spottings_schema.date))
+        .limit(1);
+      const newestDateResult = await db
+        .selectDistinct({ date: spottings_schema.date })
+        .from(spottings_schema)
+        .orderBy(desc(spottings_schema.date))
+        .limit(1);
+
+      // post-query
+      let result: { earliest_date: Date; newest_date: Date } = {
+        earliest_date: earliestDateResult[0].date,
+        newest_date: newestDateResult[0].date,
+      };
+
+      // return
+      return result;
+    } catch (error) {
+      return error;
+    }
+  }
 }
 
 export const metadataController = new MetadataController();

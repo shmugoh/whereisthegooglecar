@@ -19,7 +19,11 @@ app.get("/countries", async (c) => {
   const data = await metadataController.getCountries(c);
   return c.json(data);
 });
-app.get("/earliest-date", (c) => c.json({ hello: "world!" }));
+
+app.get("/date-span", async (c) => {
+  const data = await metadataController.getDateSpan(c);
+  return c.json(data);
+});
 app.get("/available-months", (c) => c.json({ hello: "world!" }));
 
 export default app;
