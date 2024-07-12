@@ -44,8 +44,6 @@ export const SpottingCard = (props: cardProps) => {
   // format date
   const date = convertDate(props.date);
 
-  console.log(props);
-
   return (
     <div className="w-96 lg:w-[402px]">
       <Card className="-space-y-4">

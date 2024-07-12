@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,8 +16,7 @@ import { Form, FormControl, FormField } from "~/components/ui/form";
 import { DropdownBox } from "~/components/layout/combobox";
 
 import { SearchIcon, FilterIcon, FlagIcon } from "lucide-react";
-
-import { api } from "~/utils/api";
+import { env } from "~/env";
 
 // define form schema
 const formSchema = z.object({
@@ -29,20 +28,8 @@ const formSchema = z.object({
 export const Search = () => {
   // Dropdown Hook
   const [open, setOpen] = useState(false);
-
-  // Grab Services
-  const services =
-    api.grab.grabServices.useQuery(undefined, {
-      refetchOnMount: false,
-      refetchOnWindowFocus: false,
-    }).data ?? [];
-
-  // Grab Countries
-  const countries =
-    api.grab.grabCountries.useQuery(undefined, {
-      refetchOnMount: false,
-      refetchOnWindowFocus: false,
-    }).data ?? [];
+  const [services, setServices] = useState([]);
+  const [countries, setCountries] = useState([]);
 
   // Initialize Router
   const router = useRouter();
@@ -56,6 +43,29 @@ export const Search = () => {
       countries: "",
     },
   });
+
+  const fetchMetadata = useCallback(async () => {
+    // Grab Services
+    fetch(`${env.NEXT_PUBLIC_API_URL}/metadata/services`)
+      .then((response) => response.json())
+      .then((data) => setServices(data))
+      .catch((error) => console.error("Error fetching services:", error));
+
+    // Grab Countries
+    fetch(`${env.NEXT_PUBLIC_API_URL}/metadata/countries`)
+      .then((response) => response.json())
+      .then((data) => setCountries(data))
+      .catch((error) => console.error("Error fetching countries:", error));
+  }, []);
+
+  useEffect(() => {
+    void fetchMetadata();
+  }, []);
+
+  useEffect(() => {
+    console.log(services);
+  }, [services]);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setOpen(false);
 

@@ -25,10 +25,10 @@ class MetadataController {
         .from(spottings);
 
       // post-query
-      let result: string[] = [];
+      let result: { label: string; value: any }[] = [];
       queryResult.forEach((field) => {
         let serviceName = capitalizeLetter(field.services);
-        result.push(serviceName);
+        result.push({ label: serviceName, value: field.services });
       });
       orderServices(result);
 
