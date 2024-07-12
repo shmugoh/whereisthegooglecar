@@ -8,17 +8,33 @@ export type Env = {
 
 const app = new Hono<{ Bindings: Env }>();
 
+app.get("/search", async (c) => {
+  const { town, service, month, year, cache } = c.req.queries();
+
+  const result = await spottingsController.getByQuery(
+    c,
+    town,
+    service,
+    month,
+    year,
+    cache
+  );
+
+  return c.json(result);
+
+  // return c.json({
+  //   town: town,
+  //   service: service,
+  //   month: month,
+  //   year: year,
+  //   cache: cache,
+  // });
+});
+
 app.get("/:id", async (c) => {
   const { id } = c.req.param();
   const result = await spottingsController.getById(c, id);
   return c.json(result);
 });
-
-app.get("/:month/:year", async (c) => {
-  const { month, year } = c.req.param();
-  return c.body("month and year");
-});
-
-// app.get("/:month-:year", (c) => c.json({ hello: "hii!" })); // TODO
 
 export default app;
