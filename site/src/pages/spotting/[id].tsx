@@ -6,10 +6,10 @@ import { PageComponent } from "~/components/layout/entry/page";
 import { convertDate } from "~/utils/date";
 import { env } from "~/env";
 
-export const runtime = "edge";
+export const runtime = "experimental-edge";
 
 export default function Page(
-  props: InferGetServerSidePropsType<typeof getStaticProps>,
+  props: InferGetServerSidePropsType<typeof getServerSideProps>,
 ) {
   console.log(props.data);
 
@@ -74,15 +74,7 @@ export default function Page(
   }
 }
 
-export const getStaticPaths = async () => {
-  // fallback: 'blocking' will generate not-yet-generated pages on-demand
-  return {
-    fallback: "blocking",
-    paths: [], // Add an empty array as the value for paths
-  };
-};
-
-export const getStaticProps = async ({
+export const getServerSideProps = async ({
   params,
 }: {
   params: { id: string };
@@ -105,7 +97,6 @@ export const getStaticProps = async ({
 
       return {
         props: { data },
-        revalidate: false,
       };
     } catch (error) {
       console.log("Sorry");
@@ -114,4 +105,7 @@ export const getStaticProps = async ({
       };
     }
   }
+  return {
+    notFound: true,
+  };
 };
