@@ -24,21 +24,13 @@ app.get("/search", async (c) => {
   );
 
   return c.json(result);
-
-  // return c.json({
-  //   town: town,
-  //   service: service,
-  //   month: month,
-  //   yea: year,
-  //   cache: cache,
-  // });
 });
 
 app.get("/:id", async (c) => {
   const { id } = c.req.param();
   const result = await spottingsController.getById(c, id);
 
-  return c.json(id);
+  return c.json(result);
 });
 
 export default app;

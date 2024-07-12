@@ -7,6 +7,11 @@ import { buildCountryObject, capitalizeLetter } from "../utils/strings";
 import { orderServices } from "../utils/arrays";
 import { OTHERS_EMOJI, PAGINATION_TAKE } from "../utils/constants";
 
+// TODO: distribute this context script-wide
+import { Context } from "hono";
+import { Env } from "../routes/spottings";
+type C = Context<{ Bindings: Env }>;
+
 class MetadataController {
   async getServices(c: any) {
     try {
@@ -116,19 +121,26 @@ class MetadataController {
     }
   }
 
-  // TODO: Grab the following parameters:
-  // from: to:
-  // company
-  // country, town
-  // cache (boolean)
   async getAvailableMonths(
-    c: any,
+    c: C,
     service: string,
     country: string,
     town: string,
     cache: Boolean
   ) {
     try {
+      // cache
+      // FORMAT: MONTHS:SERVICE
+      if (cache && country == undefined && town == undefined) {
+        const cached_months = await c.env.KV.get(`months:${service}`, "json");
+        if (cached_months) {
+          console.log("CACHE FOUND");
+          return cached_months;
+        }
+      } else {
+        console.log("NO CACHE... GRABBING FROM DB...");
+      }
+
       // connect to database
       const sql = postgres(c.env.DATABASE_URL);
       const db = drizzle(sql);
@@ -191,6 +203,13 @@ class MetadataController {
           count: filteredData.length,
         };
       });
+
+      // cache
+      // FORMAT: MONTHS:SERVICE
+      if (cache && country == undefined && town == undefined) {
+        console.log("CACHING...");
+        await c.env.KV.put(`months:${service}`, JSON.stringify(dataWithCounts));
+      }
 
       return dataWithCounts;
     } catch (error) {

@@ -4,10 +4,24 @@ import { asc, desc, gte, lte, eq, ilike, and, like, SQL } from "drizzle-orm";
 import { spottings } from "../db/schema";
 import { PAGINATION_TAKE } from "../utils/constants";
 
+// TODO: distribute this context script-wide
+import { Context } from "hono";
+import { Env } from "../routes/spottings";
+type C = Context<{ Bindings: Env }>;
+
 class SpottingsController {
-  async getById(c: any, id: string) {
+  async getById(c: C, id: string) {
     try {
+      // check if in cache
+      const id_cache = await c.env.KV.get(`spottings:${id}`, "json");
+      if (id_cache) {
+        console.log("CACHE... RETURNING FROM CACHE");
+        return id_cache;
+      }
+
+      // if not in cache, then grab from database
       // connect to database
+      console.log("NO CACHE... GRABBING FROM DB...");
       const sql = postgres(c.env.DATABASE_URL);
       const db = drizzle(sql);
 
@@ -28,9 +42,11 @@ class SpottingsController {
         .from(spottings)
         .where(eq(spottings.message_id, id));
 
+      // pos-query (store in cache)
+      console.log("CACHING...");
+      await c.env.KV.put(`spottings:${id}`, JSON.stringify(queryResult));
+
       // return
-      console.log(id);
-      console.log(queryResult);
       return queryResult;
     } catch (error) {
       console.log(error);
@@ -39,7 +55,7 @@ class SpottingsController {
   }
 
   async getByQuery(
-    c: any,
+    c: C,
     country: string,
     town: string,
     service: string,
@@ -49,6 +65,20 @@ class SpottingsController {
     cache: boolean
   ) {
     try {
+      // cache
+      // FORMAT: SERVICE:MONTH:YEAR:PAGE
+      if (cache && town == undefined) {
+        console.log("Finding from CACHE...");
+        const cached_month = await c.env.KV.get(
+          `${service}:${month}:${year}:${page}`,
+          "json"
+        );
+        if (cached_month) {
+          console.log("CACHE... RETURNING FROM CACHE");
+          return cached_month;
+        }
+      }
+
       // connect to database
       const sql = postgres(c.env.DATABASE_URL);
       const db = drizzle(sql);
@@ -95,6 +125,14 @@ class SpottingsController {
         .where(and(...sqlConditions))
         .limit(PAGINATION_TAKE)
         .offset(PAGINATION_SKIP);
+
+      if (cache && town == undefined) {
+        console.log("CACHING...");
+        await c.env.KV.put(
+          `${service}:${month}:${year}:${page}`,
+          JSON.stringify(queryResult)
+        );
+      }
 
       return queryResult;
     } catch (error) {
