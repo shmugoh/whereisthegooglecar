@@ -5,12 +5,20 @@ import form from "./routes/form";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { spottings as spottings_schema } from "./db/schema";
+import { cors } from "hono/cors";
 
 export type Env = {
   DATABASE_URL: string;
 };
 
 const app = new Hono<{ Bindings: Env }>().basePath("/api/v2");
+
+app.use("*", (ctx, next) => {
+  const wrapped = cors({
+    origin: "http://localhost:3000",
+  });
+  return wrapped(ctx, next);
+});
 
 app.route("/spottings", spottings);
 app.route("/metadata", metadata);

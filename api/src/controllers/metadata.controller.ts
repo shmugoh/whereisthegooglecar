@@ -161,7 +161,8 @@ class MetadataController {
       const queryResult = await db
         .select({ date: spottings.date })
         .from(spottings)
-        .where(and(...sqlConditions));
+        .where(and(...sqlConditions))
+        .orderBy(desc(spottings.date));
 
       // post-query
       const uniqueDates = queryResult
