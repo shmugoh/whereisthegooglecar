@@ -4,19 +4,22 @@ import superjson from "superjson";
 
 export type Env = {
   DATABASE_URL: string;
+  KV: KVNamespace;
 };
 
 const app = new Hono<{ Bindings: Env }>();
 
 app.get("/search", async (c) => {
-  const { town, service, month, year, cache } = c.req.queries();
+  const { country, town, service, month, year, cache, page } = c.req.queries();
 
   const result = await spottingsController.getByQuery(
     c,
+    country,
     town,
     service,
     month,
     year,
+    page,
     cache
   );
 
@@ -26,7 +29,7 @@ app.get("/search", async (c) => {
   //   town: town,
   //   service: service,
   //   month: month,
-  //   year: year,
+  //   yea: year,
   //   cache: cache,
   // });
 });
@@ -34,7 +37,8 @@ app.get("/search", async (c) => {
 app.get("/:id", async (c) => {
   const { id } = c.req.param();
   const result = await spottingsController.getById(c, id);
-  return c.json(result);
+
+  return c.json(id);
 });
 
 export default app;

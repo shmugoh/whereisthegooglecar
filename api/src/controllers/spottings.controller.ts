@@ -2,6 +2,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { asc, desc, gte, lte, eq, ilike, and, like, SQL } from "drizzle-orm";
 import { spottings } from "../db/schema";
+import { PAGINATION_TAKE } from "../utils/constants";
 
 class SpottingsController {
   async getById(c: any, id: string) {
@@ -39,10 +40,12 @@ class SpottingsController {
 
   async getByQuery(
     c: any,
+    country: string,
     town: string,
     service: string,
     month: number,
     year: number,
+    page: number,
     cache: boolean
   ) {
     try {
@@ -61,10 +64,16 @@ class SpottingsController {
         ilike(spottings.town, town ? `%${town}%` : "%%"),
       ];
 
-      // add service condition if provided
+      // add additional conditions if provided
+      if (country) {
+        sqlConditions.push(like(spottings.country, country));
+      }
       if (service) {
         sqlConditions.push(ilike(spottings.company, `%${service}%`));
       }
+
+      // calculate pagination
+      const PAGINATION_SKIP = PAGINATION_TAKE * page;
 
       // query
       const queryResult = await db
@@ -82,8 +91,10 @@ class SpottingsController {
           height: spottings.height,
         })
         .from(spottings)
-        .orderBy(desc(spottings.date), asc(spottings.createdAt))
-        .where(and(...sqlConditions));
+        .orderBy(desc(spottings.date), asc(spottings.id))
+        .where(and(...sqlConditions))
+        .limit(PAGINATION_TAKE)
+        .offset(PAGINATION_SKIP);
 
       return queryResult;
     } catch (error) {
