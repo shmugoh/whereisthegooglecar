@@ -28,7 +28,16 @@ app.get("/date-span", async (c) => {
 // country, town
 // cache (boolean)
 app.get("/available-months", async (c) => {
-  const data = await metadataController.getAvailableMonths(c);
+  const { service, country, town, cache } = c.req.queries();
+
+  const data = await metadataController.getAvailableMonths(
+    c,
+    service,
+    country,
+    town,
+    cache
+  );
+
   return c.json(data);
 });
 

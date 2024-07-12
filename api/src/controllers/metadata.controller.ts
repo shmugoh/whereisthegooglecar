@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { asc, desc, gte, lte } from "drizzle-orm";
-import { spottings as spottings_schema } from "../db/schema";
+import { SQL, and, asc, desc, gte, ilike, like, lte } from "drizzle-orm";
+import { spottings } from "../db/schema";
 
 import { buildCountryObject, capitalizeLetter } from "../utils/strings";
 import { orderServices } from "../utils/arrays";
@@ -16,8 +16,8 @@ class MetadataController {
 
       // query
       const queryResult = await db
-        .selectDistinct({ services: spottings_schema.company })
-        .from(spottings_schema);
+        .selectDistinct({ services: spottings.company })
+        .from(spottings);
 
       // post-query
       let result: string[] = [];
@@ -43,11 +43,11 @@ class MetadataController {
       // query
       const queryResult = await db
         .selectDistinct({
-          country_value: spottings_schema.country,
-          country_emoji: spottings_schema.countryEmoji,
+          country_value: spottings.country,
+          country_emoji: spottings.countryEmoji,
         })
-        .from(spottings_schema)
-        .orderBy(asc(spottings_schema.country));
+        .from(spottings)
+        .orderBy(asc(spottings.country));
 
       // post-query
       const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
@@ -93,14 +93,14 @@ class MetadataController {
 
       // query
       const earliestDateResult = await db
-        .selectDistinct({ date: spottings_schema.date })
-        .from(spottings_schema)
-        .orderBy(asc(spottings_schema.date))
+        .selectDistinct({ date: spottings.date })
+        .from(spottings)
+        .orderBy(asc(spottings.date))
         .limit(1);
       const newestDateResult = await db
-        .selectDistinct({ date: spottings_schema.date })
-        .from(spottings_schema)
-        .orderBy(desc(spottings_schema.date))
+        .selectDistinct({ date: spottings.date })
+        .from(spottings)
+        .orderBy(desc(spottings.date))
         .limit(1);
 
       // post-query
@@ -121,19 +121,35 @@ class MetadataController {
   // company
   // country, town
   // cache (boolean)
-  async getAvailableMonths(c: any) {
+  async getAvailableMonths(
+    c: any,
+    service: string,
+    country: string,
+    town: string,
+    cache: Boolean
+  ) {
     try {
       // connect to database
       const sql = postgres(c.env.DATABASE_URL);
       const db = drizzle(sql);
 
-      // TODO: whereclause builder
+      const sqlConditions: SQL<unknown>[] = [lte(spottings.date, new Date())];
+      // add additional conditions if provided
+      if (service) {
+        sqlConditions.push(ilike(spottings.company, `%${service}%`));
+      }
+      if (country) {
+        sqlConditions.push(like(spottings.country, country));
+      }
+      if (town) {
+        sqlConditions.push(ilike(spottings.town, town ? `%${town}%` : "%%"));
+      }
 
       // query
       const queryResult = await db
-        .select({ date: spottings_schema.date })
-        .from(spottings_schema)
-        .where(lte(spottings_schema.date, new Date()));
+        .select({ date: spottings.date })
+        .from(spottings)
+        .where(and(...sqlConditions));
 
       // post-query
       const uniqueDates = queryResult
