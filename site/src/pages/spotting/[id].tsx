@@ -6,21 +6,7 @@ import { PageComponent } from "~/components/layout/entry/page";
 import { convertDate } from "~/utils/date";
 import { env } from "~/env";
 
-interface IData {
-  id: number;
-  date: string;
-  town: string;
-  country: string;
-  countryEmoji: string;
-  imageUrl: string;
-  sourceUrl: string;
-  locationUrl: string | null;
-  company: string;
-  createdAt: string;
-  updatedAt: string;
-  message_id: string;
-  channel_id: string;
-}
+export const runtime = "edge";
 
 export default function Page(
   props: InferGetServerSidePropsType<typeof getStaticProps>,

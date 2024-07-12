@@ -7,7 +7,7 @@ import { TopText } from "~/components/layout/entry/topText";
 import { AspectRatio } from "~/components/ui/aspect-ratio";
 import { LocationButton, SourceButton, TextBluePrint } from "./output";
 import { ImagePreview } from "~/components/layout/entry/image";
-import EditDialog from "../form/edit";
+// import EditDialog from "../form/edit";
 import ServiceBadge from "./service_badge";
 
 export const PageComponent = (props: pageProps) => {
