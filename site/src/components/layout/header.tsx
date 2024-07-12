@@ -6,8 +6,8 @@ import { useTheme } from "next-themes";
 import { MdOutlineStreetview } from "react-icons/md";
 import Head from "next/head";
 
-import DesktopNavBar from "./navbar/desktopNavBar";
-import MobileNavBar from "./navbar/mobileNavBar";
+// import DesktopNavBar from "./navbar/desktopNavBar";
+// import MobileNavBar from "./navbar/mobileNavBar";
 
 export const Header = () => {
   //  for some reason if i attempt setting the theme-color on _app.tsx,
@@ -31,8 +31,8 @@ export const Header = () => {
           </Link>
 
           {/* NavBar */}
-          <DesktopNavBar setTheme={setTheme} />
-          <MobileNavBar setTheme={setTheme} />
+          {/* <DesktopNavBar setTheme={setTheme} />
+          <MobileNavBar setTheme={setTheme} /> */}
         </div>
       </header>
     </>

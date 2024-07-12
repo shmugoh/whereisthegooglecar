@@ -37,7 +37,8 @@
     "**/*.tsx",
     "**/*.cjs",
     "**/*.js",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "src/pages/api/sitemap.xml.tsx.bak"
   ],
   "exclude": ["node_modules"]
 }
