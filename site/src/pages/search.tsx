@@ -43,6 +43,7 @@ export default function Search() {
       country={countries}
       town={town}
       showCompany={true}
+      search={true}
     />
   );
 }

@@ -21,10 +21,8 @@ type EntriesPageProps = {
   company: string | undefined;
   country?: string | undefined;
   town?: string | undefined;
-  startDate?: Date;
-  endDate?: Date;
   showCompany?: boolean;
-  maxYear?: number;
+  search?: boolean;
 };
 
 type BaseEntriesPageProps = {
@@ -123,25 +121,30 @@ export default function EntriesPage(props: EntriesPageProps) {
 
     // normal queries & search queries have the same 4 fundamental variables to query
     const commonData = {
-      company: props.company!,
       month: month.current.getUTCMonth() + 1,
       year: month.current.getUTCFullYear(),
       page: activePage.current,
     };
+    if (props.company) {
+      commonData.company = props.company;
+    }
 
-    const searchData = {
-      town: props.town!,
-      country: props.country!,
-    };
+    const searchData: { town?: string; country?: string } = {};
+    if (props.town) {
+      searchData.town = props.town;
+    }
+    if (props.country) {
+      searchData.country = props.country;
+    }
 
     const commonQueryString = new URLSearchParams(commonData).toString();
 
-    if (props.startDate !== undefined && props.endDate !== undefined) {
+    if (props.search) {
       // if coming from search
       const searchQueryString = new URLSearchParams(searchData).toString();
 
       const dataResponse = await fetch(
-        `${env.NEXT_PUBLIC_API_URL}/spottings/search?${commonQueryString}&{${searchQueryString}}`,
+        `${env.NEXT_PUBLIC_API_URL}/spottings/search?${commonQueryString}&${searchQueryString}`,
       );
       data = await dataResponse.json();
     } else {
@@ -198,29 +201,35 @@ export default function EntriesPage(props: EntriesPageProps) {
       let data;
 
       // if coming from search
-      if (props.startDate !== undefined && props.endDate !== undefined) {
+      if (props.search) {
         console.log("Search");
 
-        const searchQueryData = {
-          company: props.company!,
-          //   startDate: props.startDate,
-          //   endDate: props.endDate,
-          town: props.town!,
-          country: props.country!,
-        };
+        const searchQueryData: {
+          company?: string;
+          town?: string;
+          country?: string;
+        } = {};
+        if (props.company) {
+          searchQueryData.company = props.company;
+        }
+        if (props.town) {
+          searchQueryData.town = props.town;
+        }
+        if (props.country) {
+          searchQueryData.country = props.country;
+        }
+
         const searchQueryString = new URLSearchParams(
           searchQueryData,
         ).toString();
 
         const dataResponse = await fetch(
-          `${env.NEXT_PUBLIC_API_URL}/search?${searchQueryString}`,
+          `${env.NEXT_PUBLIC_API_URL}/metadata/available-months?${searchQueryString}`,
         );
         const dataJSON = await dataResponse.json();
         data = dataJSON;
       } else {
         // if coming from normal
-        console.log("front page");
-
         const queryData = {
           service: props.company,
           // cache: true,
