@@ -1,9 +1,7 @@
 import React from "react";
 import { NextSeo } from "next-seo";
 import { type InferGetServerSidePropsType } from "next";
-import { appRouter } from "~/server/api/root";
 
-import { db } from "~/server/db";
 import { PageComponent } from "~/components/layout/entry/page";
 import { convertDate } from "~/utils/date";
 import { env } from "~/env";
@@ -27,13 +25,15 @@ interface IData {
 export default function Page(
   props: InferGetServerSidePropsType<typeof getStaticProps>,
 ) {
+  console.log(props.data);
+
   if (props.data) {
     // format date
     const dateFormatted = convertDate(props.data.date);
 
     // format service for SEO
     const SERVICE = (() => {
-      switch (props.data.company) {
+      switch (props.data.service) {
         case "google":
           return "Google Street View";
         case "apple":
@@ -43,8 +43,8 @@ export default function Page(
         default:
           return (
             // capitalize first letter
-            props.data.company.charAt(0).toUpperCase() +
-            props.data.company.slice(1)
+            props.data.service.charAt(0).toUpperCase() +
+            props.data.service.slice(1)
           );
       }
     })();
@@ -53,7 +53,7 @@ export default function Page(
     const TITLE = `${props.data.town} in ${SERVICE} - WhereIsTheGoogleCar`;
     const DESCRIPTION = `${SERVICE} Car in ${props.data.town} on ${dateFormatted}.`;
 
-    const OG_IMG_ENCODED = encodeURIComponent(props.data.imageUrl);
+    const OG_IMG_ENCODED = encodeURIComponent(props.data.image);
     const OG_IMG_OPTIMIZED = encodeURIComponent(
       `${env.NEXT_PUBLIC_VERCEL_URL}/_next/image?url=${OG_IMG_ENCODED}&w=1920&q=75`,
     );
@@ -101,35 +101,28 @@ export const getStaticProps = async ({
 }: {
   params: { id: string };
 }) => {
-  // create trpc caller
-  const caller = appRouter.createCaller({
-    db,
-  });
-
   // get id from query
   const id_query = params.id;
   if (id_query) {
+    // i gotta clean this up wtf
     const id = id_query.toString();
 
     try {
-      const getById = await caller.query.getById({ id });
+      const url = `${env.NEXT_PUBLIC_API_URL}/spottings/${id_query}`;
 
-      if (getById && typeof getById === "object") {
-        const data: IData = {
-          ...(getById as IData),
-        };
+      const res = await fetch(url);
+      const resJSON = await res.json();
+      const data = resJSON[0];
 
-        // add CDN url to imageUrl (location)
-        data.imageUrl = `${env.NEXT_PUBLIC_CDN_URL}/${data.imageUrl}`;
+      // add CDN url to imageUrl (location)
+      data.image = `${env.NEXT_PUBLIC_CDN_URL}/${data.image}`;
 
-        return {
-          props: {
-            data,
-          },
-          revalidate: 60,
-        };
-      }
+      return {
+        props: { data },
+        revalidate: false,
+      };
     } catch (error) {
+      console.log("Sorry");
       return {
         notFound: true,
       };

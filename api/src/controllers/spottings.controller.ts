@@ -32,6 +32,7 @@ class SpottingsController {
           date: spottings.date,
           country: spottings.country,
           country_emoji: spottings.countryEmoji,
+          town: spottings.town,
           service: spottings.company,
           source: spottings.sourceUrl,
           location: spottings.locationUrl,
