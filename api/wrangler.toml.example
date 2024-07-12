@@ -1,0 +1,7 @@
+name = "api"
+compatibility_date = "2023-12-01"
+compatibility_flags = [ "nodejs_compat" ]
+
+[[kv_namespaces]]
+binding = "KV"
+id = "ID"
