@@ -1,4 +1,3 @@
-import { api } from "~/utils/api";
 import InfiniteScroll from "react-infinite-scroll-component";
 import {
   useState,
@@ -13,10 +12,10 @@ import {
   PageNavigation,
   MobilePageNavigation,
 } from "~/components/layout/pagination";
-import { HomeSkeleton } from "~/components/layout/entry/skeleton";
 
 import { useRouter } from "next/router";
 import Error from "~/pages/_error";
+import { env } from "~/env";
 
 type EntriesPageProps = {
   company: string | undefined;
@@ -44,11 +43,11 @@ export function BaseEntriesPage(props: BaseEntriesPageProps) {
     <div className="flex w-full flex-col justify-between gap-4 md:min-h-[730px]">
       <div className="justify-start">
         <PageNavigation
-          length={props.months.current.length}
+          length={props.months.length}
           activeIndex={props.activeIndex.current}
         />
         <MobilePageNavigation
-          length={props.months.current.length}
+          length={props.months.length}
           activeIndex={props.activeIndex.current}
         />
       </div>
@@ -72,11 +71,11 @@ export function BaseEntriesPage(props: BaseEntriesPageProps) {
 
       <div className="justify-end">
         <PageNavigation
-          length={props.months.current.length}
+          length={props.months.length}
           activeIndex={props.activeIndex.current}
         />
         <MobilePageNavigation
-          length={props.months.current.length}
+          length={props.months.length}
           activeIndex={props.activeIndex.current}
         />
       </div>
@@ -94,7 +93,9 @@ export default function EntriesPage(props: EntriesPageProps) {
 
   // states & references
   const [cardSets, setCardSets] = useState([]);
-  const months = useRef<{ date: Date; pages: number; count: number }[]>([]);
+  const [months, setMonths] = useState<
+    { date: Date; pages: number; count: number }[]
+  >([]);
   const month = useRef<Date>(new Date());
   const activeIndex = useRef<number>(1);
 
@@ -107,8 +108,9 @@ export default function EntriesPage(props: EntriesPageProps) {
   const availablePages = useRef<number>(0);
 
   // fetch data
-  const dataMutation = api.query.queryByMonth.useMutation({});
-  const monthMutation = api.query.queryByFilterMonth.useMutation({});
+
+  // const dataMutation = api.query.queryByMonth.useMutation({});
+  // const monthMutation = api.query.queryByFilterMonth.useMutation({});
 
   const fetchData = useCallback(async () => {
     let data;
@@ -127,17 +129,27 @@ export default function EntriesPage(props: EntriesPageProps) {
       page: activePage.current,
     };
 
+    const searchData = {
+      town: props.town!,
+      country: props.country!,
+    };
+
+    const commonQueryString = new URLSearchParams(commonData).toString();
+
     if (props.startDate !== undefined && props.endDate !== undefined) {
       // if coming from search
-      data = await dataMutation.mutateAsync({
-        ...commonData,
-        town: props.town!,
-        country: props.country!,
-        cache: false,
-      });
+      const searchQueryString = new URLSearchParams(searchData).toString();
+
+      const dataResponse = await fetch(
+        `${env.NEXT_PUBLIC_API_URL}/spottings/search?${commonQueryString}&{${searchQueryString}}`,
+      );
+      data = await dataResponse.json();
     } else {
       // if coming from front-page
-      data = await dataMutation.mutateAsync(commonData);
+      const dataResponse = await fetch(
+        `${env.NEXT_PUBLIC_API_URL}/spottings/search?${commonQueryString}`,
+      );
+      data = await dataResponse.json();
     }
 
     // console.log("active page: ", activePage.current);
@@ -172,9 +184,9 @@ export default function EntriesPage(props: EntriesPageProps) {
         if (cardMonth !== currentMonth || cardYear !== currentYear) {
           return false;
         }
-        // check for unique message_id
-        const message_id = card.message_id;
-        return !this.has(message_id) && this.add(message_id);
+        // check for unique card id
+        const card_id = card.id;
+        return !this.has(card_id) && this.add(card_id);
       }, uniqueMessageIds);
 
       return result;
@@ -187,25 +199,42 @@ export default function EntriesPage(props: EntriesPageProps) {
 
       // if coming from search
       if (props.startDate !== undefined && props.endDate !== undefined) {
-        data = await monthMutation.mutateAsync({
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        console.log("Search");
+
+        const searchQueryData = {
           company: props.company!,
-          startDate: props.startDate,
-          endDate: props.endDate,
+          //   startDate: props.startDate,
+          //   endDate: props.endDate,
           town: props.town!,
           country: props.country!,
-        });
+        };
+        const searchQueryString = new URLSearchParams(
+          searchQueryData,
+        ).toString();
+
+        const dataResponse = await fetch(
+          `${env.NEXT_PUBLIC_API_URL}/search?${searchQueryString}`,
+        );
+        const dataJSON = await dataResponse.json();
+        data = dataJSON;
       } else {
         // if coming from normal
-        data = await monthMutation.mutateAsync({
-          startDate: new Date(props.maxYear ?? 2006, 0),
-          endDate: currentDate,
-          company: props.company,
-          cache: true,
-        });
+        console.log("front page");
+
+        const queryData = {
+          service: props.company,
+          // cache: true,
+        };
+        const queryString = new URLSearchParams(queryData).toString();
+
+        const dataResponse = await fetch(
+          `${env.NEXT_PUBLIC_API_URL}/metadata/available-months?${queryString}`,
+        );
+        const dataJSON = await dataResponse.json();
+        data = dataJSON;
       }
 
-      months.current = data;
+      setMonths(data);
     } catch (error) {
       setError(404);
     }
@@ -216,20 +245,25 @@ export default function EntriesPage(props: EntriesPageProps) {
 
   // fetch new data on mount or new query
   useEffect(() => {
+    console.log("hi");
+
     // none still not defined
-    if (router.query.page === undefined && months.current.length === 0) {
+    if (router.query.page === undefined && months.length === 0) {
+      console.log("none still not defined");
+      console.log(months);
       return;
     }
 
     // set default query page if not set
-    if (router.query.page === undefined && months.current.length !== 0) {
+    if (router.query.page === undefined && months.length !== 0) {
+      console.log("set default query page if not set");
       router.query.page = "1";
     }
 
-    if (months.current.length !== 0) {
+    if (months.length !== 0) {
       // checks if query is within range
       if (
-        Number(router.query.page) > months.current.length ||
+        Number(router.query.page) > months.length ||
         Number(router.query.page) < 1
       ) {
         setError(404);
@@ -238,15 +272,14 @@ export default function EntriesPage(props: EntriesPageProps) {
 
       // reset all data
       activeIndex.current = Number(router.query.page);
-      month.current = months.current[Number(router.query.page) - 1]?.date;
+      month.current = new Date(months[Number(router.query.page) - 1]?.date);
       activePage.current = 0;
-      availablePages.current =
-        months.current[Number(router.query.page) - 1]?.pages;
+      availablePages.current = months[Number(router.query.page) - 1]?.pages;
 
       setCardSets([]);
       void fetchData();
     }
-  }, [router.query.page, months.current]);
+  }, [router.query.page, months]);
 
   if (error !== 200) {
     return (
