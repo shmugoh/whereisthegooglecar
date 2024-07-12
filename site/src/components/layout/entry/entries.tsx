@@ -128,6 +128,9 @@ export default function EntriesPage(props: EntriesPageProps) {
     if (props.company) {
       commonData.company = props.company;
     }
+    if (!props.search) {
+      commonData.cache = true;
+    }
 
     const searchData: { town?: string; country?: string } = {};
     if (props.town) {
@@ -232,7 +235,7 @@ export default function EntriesPage(props: EntriesPageProps) {
         // if coming from normal
         const queryData = {
           service: props.company,
-          // cache: true,
+          cache: true,
         };
         const queryString = new URLSearchParams(queryData).toString();
 
