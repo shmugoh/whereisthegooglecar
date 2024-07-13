@@ -126,7 +126,7 @@ export default function EntriesPage(props: EntriesPageProps) {
       page: activePage.current,
     };
     if (props.company) {
-      commonData.company = props.company;
+      commonData.service = props.company;
     }
     if (!props.search) {
       commonData.cache = true;
@@ -213,7 +213,7 @@ export default function EntriesPage(props: EntriesPageProps) {
           country?: string;
         } = {};
         if (props.company) {
-          searchQueryData.company = props.company;
+          searchQueryData.service = props.company;
         }
         if (props.town) {
           searchQueryData.town = props.town;

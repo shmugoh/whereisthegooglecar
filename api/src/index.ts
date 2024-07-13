@@ -15,7 +15,10 @@ const app = new Hono<{ Bindings: Env }>().basePath("/api/v2");
 
 app.use("*", (ctx, next) => {
   const wrapped = cors({
-    origin: "http://localhost:3000",
+    origin: [
+      "http://localhost:3000",
+      "https://staging-kv.whereisthegooglecar.com",
+    ],
   });
   return wrapped(ctx, next);
 });

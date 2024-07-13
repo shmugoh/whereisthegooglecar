@@ -16,7 +16,7 @@ app.get("/search", async (c) => {
     c,
     country,
     town,
-    service,
+    service[0].toLowerCase(),
     month,
     year,
     page,
