@@ -55,13 +55,13 @@ export const PageComponent = (props: pageProps) => {
       {/* Image Preview */}
       <ImagePreview
         className="w-full md:w-11/12 lg:hidden"
-        url={props.data.imageUrl}
+        url={props.data.image}
         alt={`Picture of a ${props.data.service === "others" ? "Street View" : props.data.service.charAt(0).toUpperCase() + props.data.service.slice(1)} Car spotted in ${props.data.town} on ${props.dateFormatted}.`}
         ratio={props.data.width / props.data.height}
       />
       <ImagePreview
         className="hidden w-full md:w-11/12 lg:block"
-        url={props.data.imageUrl}
+        url={props.data.image}
         alt={`Picture of a ${props.data.service === "others" ? "Street View" : props.data.service.charAt(0).toUpperCase() + props.data.service.slice(1)} Car spotted in ${props.data.town} on ${props.dateFormatted}.`}
         ratio={16 / 9}
       />
