@@ -10,13 +10,20 @@ export type Env = {
 const app = new Hono<{ Bindings: Env }>();
 
 app.get("/search", async (c) => {
-  const { country, town, service, month, year, cache, page } = c.req.queries();
+  const { country, town, month, year, cache, page } = c.req.queries();
+  let service = <string | string[]>c.req.query("service");
+
+  if (service) {
+    service = service[0].toLowerCase();
+  } else {
+    service = service;
+  }
 
   const result = await spottingsController.getByQuery(
     c,
     country,
     town,
-    service[0].toLowerCase(),
+    service,
     month,
     year,
     page,
