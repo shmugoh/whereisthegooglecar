@@ -4,7 +4,8 @@ import superjson from "superjson";
 
 export type Env = {
   DATABASE_URL: string;
-  KV: KVNamespace;
+  UPSTASH_REDIS_REST_URL: string;
+  UPSTASH_REDIS_REST_TOKEN: string;
 };
 
 const app = new Hono<{ Bindings: Env }>();

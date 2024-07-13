@@ -7,13 +7,15 @@ import { PAGINATION_TAKE } from "../utils/constants";
 // TODO: distribute this context script-wide
 import { Context } from "hono";
 import { Env } from "../routes/spottings";
+import { Redis } from "@upstash/redis/cloudflare";
 type C = Context<{ Bindings: Env }>;
 
 class SpottingsController {
   async getById(c: C, id: string) {
     try {
       // check if in cache
-      const id_cache = await c.env.KV.get(`spottings:${id}`, "json");
+      const redis = Redis.fromEnv(c.env);
+      const id_cache = await redis.hget(`spottings:${id}`, "data");
       if (id_cache) {
         console.log("CACHE... RETURNING FROM CACHE");
         return id_cache;
@@ -26,7 +28,7 @@ class SpottingsController {
       const db = drizzle(sql);
 
       // query
-      const queryResult = await db
+      const data = await db
         .select({
           id: spottings.message_id,
           date: spottings.date,
@@ -45,10 +47,10 @@ class SpottingsController {
 
       // pos-query (store in cache)
       console.log("CACHING...");
-      await c.env.KV.put(`spottings:${id}`, JSON.stringify(queryResult));
+      await redis.hset(`spottings:${id}`, { data });
 
       // return
-      return queryResult;
+      return data;
     } catch (error) {
       console.log(error);
       return error;
@@ -67,12 +69,14 @@ class SpottingsController {
   ) {
     try {
       // cache
+      const redis = Redis.fromEnv(c.env);
+
       // FORMAT: SERVICE:MONTH:YEAR:PAGE
       if (cache && town == undefined) {
         console.log("Finding from CACHE...");
-        const cached_month = await c.env.KV.get(
+        const cached_month = await redis.hget(
           `${service}:${month}:${year}:${page}`,
-          "json"
+          "data"
         );
         if (cached_month) {
           console.log("CACHE... RETURNING FROM CACHE");
@@ -107,7 +111,7 @@ class SpottingsController {
       const PAGINATION_SKIP = PAGINATION_TAKE * page;
 
       // query
-      const queryResult = await db
+      const data = await db
         .select({
           id: spottings.message_id,
           date: spottings.date,
@@ -129,13 +133,10 @@ class SpottingsController {
 
       if (cache && town == undefined) {
         console.log("CACHING...");
-        await c.env.KV.put(
-          `${service}:${month}:${year}:${page}`,
-          JSON.stringify(queryResult)
-        );
+        await redis.hset(`${service}:${month}:${year}:${page}`, { data });
       }
 
-      return queryResult;
+      return data;
     } catch (error) {
       console.log(error);
       return error;

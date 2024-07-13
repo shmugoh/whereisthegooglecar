@@ -10,6 +10,7 @@ import { OTHERS_EMOJI, PAGINATION_TAKE } from "../utils/constants";
 // TODO: distribute this context script-wide
 import { Context } from "hono";
 import { Env } from "../routes/spottings";
+import { Redis } from "@upstash/redis/cloudflare";
 type C = Context<{ Bindings: Env }>;
 
 class MetadataController {
@@ -130,9 +131,11 @@ class MetadataController {
   ) {
     try {
       // cache
+      const redis = Redis.fromEnv(c.env);
+
       // FORMAT: MONTHS:SERVICE
       if (cache && country == undefined && town == undefined) {
-        const cached_months = await c.env.KV.get(`months:${service}`, "json");
+        const cached_months = await redis.hget(`months:${service}`, "data");
         if (cached_months) {
           console.log("CACHE FOUND");
           return cached_months;
@@ -182,7 +185,7 @@ class MetadataController {
         });
 
       // grab count
-      const dataWithCounts = uniqueDates.map((uniqueDate) => {
+      const data = uniqueDates.map((uniqueDate) => {
         // filter data for specific month
         const filteredData = queryResult.filter((item) => {
           const date = new Date(
@@ -209,10 +212,10 @@ class MetadataController {
       // FORMAT: MONTHS:SERVICE
       if (cache && country == undefined && town == undefined) {
         console.log("CACHING...");
-        await c.env.KV.put(`months:${service}`, JSON.stringify(dataWithCounts));
+        await redis.hset(`months:${service}`, { data });
       }
 
-      return dataWithCounts;
+      return data;
     } catch (error) {
       return error;
     }
