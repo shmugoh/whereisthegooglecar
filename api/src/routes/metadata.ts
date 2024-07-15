@@ -1,9 +1,6 @@
 import { Hono } from "hono";
 import { metadataController } from "../controllers/metadata.controller";
-
-export type Env = {
-  DATABASE_URL: string;
-};
+import { Env } from "../utils/constants";
 
 const app = new Hono<{ Bindings: Env }>();
 

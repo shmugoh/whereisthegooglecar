@@ -2,14 +2,9 @@ import { Hono } from "hono";
 import spottings from "./routes/spottings";
 import metadata from "./routes/metadata";
 import form from "./routes/form";
-import postgres from "postgres";
-import { drizzle } from "drizzle-orm/postgres-js";
-import { spottings as spottings_schema } from "./db/schema";
 import { cors } from "hono/cors";
 
-export type Env = {
-  DATABASE_URL: string;
-};
+import { type Env } from "./utils/constants";
 
 const app = new Hono<{ Bindings: Env }>().basePath("/api/v2");
 

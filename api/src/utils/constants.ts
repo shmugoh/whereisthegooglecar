@@ -1,3 +1,12 @@
+import { type Context } from "hono";
+
+export type Env = {
+  DATABASE_URL: string;
+  UPSTASH_REDIS_REST_URL: string;
+  UPSTASH_REDIS_REST_TOKEN: string;
+};
+export type ContextType = Context<{ Bindings: Env }>;
+
 export const PRIORITY_ORDER = [
   "Google",
   "Apple",

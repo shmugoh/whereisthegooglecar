@@ -5,17 +5,14 @@ import { spottings } from "../db/schema";
 
 import { buildCountryObject, capitalizeLetter } from "../utils/strings";
 import { orderServices } from "../utils/arrays";
-import { OTHERS_EMOJI, PAGINATION_TAKE } from "../utils/constants";
+import { ContextType, OTHERS_EMOJI, PAGINATION_TAKE } from "../utils/constants";
 
 // TODO: distribute this context script-wide
-import { Context } from "hono";
-import { Env } from "../routes/spottings";
 import { Redis } from "@upstash/redis/cloudflare";
 import { HTTPException } from "hono/http-exception";
-type C = Context<{ Bindings: Env }>;
 
 class MetadataController {
-  async getServices(c: any) {
+  async getServices(c: ContextType) {
     try {
       // connect to database
       const sql = postgres(c.env.DATABASE_URL);
@@ -41,7 +38,7 @@ class MetadataController {
     }
   }
 
-  async getCountries(c: any) {
+  async getCountries(c: ContextType) {
     try {
       // connect to db
       const sql = postgres(c.env.DATABASE_URL);
@@ -91,7 +88,7 @@ class MetadataController {
     }
   }
 
-  async getDateSpan(c: any) {
+  async getDateSpan(c: ContextType) {
     try {
       // connect to database
       const sql = postgres(c.env.DATABASE_URL);
@@ -123,7 +120,7 @@ class MetadataController {
   }
 
   async getAvailableMonths(
-    c: C,
+    c: ContextType,
     service: string,
     country: string,
     town: string,

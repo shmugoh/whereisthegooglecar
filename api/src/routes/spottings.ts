@@ -1,12 +1,6 @@
 import { Hono } from "hono";
 import { spottingsController } from "../controllers/spottings.controller";
-import superjson from "superjson";
-
-export type Env = {
-  DATABASE_URL: string;
-  UPSTASH_REDIS_REST_URL: string;
-  UPSTASH_REDIS_REST_TOKEN: string;
-};
+import { Env } from "../utils/constants";
 
 const app = new Hono<{ Bindings: Env }>();
 

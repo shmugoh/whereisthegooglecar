@@ -2,17 +2,14 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { asc, desc, gte, lte, eq, ilike, and, like, SQL } from "drizzle-orm";
 import { spottings } from "../db/schema";
-import { PAGINATION_TAKE } from "../utils/constants";
+import { ContextType, PAGINATION_TAKE } from "../utils/constants";
 
 // TODO: distribute this context script-wide
-import { Context } from "hono";
-import { Env } from "../routes/spottings";
 import { Redis } from "@upstash/redis/cloudflare";
 import { HTTPException } from "hono/http-exception";
-type C = Context<{ Bindings: Env }>;
 
 class SpottingsController {
-  async getById(c: C, id: string) {
+  async getById(c: ContextType, id: string) {
     try {
       // check if in cache
       const redis = Redis.fromEnv(c.env);
@@ -65,7 +62,7 @@ class SpottingsController {
   }
 
   async getByQuery(
-    c: C,
+    c: ContextType,
     country: string,
     town: string,
     service: string,
