@@ -2,7 +2,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { asc, desc, gte, lte, eq, ilike, and, like, SQL } from "drizzle-orm";
 import { spottings } from "../db/schema";
-import { ContextType, PAGINATION_TAKE } from "../utils/constants";
+import { ContextType, PAGINATION_TAKE, PotLogger } from "../utils/constants";
 
 // TODO: distribute this context script-wide
 import { Redis } from "@upstash/redis/cloudflare";
@@ -12,16 +12,17 @@ class SpottingsController {
   async getById(c: ContextType, id: string) {
     try {
       // check if in cache
+      PotLogger("[SPOTTINGS - ID] -", `Grabbing spottings:${id} from cache...`);
       const redis = Redis.fromEnv(c.env);
       const id_cache = await redis.hget(`spottings:${id}`, "data");
       if (id_cache) {
-        console.log("CACHE... RETURNING FROM CACHE");
+        PotLogger("[SPOTTINGS - ID] -", `Found in cache.`, `Returning...`);
         return id_cache;
       }
 
       // if not in cache, then grab from database
       // connect to database
-      console.log("NO CACHE... GRABBING FROM DB...");
+      PotLogger("[SPOTTINGS - ID] -", `No cache found.`, `Grabbing from DB...`);
       const sql = postgres(c.env.DATABASE_URL);
       const db = drizzle(sql);
 
@@ -48,7 +49,7 @@ class SpottingsController {
       }
 
       // pos-query (store in cache)
-      console.log("CACHING...");
+      PotLogger("[SPOTTINGS - ID] -", `Caching ${id}...`);
       await redis.hset(`spottings:${id}`, { data });
 
       // return
@@ -77,18 +78,25 @@ class SpottingsController {
 
       // FORMAT: SERVICE:MONTH:YEAR:PAGE
       if (cache && town == undefined) {
-        console.log("Finding from CACHE...");
+        PotLogger(
+          "[SPOTTINGS - QUERY] -",
+          `Grabbing ${service}:${month}:${year}:${page} from cache...`
+        );
         const cached_month = await redis.hget(
           `${service}:${month}:${year}:${page}`,
           "data"
         );
         if (cached_month) {
-          console.log("CACHE... RETURNING FROM CACHE");
+          PotLogger("[SPOTTINGS - QUERY] -", `Found cache.`, `Returning...`);
           return cached_month;
         }
       }
 
       // connect to database
+      PotLogger(
+        "[SPOTTINGS - QUERY] -",
+        `Grabbing ${service}:${month}:${year}:${page} from DB...`
+      );
       const sql = postgres(c.env.DATABASE_URL);
       const db = drizzle(sql);
 
@@ -140,7 +148,7 @@ class SpottingsController {
       }
 
       if (cache && town == undefined) {
-        console.log("CACHING...");
+        PotLogger("[SPOTTINGS - QUERY] -", `Caching...`);
         await redis.hset(`${service}:${month}:${year}:${page}`, { data });
       }
 

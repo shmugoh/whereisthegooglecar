@@ -5,7 +5,12 @@ import { spottings } from "../db/schema";
 
 import { buildCountryObject, capitalizeLetter } from "../utils/strings";
 import { orderServices } from "../utils/arrays";
-import { ContextType, OTHERS_EMOJI, PAGINATION_TAKE } from "../utils/constants";
+import {
+  ContextType,
+  OTHERS_EMOJI,
+  PAGINATION_TAKE,
+  PotLogger,
+} from "../utils/constants";
 
 // TODO: distribute this context script-wide
 import { Redis } from "@upstash/redis/cloudflare";
@@ -132,13 +137,24 @@ class MetadataController {
 
       // FORMAT: MONTHS:SERVICE
       if (cache && country == undefined && town == undefined) {
+        PotLogger(
+          "[METADATA - MONTHS] -",
+          `Grabbing months:${service} from cache...`
+        );
+
         const cached_months = await redis.hget(`months:${service}`, "data");
         if (cached_months) {
           console.log("CACHE FOUND");
           return cached_months;
+        } else {
+          PotLogger(
+            "[METADATA - MONTHS] -",
+            `No cache found.`,
+            `Grabbing from DB...`
+          );
         }
       } else {
-        console.log("NO CACHE... GRABBING FROM DB...");
+        PotLogger("[METADATA - MONTHS] -", `Grabbing from DB...`);
       }
 
       // connect to database
@@ -212,7 +228,7 @@ class MetadataController {
       // cache
       // FORMAT: MONTHS:SERVICE
       if (cache && country == undefined && town == undefined) {
-        console.log("CACHING...");
+        PotLogger("[METADATA - MONTHS] -", `Caching...`);
         await redis.hset(`months:${service}`, { data });
       }
 

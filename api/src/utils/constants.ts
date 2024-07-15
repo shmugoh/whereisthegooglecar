@@ -7,6 +7,10 @@ export type Env = {
 };
 export type ContextType = Context<{ Bindings: Env }>;
 
+export const PotLogger = (message: string, ...rest: string[]) => {
+  console.log(message, ...rest);
+};
+
 export const PRIORITY_ORDER = [
   "Google",
   "Apple",

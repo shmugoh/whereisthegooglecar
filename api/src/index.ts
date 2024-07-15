@@ -4,7 +4,8 @@ import metadata from "./routes/metadata";
 import form from "./routes/form";
 import { cors } from "hono/cors";
 
-import { type Env } from "./utils/constants";
+import { PotLogger, type Env } from "./utils/constants";
+import { logger } from "hono/logger";
 
 const app = new Hono<{ Bindings: Env }>().basePath("/api/v2");
 
@@ -17,6 +18,7 @@ app.use("*", (ctx, next) => {
   });
   return wrapped(ctx, next);
 });
+app.use(logger(PotLogger));
 
 app.route("/spottings", spottings);
 app.route("/metadata", metadata);
