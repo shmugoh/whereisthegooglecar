@@ -4,6 +4,9 @@ export type Env = {
   DATABASE_URL: string;
   UPSTASH_REDIS_REST_URL: string;
   UPSTASH_REDIS_REST_TOKEN: string;
+
+  CORS_ORIGIN: string[];
+  CSRF_ORIGIN: string[];
 };
 export type ContextType = Context<{ Bindings: Env }>;
 
