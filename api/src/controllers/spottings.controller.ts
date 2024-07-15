@@ -8,6 +8,7 @@ import { PAGINATION_TAKE } from "../utils/constants";
 import { Context } from "hono";
 import { Env } from "../routes/spottings";
 import { Redis } from "@upstash/redis/cloudflare";
+import { HTTPException } from "hono/http-exception";
 type C = Context<{ Bindings: Env }>;
 
 class SpottingsController {
@@ -45,6 +46,10 @@ class SpottingsController {
         .from(spottings)
         .where(eq(spottings.message_id, id));
 
+      if (data.length == 0) {
+        throw new HTTPException(404, { message: "Not Found" });
+      }
+
       // pos-query (store in cache)
       console.log("CACHING...");
       await redis.hset(`spottings:${id}`, { data });
@@ -52,8 +57,10 @@ class SpottingsController {
       // return
       return data;
     } catch (error) {
-      console.log(error);
-      return error;
+      if (error instanceof HTTPException) {
+        throw error;
+      }
+      throw new HTTPException(500, { message: "Internal Server Error" });
     }
   }
 
@@ -131,6 +138,10 @@ class SpottingsController {
         .limit(PAGINATION_TAKE)
         .offset(PAGINATION_SKIP);
 
+      if (data.length == 0) {
+        throw new HTTPException(404, { message: "Not Found" });
+      }
+
       if (cache && town == undefined) {
         console.log("CACHING...");
         await redis.hset(`${service}:${month}:${year}:${page}`, { data });
@@ -138,8 +149,10 @@ class SpottingsController {
 
       return data;
     } catch (error) {
-      console.log(error);
-      return error;
+      if (error instanceof HTTPException) {
+        throw error;
+      }
+      throw new HTTPException(500, { message: "Internal Server Error" });
     }
   }
 }

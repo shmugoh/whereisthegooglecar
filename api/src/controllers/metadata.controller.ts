@@ -11,6 +11,7 @@ import { OTHERS_EMOJI, PAGINATION_TAKE } from "../utils/constants";
 import { Context } from "hono";
 import { Env } from "../routes/spottings";
 import { Redis } from "@upstash/redis/cloudflare";
+import { HTTPException } from "hono/http-exception";
 type C = Context<{ Bindings: Env }>;
 
 class MetadataController {
@@ -36,7 +37,7 @@ class MetadataController {
       // return
       return result;
     } catch (error) {
-      return error;
+      throw new HTTPException(500, { message: "Internal Server Error" });
     }
   }
 
@@ -86,8 +87,7 @@ class MetadataController {
       // return
       return result;
     } catch (error) {
-      console.log(error);
-      return error;
+      throw new HTTPException(500, { message: "Internal Server Error" });
     }
   }
 
@@ -118,7 +118,7 @@ class MetadataController {
       // return
       return result;
     } catch (error) {
-      return error;
+      throw new HTTPException(500, { message: "Internal Server Error" });
     }
   }
 
@@ -166,6 +166,10 @@ class MetadataController {
         .from(spottings)
         .where(and(...sqlConditions))
         .orderBy(desc(spottings.date));
+
+      if (queryResult.length == 0) {
+        throw new HTTPException(404, { message: "Not Found" });
+      }
 
       // post-query
       const uniqueDates = queryResult
@@ -217,7 +221,10 @@ class MetadataController {
 
       return data;
     } catch (error) {
-      return error;
+      if (error instanceof HTTPException) {
+        throw error;
+      }
+      throw new HTTPException(500, { message: "Internal Server Error" });
     }
   }
 }
