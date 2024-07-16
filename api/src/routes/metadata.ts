@@ -19,11 +19,6 @@ app.get("/date-span", async (c) => {
   return c.json(data);
 });
 
-// TODO: Grab the following parameters:
-// startDate, endDate
-// company
-// country, town
-// cache (boolean)
 app.get("/available-months", async (c) => {
   const { service, country, town, cache } = c.req.queries();
 

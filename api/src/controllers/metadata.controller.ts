@@ -3,7 +3,11 @@ import postgres from "postgres";
 import { SQL, and, asc, desc, gte, ilike, like, lte } from "drizzle-orm";
 import { spottings } from "../db/schema";
 
-import { buildCountryObject, capitalizeLetter } from "../utils/strings";
+import {
+  buildCountryObject,
+  buildRedisKey,
+  capitalizeLetter,
+} from "../utils/strings";
 import { orderServices } from "../utils/arrays";
 import {
   ContextType,
@@ -19,7 +23,16 @@ import { HTTPException } from "hono/http-exception";
 class MetadataController {
   async getServices(c: ContextType) {
     try {
+      // grab from cache
+      PotLogger("[METADATA - SERVICES] -", "Grabbing from REDIS...");
+      const redis = Redis.fromEnv(c.env);
+      const cached_services = await redis.lrange("services", 0, -1);
+      if (cached_services.length != 0) {
+        return cached_services;
+      }
+
       // connect to database
+      PotLogger("[METADATA - SERVICES] -", "Grabbing from DB...");
       const sql = postgres(c.env.DATABASE_URL);
       const db = drizzle(sql);
 
@@ -34,18 +47,36 @@ class MetadataController {
         let serviceName = capitalizeLetter(field.services);
         result.push({ label: serviceName, value: field.services });
       });
-      orderServices(result);
+      result = orderServices(result);
+
+      // cache to redis
+
+      // doing this in reverse, as `...result`
+      // pushes it from start to finish from the first index
+      PotLogger("[METADATA - SERVICES] -", "Caching to REDIS...");
+      await redis.rpush("services", ...result);
 
       // return
       return result;
     } catch (error) {
+      PotLogger("[METADATA - SERVICES] -", `ERROR: `, `${error}`);
       throw new HTTPException(500, { message: "Internal Server Error" });
     }
   }
 
   async getCountries(c: ContextType) {
     try {
+      // grab from cache
+      PotLogger("[METADATA - COUNTRIES] -", "Grabbing from REDIS...");
+      const redis = Redis.fromEnv(c.env);
+
+      const available_countries = await redis.hget("countries", "data");
+      if (available_countries) {
+        return available_countries;
+      }
+
       // connect to db
+      PotLogger("[METADATA - COUNTRIES] -", "Grabbing from DB...");
       const sql = postgres(c.env.DATABASE_URL);
       const db = drizzle(sql);
 
@@ -61,7 +92,7 @@ class MetadataController {
       // post-query
       const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
 
-      let result: { label: string; value: any }[] = [];
+      let data: { label: string; value: any }[] = [];
       queryResult.forEach((field) => {
         let buff: { label: string; value: string } = { label: "", value: "" };
 
@@ -82,13 +113,18 @@ class MetadataController {
 
         // push to output
         if (buff) {
-          result.push(buff);
+          data.push(buff);
         }
       });
 
+      // cache to redis
+      PotLogger("[METADATA - COUNTRIES] -", "Caching to REDIS...");
+      await redis.hset("countries", { data });
+
       // return
-      return result;
+      return data;
     } catch (error) {
+      PotLogger("[METADATA - COUNTRIES] -", `ERROR: `, `${error}`);
       throw new HTTPException(500, { message: "Internal Server Error" });
     }
   }
@@ -132,32 +168,18 @@ class MetadataController {
     cache: Boolean
   ) {
     try {
-      // cache
+      // grab from cache
       const redis = Redis.fromEnv(c.env);
+      const cacheKey = buildRedisKey(`months:${service}`, country, town);
+      PotLogger("[METADATA - MONTHS] -", "Grabbing from REDIS...", cacheKey);
 
-      // FORMAT: MONTHS:SERVICE
-      if (cache && country == undefined && town == undefined) {
-        PotLogger(
-          "[METADATA - MONTHS] -",
-          `Grabbing months:${service} from cache...`
-        );
-
-        const cached_months = await redis.hget(`months:${service}`, "data");
-        if (cached_months) {
-          console.log("CACHE FOUND");
-          return cached_months;
-        } else {
-          PotLogger(
-            "[METADATA - MONTHS] -",
-            `No cache found.`,
-            `Grabbing from DB...`
-          );
-        }
-      } else {
-        PotLogger("[METADATA - MONTHS] -", `Grabbing from DB...`);
+      const cached_months = await redis.hget(cacheKey, "data");
+      if (cached_months) {
+        return cached_months;
       }
 
       // connect to database
+      PotLogger("[METADATA - MONTHS] -", "Grabbing from DB...", cacheKey);
       const sql = postgres(c.env.DATABASE_URL);
       const db = drizzle(sql);
 
@@ -227,10 +249,8 @@ class MetadataController {
 
       // cache
       // FORMAT: MONTHS:SERVICE
-      if (cache && country == undefined && town == undefined) {
-        PotLogger("[METADATA - MONTHS] -", `Caching...`);
-        await redis.hset(`months:${service}`, { data });
-      }
+      PotLogger("[METADATA - MONTHS] -", `Caching...`);
+      await redis.hset(cacheKey, { data });
 
       return data;
     } catch (error) {

@@ -23,3 +23,17 @@ export function buildCountryObject(
     value: country_value,
   };
 }
+
+export function buildRedisKey(
+  base: string,
+  country: string | undefined,
+  town: string | undefined
+): string {
+  if (country != undefined) {
+    base += `:${country}`;
+  }
+  if (town != undefined) {
+    base += `:${town}`;
+  }
+  return base;
+}

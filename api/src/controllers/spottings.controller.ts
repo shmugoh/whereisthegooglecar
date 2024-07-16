@@ -7,6 +7,7 @@ import { ContextType, PAGINATION_TAKE, PotLogger } from "../utils/constants";
 // TODO: distribute this context script-wide
 import { Redis } from "@upstash/redis/cloudflare";
 import { HTTPException } from "hono/http-exception";
+import { buildRedisKey } from "../utils/strings";
 
 class SpottingsController {
   async getById(c: ContextType, id: string) {
@@ -73,30 +74,21 @@ class SpottingsController {
     cache: boolean
   ) {
     try {
-      // cache
+      // grab from cache
       const redis = Redis.fromEnv(c.env);
-
-      // FORMAT: SERVICE:MONTH:YEAR:PAGE
-      if (cache && town == undefined) {
-        PotLogger(
-          "[SPOTTINGS - QUERY] -",
-          `Grabbing ${service}:${month}:${year}:${page} from cache...`
-        );
-        const cached_month = await redis.hget(
-          `${service}:${month}:${year}:${page}`,
-          "data"
-        );
-        if (cached_month) {
-          PotLogger("[SPOTTINGS - QUERY] -", `Found cache.`, `Returning...`);
-          return cached_month;
-        }
+      const cacheKey = buildRedisKey(
+        `${service}:${month}:${year}`,
+        country,
+        town
+      );
+      PotLogger("[METADATA - MONTHS] -", "Grabbing from REDIS...", cacheKey);
+      const cached_month = await redis.hget(cacheKey, `${page}`);
+      if (cached_month) {
+        return cached_month;
       }
 
       // connect to database
-      PotLogger(
-        "[SPOTTINGS - QUERY] -",
-        `Grabbing ${service}:${month}:${year}:${page} from DB...`
-      );
+      PotLogger("[SPOTTINGS - QUERY] -", `Grabbing from DB...`);
       const sql = postgres(c.env.DATABASE_URL);
       const db = drizzle(sql);
 
@@ -147,10 +139,8 @@ class SpottingsController {
         throw new HTTPException(404, { message: "Not Found" });
       }
 
-      if (cache && town == undefined) {
-        PotLogger("[SPOTTINGS - QUERY] -", `Caching...`);
-        await redis.hset(`${service}:${month}:${year}:${page}`, { data });
-      }
+      PotLogger("[SPOTTINGS - QUERY] -", `Caching...`);
+      await redis.hset(cacheKey, { [page]: data });
 
       return data;
     } catch (error) {
