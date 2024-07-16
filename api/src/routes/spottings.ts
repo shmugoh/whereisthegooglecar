@@ -8,10 +8,8 @@ app.get("/search", async (c) => {
   const { country, town, month, year, cache, page } = c.req.queries();
   let service = <string | string[]>c.req.query("service");
 
-  if (service) {
-    service = service[0].toLowerCase();
-  } else {
-    service = service;
+  if (service && typeof service == "string") {
+    service = service.toLowerCase();
   }
 
   const result = await spottingsController.getByQuery(
