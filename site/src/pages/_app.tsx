@@ -1,6 +1,6 @@
 import Head from "next/head";
 
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import { SWRConfig } from "swr";
 import PlausibleProvider from "next-plausible";
 
 import { type AppType } from "next/app";
@@ -88,9 +88,8 @@ const MyApp: AppType = ({ Component, pageProps }) => {
               />
             </div>
             <Foot />
-          </div>{" "}
+          </div>
           <Toaster />
-          <SpeedInsights />
         </ThemeProvider>
       </PlausibleProvider>
     </>

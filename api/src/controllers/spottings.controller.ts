@@ -15,13 +15,13 @@ class SpottingsController {
       // check if in cache
       PotLogger("[SPOTTINGS - ID] -", `Grabbing spottings:${id} from cache...`);
       const redis = Redis.fromEnv(c.env);
-      const id_cache: SpottingMetadata | null = await redis.hget(
+      const id_cache: SpottingsID | null = await redis.hget(
         `spottings:${id}`,
         "data"
       );
       if (id_cache) {
         PotLogger("[SPOTTINGS - ID] -", `Found in cache.`, `Returning...`);
-        return id_cache;
+        return id_cache[0];
       }
 
       // if not in cache, then grab from database

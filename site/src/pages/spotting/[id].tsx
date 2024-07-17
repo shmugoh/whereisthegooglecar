@@ -1,18 +1,17 @@
 import React from "react";
 import { NextSeo } from "next-seo";
-import { type InferGetServerSidePropsType } from "next";
+import { GetServerSideProps, type InferGetServerSidePropsType } from "next";
 
 import { PageComponent } from "~/components/layout/entry/page";
 import { convertDate } from "~/utils/date";
 import { env } from "~/env";
+import { axiosInstance } from "~/utils/api/swrFetcher";
 
 export const runtime = "experimental-edge";
 
 export default function Page(
   props: InferGetServerSidePropsType<typeof getServerSideProps>,
 ) {
-  console.log(props.data);
-
   if (props.data) {
     // format date
     const dateFormatted = convertDate(props.data.date);
@@ -74,38 +73,29 @@ export default function Page(
   }
 }
 
-export const getServerSideProps = async ({
-  params,
-}: {
-  params: { id: string };
-}) => {
+// prettier-ignore
+export const getServerSideProps = async ({params}: { params: { id: string };}) => {
   // get id from query
   const id_query = params.id;
   if (id_query) {
-    // i gotta clean this up wtf
-    const id = id_query.toString();
-
     try {
-      const url = `${env.NEXT_PUBLIC_API_URL}/spottings/${id_query}`;
-
-      const res = await fetch(url);
-      const resJSON = await res.json();
-      const data = resJSON[0];
-
-      // add CDN url to imageUrl (location)
-      data.image = `${env.NEXT_PUBLIC_CDN_URL}/${data.image}`;
-
-      return {
-        props: { data },
-      };
+      const response = await axiosInstance.get<SpottingMetadata>(`/spottings/${id_query}`);
+      const data: SpottingMetadata = response.data;
+      
+      if (data) {
+        return {
+          props: { data },
+        };
+      }
     } catch (error) {
-      console.log("Sorry");
+      console.error(error);
       return {
         notFound: true,
-      };
+      }
     }
   }
+
   return {
     notFound: true,
   };
-};
+}

@@ -1,16 +1,13 @@
-import React, { useState } from "react";
-
-import Image from "next/image";
-import Link from "next/link";
-
 import { TopText } from "~/components/layout/entry/topText";
-import { AspectRatio } from "~/components/ui/aspect-ratio";
 import { LocationButton, SourceButton, TextBluePrint } from "./output";
 import { ImagePreview } from "~/components/layout/entry/image";
 // import EditDialog from "../form/edit";
 import ServiceBadge from "./service_badge";
 
-export const PageComponent = (props: pageProps) => {
+export const PageComponent = (props: {
+  data: SpottingMetadata;
+  dateFormatted: string;
+}) => {
   return (
     <div className="flex flex-col items-center gap-4">
       {/* Top Title */}
