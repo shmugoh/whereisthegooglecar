@@ -114,7 +114,7 @@ export const CardSet = (props: cardSetProps) => {
 
   return (
     <div className="flex w-full flex-col gap-4">
-      <TopText title={monthNames[props.month]} right={props.year} />
+      <TopText title={monthNames[props.month]!} right={props.year} />
       <div className="flex flex-wrap items-center justify-center gap-x-16 gap-y-6">
         {props.info.map((item: cardProps) => (
           <SpottingCard
