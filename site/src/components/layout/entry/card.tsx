@@ -75,14 +75,14 @@ export const SpottingCard = (props: cardProps) => {
         </CardHeader>
         <CardContent className="hidden lg:block">
           <ImagePreview
-            url={`${env.NEXT_PUBLIC_CDN_URL}/${props.image}`}
+            url={`${props.image}`}
             alt={`Picture of a Google Car spotted in ${props.town} on ${date}.`}
             ratio={16 / 9}
           />
         </CardContent>
         <CardContent className="lg:hidden">
           <ImagePreview
-            url={`${env.NEXT_PUBLIC_CDN_URL}/${props.image}`}
+            url={`${props.image}`}
             alt={`Picture of a Google Car spotted in ${props.town} on ${date}.`}
             ratio={props.width / props.height}
           />

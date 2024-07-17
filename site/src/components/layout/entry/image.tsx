@@ -2,6 +2,7 @@ import React from "react";
 
 import Image from "next/image";
 import { AspectRatio } from "~/components/ui/aspect-ratio";
+import { env } from "~/env";
 
 export const ImagePreview = (props: {
   className?: string;
@@ -13,7 +14,7 @@ export const ImagePreview = (props: {
     <div className={props.className}>
       <AspectRatio ratio={props.ratio} className="relative bg-muted">
         <Image
-          src={props.url}
+          src={`${env.NEXT_PUBLIC_CDN_URL}/${props.url}`}
           alt={props.alt}
           fill
           className="rounded-md object-contain"
