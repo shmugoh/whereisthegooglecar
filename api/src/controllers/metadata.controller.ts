@@ -21,12 +21,16 @@ import { Redis } from "@upstash/redis/cloudflare";
 import { HTTPException } from "hono/http-exception";
 
 class MetadataController {
-  async getServices(c: ContextType) {
+  async getServices(c: ContextType): Promise<ServicesList> {
     try {
       // grab from cache
       PotLogger("[METADATA - SERVICES] -", "Grabbing from REDIS...");
       const redis = Redis.fromEnv(c.env);
-      const cached_services = await redis.lrange("services", 0, -1);
+      const cached_services: ServicesList | null = await redis.lrange(
+        "services",
+        0,
+        -1
+      );
       if (cached_services.length != 0) {
         return cached_services;
       }
@@ -42,7 +46,7 @@ class MetadataController {
         .from(spottings);
 
       // post-query
-      let result: { label: string; value: any }[] = [];
+      let result: ServicesList = [];
       queryResult.forEach((field) => {
         let serviceName = capitalizeLetter(field.services);
         result.push({ label: serviceName, value: field.services });
@@ -64,13 +68,16 @@ class MetadataController {
     }
   }
 
-  async getCountries(c: ContextType) {
+  async getCountries(c: ContextType): Promise<CountriesList> {
     try {
       // grab from cache
       PotLogger("[METADATA - COUNTRIES] -", "Grabbing from REDIS...");
       const redis = Redis.fromEnv(c.env);
 
-      const available_countries = await redis.hget("countries", "data");
+      const available_countries: CountriesList | null = await redis.hget(
+        "countries",
+        "data"
+      );
       if (available_countries) {
         return available_countries;
       }
@@ -94,7 +101,7 @@ class MetadataController {
 
       let data: { label: string; value: any }[] = [];
       queryResult.forEach((field) => {
-        let buff: { label: string; value: string } = { label: "", value: "" };
+        let buff: CountryMetadata = { label: "", value: "" };
 
         if (field.country_value == "others") {
           // build object for countries that are marked as others
@@ -129,7 +136,7 @@ class MetadataController {
     }
   }
 
-  async getDateSpan(c: ContextType) {
+  async getDateSpan(c: ContextType): Promise<DateSpanResult> {
     try {
       // connect to database
       const sql = postgres(c.env.DATABASE_URL);
@@ -148,7 +155,7 @@ class MetadataController {
         .limit(1);
 
       // post-query
-      let result: { earliest_date: Date; newest_date: Date } = {
+      let result: DateSpanResult = {
         earliest_date: earliestDateResult[0].date,
         newest_date: newestDateResult[0].date,
       };
@@ -166,14 +173,17 @@ class MetadataController {
     country: string,
     town: string,
     cache: Boolean
-  ) {
+  ): Promise<MonthList> {
     try {
       // grab from cache
       const redis = Redis.fromEnv(c.env);
       const cacheKey = buildRedisKey(`months:${service}`, country, town);
       PotLogger("[METADATA - MONTHS] -", "Grabbing from REDIS...", cacheKey);
 
-      const cached_months = await redis.hget(cacheKey, "data");
+      const cached_months: MonthList | null = await redis.hget(
+        cacheKey,
+        "data"
+      );
       if (cached_months) {
         return cached_months;
       }

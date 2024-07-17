@@ -20,14 +20,14 @@ app.get("/date-span", async (c) => {
 });
 
 app.get("/available-months", async (c) => {
-  const { service, country, town, cache } = c.req.queries();
+  const { service, country, town, cache } = c.req.query();
 
   const data = await metadataController.getAvailableMonths(
     c,
     service,
     country,
     town,
-    cache
+    Boolean(cache)
   );
 
   return c.json(data);

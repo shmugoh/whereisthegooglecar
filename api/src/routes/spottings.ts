@@ -5,22 +5,17 @@ import { Env } from "../utils/constants";
 const app = new Hono<{ Bindings: Env }>();
 
 app.get("/search", async (c) => {
-  const { country, town, month, year, cache, page } = c.req.queries();
-  let service = <string | string[]>c.req.query("service");
-
-  if (service && typeof service == "string") {
-    service = service.toLowerCase();
-  }
+  const { country, town, service, month, year, cache, page } = c.req.query();
 
   const result = await spottingsController.getByQuery(
     c,
     country,
     town,
     service,
-    month,
-    year,
-    page,
-    cache
+    Number(month),
+    Number(year),
+    Number(page),
+    Boolean(cache)
   );
 
   return c.json(result);

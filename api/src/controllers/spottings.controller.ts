@@ -10,12 +10,15 @@ import { HTTPException } from "hono/http-exception";
 import { buildRedisKey } from "../utils/strings";
 
 class SpottingsController {
-  async getById(c: ContextType, id: string) {
+  async getById(c: ContextType, id: string): Promise<SpottingMetadata> {
     try {
       // check if in cache
       PotLogger("[SPOTTINGS - ID] -", `Grabbing spottings:${id} from cache...`);
       const redis = Redis.fromEnv(c.env);
-      const id_cache = await redis.hget(`spottings:${id}`, "data");
+      const id_cache: SpottingMetadata | null = await redis.hget(
+        `spottings:${id}`,
+        "data"
+      );
       if (id_cache) {
         PotLogger("[SPOTTINGS - ID] -", `Found in cache.`, `Returning...`);
         return id_cache;
@@ -54,7 +57,7 @@ class SpottingsController {
       await redis.hset(`spottings:${id}`, { data });
 
       // return
-      return data;
+      return data[0];
     } catch (error) {
       if (error instanceof HTTPException) {
         throw error;
@@ -72,7 +75,7 @@ class SpottingsController {
     year: number,
     page: number,
     cache: boolean
-  ) {
+  ): Promise<SpottingsArray> {
     try {
       // grab from cache
       const redis = Redis.fromEnv(c.env);
@@ -82,7 +85,10 @@ class SpottingsController {
         town
       );
       PotLogger("[METADATA - MONTHS] -", "Grabbing from REDIS...", cacheKey);
-      const cached_month = await redis.hget(cacheKey, `${page}`);
+      const cached_month: SpottingsArray | null = await redis.hget(
+        cacheKey,
+        `${page}`
+      );
       if (cached_month) {
         return cached_month;
       }
