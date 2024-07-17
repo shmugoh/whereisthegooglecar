@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,7 +16,8 @@ import { Form, FormControl, FormField } from "~/components/ui/form";
 import { DropdownBox } from "~/components/layout/combobox";
 
 import { SearchIcon, FilterIcon, FlagIcon } from "lucide-react";
-import { env } from "~/env";
+import useSWR from "swr";
+import { fetcher } from "~/utils/api/swrFetcher";
 
 // define form schema
 const formSchema = z.object({
@@ -28,8 +29,11 @@ const formSchema = z.object({
 export const Search = () => {
   // Dropdown Hook
   const [open, setOpen] = useState(false);
-  const [services, setServices] = useState([]);
-  const [countries, setCountries] = useState([]);
+
+  // prettier-ignore
+  const { data: services } = useSWR<ServicesList>('/metadata/services', fetcher);
+  // prettier-ignore
+  const { data: countries } = useSWR<CountriesList>('/metadata/countries', fetcher);
 
   // Initialize Router
   const router = useRouter();
@@ -43,29 +47,6 @@ export const Search = () => {
       countries: "",
     },
   });
-
-  const fetchMetadata = useCallback(async () => {
-    // Grab Services
-    fetch(`${env.NEXT_PUBLIC_API_URL}/metadata/services`)
-      .then((response) => response.json())
-      .then((data) => setServices(data))
-      .catch((error) => console.error("Error fetching services:", error));
-
-    // Grab Countries
-    fetch(`${env.NEXT_PUBLIC_API_URL}/metadata/countries`)
-      .then((response) => response.json())
-      .then((data) => setCountries(data))
-      .catch((error) => console.error("Error fetching countries:", error));
-  }, []);
-
-  useEffect(() => {
-    void fetchMetadata();
-  }, []);
-
-  useEffect(() => {
-    console.log(services);
-  }, [services]);
-
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setOpen(false);
 
@@ -113,7 +94,7 @@ export const Search = () => {
                           <DropdownBox
                             name="Service"
                             label="Service"
-                            values={services}
+                            values={services ?? []}
                             value={field.value}
                             onChange={field.onChange}
                           />
@@ -137,7 +118,7 @@ export const Search = () => {
                           <DropdownBox
                             name="Country"
                             label="Country"
-                            values={countries}
+                            values={countries ?? []}
                             value={field.value}
                             onChange={field.onChange}
                           />

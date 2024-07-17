@@ -27,7 +27,6 @@ import { ScrollArea } from "../ui/scroll-area";
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { cn } from "~/lib/utils";
-import { api } from "~/utils/api";
 
 export function DatePickerWithRange({
   className,

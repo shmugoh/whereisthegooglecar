@@ -6,6 +6,7 @@ import {
   useCallback,
   type MutableRefObject,
 } from "react";
+import { axiosInstance as axios } from "~/utils/api/swrFetcher";
 
 import { CardSet } from "~/components/layout/entry/card";
 import {
@@ -15,7 +16,7 @@ import {
 
 import { useRouter } from "next/router";
 import Error from "~/pages/_error";
-import { env } from "~/env";
+import { buildURLParams } from "~/utils/api/url_params";
 
 type EntriesPageProps = {
   company: string | undefined;
@@ -26,9 +27,9 @@ type EntriesPageProps = {
 };
 
 type BaseEntriesPageProps = {
-  months: MutableRefObject<{ date: Date; count: number }[]>;
-  month: MutableRefObject<Date>;
-  activeIndex: MutableRefObject<number>;
+  months: MonthList;
+  activeMonth: MutableRefObject<Date>;
+  activeIndex: number;
   cardSets: never[];
   showCompany: boolean;
 
@@ -42,11 +43,11 @@ export function BaseEntriesPage(props: BaseEntriesPageProps) {
       <div className="justify-start">
         <PageNavigation
           length={props.months.length}
-          activeIndex={props.activeIndex.current}
+          activeIndex={props.activeIndex}
         />
         <MobilePageNavigation
           length={props.months.length}
-          activeIndex={props.activeIndex.current}
+          activeIndex={props.activeIndex}
         />
       </div>
 
@@ -59,8 +60,8 @@ export function BaseEntriesPage(props: BaseEntriesPageProps) {
         scrollThreshold={0.7}
       >
         <CardSet
-          month={props.month.current.getUTCMonth()}
-          year={props.month.current.getUTCFullYear().toString()}
+          month={props.activeMonth.current.getUTCMonth()}
+          year={props.activeMonth.current.getUTCFullYear().toString()}
           info={props.cardSets}
           showCompany={props.showCompany}
           showSkeleton={props.continueFetching}
@@ -70,11 +71,11 @@ export function BaseEntriesPage(props: BaseEntriesPageProps) {
       <div className="justify-end">
         <PageNavigation
           length={props.months.length}
-          activeIndex={props.activeIndex.current}
+          activeIndex={props.activeIndex}
         />
         <MobilePageNavigation
           length={props.months.length}
-          activeIndex={props.activeIndex.current}
+          activeIndex={props.activeIndex}
         />
       </div>
     </div>
@@ -87,42 +88,37 @@ export default function EntriesPage(props: EntriesPageProps) {
   // date configuration
   const currentDate = new Date();
   currentDate.setMonth(currentDate.getMonth() + 1);
-  // summing new month so during first-run, it fetches the current month
+  // summing new activeMonth so during first-run, it fetches the current activeMonth
 
   // states & references
   const [cardSets, setCardSets] = useState([]);
-  const [months, setMonths] = useState<
-    { date: Date; pages: number; count: number }[]
-  >([]);
-  const month = useRef<Date>(new Date());
-  const activeIndex = useRef<number>(1);
-
+  const [months, setMonths] = useState<MonthList>([]);
+  const [activeIndex, setActiveIndex] = useState<number>(1);
   const [error, setError] = useState(200);
+  const [continueFetching, setContinueFetching] = useState(false);
+
+  const activeMonth = useRef<Date>(new Date());
 
   // infinite scroll states
-  const [continueFetching, setContinueFetching] = useState(false);
   const previousMonth = useRef<Date>(new Date());
   const activePage = useRef<number>(0);
   const availablePages = useRef<number>(0);
 
   // fetch data
-
-  // const dataMutation = api.query.queryByMonth.useMutation({});
-  // const monthMutation = api.query.queryByFilterMonth.useMutation({});
-
   const fetchData = useCallback(async () => {
-    let data;
-
     // clear current date if date is not the same && continue fetching is false
-    if (previousMonth.current !== month.current && continueFetching == false) {
-      // console.log("month not the same... clearing all data!");
+    if (
+      previousMonth.current !== activeMonth.current &&
+      continueFetching == false
+    ) {
+      // console.log("activeMonth not the same... clearing all data!");
       setCardSets([]); // clear current data
     }
 
     // normal queries & search queries have the same 4 fundamental variables to query
-    const commonData = {
-      month: month.current.getUTCMonth() + 1,
-      year: month.current.getUTCFullYear(),
+    const commonData: SearchInput = {
+      month: activeMonth.current.getUTCMonth() + 1,
+      year: activeMonth.current.getUTCFullYear(),
       page: activePage.current,
     };
     if (props.company) {
@@ -131,35 +127,23 @@ export default function EntriesPage(props: EntriesPageProps) {
     if (!props.search) {
       commonData.cache = true;
     }
-
-    const searchData: { town?: string; country?: string } = {};
-    if (props.town) {
-      searchData.town = props.town;
-    }
-    if (props.country) {
-      searchData.country = props.country;
-    }
-
-    const commonQueryString = new URLSearchParams(commonData).toString();
-
     if (props.search) {
       // if coming from search
-      const searchQueryString = new URLSearchParams(searchData).toString();
-
-      const dataResponse = await fetch(
-        `${env.NEXT_PUBLIC_API_URL}/spottings/search?${commonQueryString}&${searchQueryString}`,
-      );
-      data = await dataResponse.json();
-    } else {
-      // if coming from front-page
-      const dataResponse = await fetch(
-        `${env.NEXT_PUBLIC_API_URL}/spottings/search?${commonQueryString}`,
-      );
-      data = await dataResponse.json();
+      if (props.town) {
+        commonData.town = props.town;
+      }
+      if (props.country) {
+        commonData.country = props.country;
+      }
     }
 
-    // console.log("active page: ", activePage.current);
-    // console.log("available pages: ", availablePages.current);
+    const QueryString = buildURLParams(commonData);
+
+    const response = await axios.get<SpottingsArray>(
+      `/spottings/search?${QueryString}`,
+    );
+    // build parameters
+    const data = response.data;
 
     if (
       availablePages.current > activePage.current &&
@@ -167,7 +151,7 @@ export default function EntriesPage(props: EntriesPageProps) {
     ) {
       // console.log("not full. fetching more data!");
       setContinueFetching(true);
-      previousMonth.current = month.current;
+      previousMonth.current = activeMonth.current;
       activePage.current += 1;
     } else {
       setContinueFetching(false);
@@ -177,19 +161,24 @@ export default function EntriesPage(props: EntriesPageProps) {
     setCardSets((prevCardSets) => {
       const mergedCardSets = prevCardSets.concat(data as never[]);
       const uniqueMessageIds = new Set<string>();
+
       // remove duplicates and/or un-matching cards
-      const result = mergedCardSets.filter(function (card) {
-        // check if card date matches with month.current
+      const result = mergedCardSets.filter(function (
+        this: Set<string>,
+        card: SpottingMetadata,
+      ) {
+        // check if card date matches with activeMonth.current
         const cardDate = new Date(card.date);
         const cardMonth = cardDate.getUTCMonth();
         const cardYear = cardDate.getUTCFullYear();
-        const currentMonth = month.current.getUTCMonth();
-        const currentYear = month.current.getUTCFullYear();
+        const currentMonth = activeMonth.current.getUTCMonth();
+        const currentYear = activeMonth.current.getUTCFullYear();
 
-        // remove card if month and year don't match
+        // remove card if activeMonth and year don't match
         if (cardMonth !== currentMonth || cardYear !== currentYear) {
           return false;
         }
+
         // check for unique card id
         const card_id = card.id;
         return !this.has(card_id) && this.add(card_id);
@@ -201,50 +190,24 @@ export default function EntriesPage(props: EntriesPageProps) {
 
   const grabMonths = useCallback(async () => {
     try {
-      let data;
+      const searchQueryData: SearchMonthInput = { service: props.company };
 
-      // if coming from search
+      // if coming from search, add additional parameters
       if (props.search) {
-        console.log("Search");
-
-        const searchQueryData: {
-          company?: string;
-          town?: string;
-          country?: string;
-        } = {};
-        if (props.company) {
-          searchQueryData.service = props.company;
-        }
         if (props.town) {
           searchQueryData.town = props.town;
         }
         if (props.country) {
           searchQueryData.country = props.country;
         }
-
-        const searchQueryString = new URLSearchParams(
-          searchQueryData,
-        ).toString();
-
-        const dataResponse = await fetch(
-          `${env.NEXT_PUBLIC_API_URL}/metadata/available-months?${searchQueryString}`,
-        );
-        const dataJSON = await dataResponse.json();
-        data = dataJSON;
-      } else {
-        // if coming from normal
-        const queryData = {
-          service: props.company,
-          cache: true,
-        };
-        const queryString = new URLSearchParams(queryData).toString();
-
-        const dataResponse = await fetch(
-          `${env.NEXT_PUBLIC_API_URL}/metadata/available-months?${queryString}`,
-        );
-        const dataJSON = await dataResponse.json();
-        data = dataJSON;
       }
+      // build parameters
+      const QueryString = buildURLParams(searchQueryData);
+
+      const response = await axios.get<MonthList>(
+        `/metadata/available-months?${QueryString}`,
+      );
+      const data = response.data;
 
       setMonths(data);
     } catch (error) {
@@ -283,13 +246,19 @@ export default function EntriesPage(props: EntriesPageProps) {
       }
 
       // reset all data
-      activeIndex.current = Number(router.query.page);
-      month.current = new Date(months[Number(router.query.page) - 1]?.date);
-      activePage.current = 0;
-      availablePages.current = months[Number(router.query.page) - 1]?.pages;
+      const ACTIVE_INDEX = Number(router.query.page);
 
-      setCardSets([]);
-      void fetchData();
+      if (months?.[ACTIVE_INDEX - 1]?.date) {
+        setActiveIndex(ACTIVE_INDEX);
+        activeMonth.current = new Date(months[ACTIVE_INDEX - 1]!.date);
+        activePage.current = 0;
+        availablePages.current = months[ACTIVE_INDEX - 1]!.pages;
+
+        setCardSets([]);
+        void fetchData();
+      } else {
+        console.log("something wrong occurred... blah blah blah");
+      }
     }
   }, [router.query.page, months]);
 
@@ -305,7 +274,7 @@ export default function EntriesPage(props: EntriesPageProps) {
   return (
     <BaseEntriesPage
       months={months}
-      month={month}
+      activeMonth={activeMonth}
       activeIndex={activeIndex}
       cardSets={cardSets}
       showCompany={props.showCompany ?? false}

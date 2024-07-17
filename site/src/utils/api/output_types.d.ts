@@ -28,7 +28,6 @@ interface MonthMetadata {
 type MonthList = Array<MonthMetadata>;
 
 /* Spottings */
-
 // this is returned by the https backend
 interface SpottingMetadata {
   id: string;
