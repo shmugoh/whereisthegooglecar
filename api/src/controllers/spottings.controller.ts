@@ -1,7 +1,6 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
-import { asc, desc, gte, lte, eq, ilike, and, like, SQL } from "drizzle-orm";
-import { spottings } from "../db/schema";
+import { Prisma, PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 import { ContextType, PAGINATION_TAKE, PotLogger } from "../utils/constants";
 
 // TODO: distribute this context script-wide
@@ -27,37 +26,56 @@ class SpottingsController {
       // if not in cache, then grab from database
       // connect to database
       PotLogger("[SPOTTINGS - ID] -", `No cache found.`, `Grabbing from DB...`);
-      const sql = postgres(c.env.DATABASE_URL);
-      const db = drizzle(sql);
+      const pool = new Pool({ connectionString: c.env.DATABASE_URL });
+      const adapter = new PrismaPg(pool);
+      const prisma = new PrismaClient({ adapter });
 
       // query
-      const data = await db
-        .select({
-          id: spottings.message_id,
-          date: spottings.date,
-          country: spottings.country,
-          country_emoji: spottings.countryEmoji,
-          town: spottings.town,
-          service: spottings.company,
-          source: spottings.sourceUrl,
-          location: spottings.locationUrl,
-          image: spottings.imageUrl,
-          width: spottings.width,
-          height: spottings.height,
-        })
-        .from(spottings)
-        .where(eq(spottings.message_id, id));
+      let renamed_data;
+      const data = await prisma.spottings.findFirst({
+        where: {
+          message_id: id,
+        },
+        select: {
+          message_id: true,
+          date: true,
+          country: true,
+          countryEmoji: true,
+          town: true,
+          company: true,
+          sourceUrl: true,
+          locationUrl: true,
+          imageUrl: true,
+          width: true,
+          height: true,
+        },
+      });
 
-      if (data.length == 0) {
+      if (!data) {
         throw new HTTPException(404, { message: "Not Found" });
       }
 
+      // pos-query (final changes)
+      renamed_data = {
+        id: data.message_id,
+        date: data.date,
+        country: data.country,
+        country_emoji: data.countryEmoji,
+        town: data.town,
+        service: data.company,
+        source: data.sourceUrl,
+        location: data.locationUrl,
+        image: data.imageUrl,
+        width: data.width,
+        height: data.height,
+      };
+
       // pos-query (store in cache)
       PotLogger("[SPOTTINGS - ID] -", `Caching ${id}...`);
-      await redis.hset(`spottings:${id}`, { data });
+      await redis.hset(`spottings:${id}`, { renamed_data });
 
       // return
-      return data[0];
+      return renamed_data;
     } catch (error) {
       if (error instanceof HTTPException) {
         throw error;
@@ -95,60 +113,76 @@ class SpottingsController {
 
       // connect to database
       PotLogger("[SPOTTINGS - QUERY] -", `Grabbing from DB...`);
-      const sql = postgres(c.env.DATABASE_URL);
-      const db = drizzle(sql);
+      const pool = new Pool({ connectionString: c.env.DATABASE_URL });
+      const adapter = new PrismaPg(pool);
+      const prisma = new PrismaClient({ adapter });
 
-      // pre-query (organize dates)
+      // Define the date range
       const gteDate = new Date(year, month - 1, 1); // YEAR/MONTH/1
       const lteDate = new Date(year, month, 0); // YEAR/MONTH/31
 
-      // base WHERE conditions
-      const sqlConditions: SQL<unknown>[] = [
-        gte(spottings.date, gteDate),
-        lte(spottings.date, lteDate),
-        ilike(spottings.town, town ? `%${town}%` : "%%"),
-      ];
+      // Base WHERE conditions
+      const whereConditions: Prisma.spottingsWhereInput = {
+        date: {
+          gte: gteDate,
+          lte: lteDate,
+        },
+        town: town
+          ? { contains: town, mode: Prisma.QueryMode.insensitive }
+          : undefined,
+        country: country ? { equals: country } : undefined,
+        company: service
+          ? { contains: service, mode: Prisma.QueryMode.insensitive }
+          : undefined,
+      };
 
-      // add additional conditions if provided
-      if (country) {
-        sqlConditions.push(like(spottings.country, country));
-      }
-      if (service) {
-        sqlConditions.push(ilike(spottings.company, `%${service}%`));
-      }
-
-      // calculate pagination
+      // Calculate pagination
       const PAGINATION_SKIP = PAGINATION_TAKE * page;
 
-      // query
-      const data = await db
-        .select({
-          id: spottings.message_id,
-          date: spottings.date,
-          country: spottings.country,
-          country_emoji: spottings.countryEmoji,
-          service: spottings.company,
-          town: spottings.town,
-          source: spottings.sourceUrl,
-          location: spottings.locationUrl,
-          image: spottings.imageUrl,
-          width: spottings.width,
-          height: spottings.height,
-        })
-        .from(spottings)
-        .orderBy(desc(spottings.date), asc(spottings.id))
-        .where(and(...sqlConditions))
-        .limit(PAGINATION_TAKE)
-        .offset(PAGINATION_SKIP);
+      // Query
+      const data = await prisma.spottings.findMany({
+        where: whereConditions,
+        select: {
+          message_id: true,
+          date: true,
+          country: true,
+          countryEmoji: true,
+          company: true,
+          town: true,
+          sourceUrl: true,
+          locationUrl: true,
+          imageUrl: true,
+          width: true,
+          height: true,
+        },
+        orderBy: [{ date: "desc" }, { id: "asc" }],
+        take: PAGINATION_TAKE,
+        skip: PAGINATION_SKIP,
+      });
+
+      // Rename fields in the result
+      const renamedData = data.map((item) => ({
+        id: item.message_id,
+        date: item.date,
+        country: item.country,
+        country_emoji: item.countryEmoji,
+        service: item.company,
+        town: item.town,
+        source: item.sourceUrl,
+        location: item.locationUrl,
+        image: item.imageUrl,
+        width: item.width,
+        height: item.height,
+      }));
 
       if (data.length == 0) {
         throw new HTTPException(404, { message: "Not Found" });
       }
 
       PotLogger("[SPOTTINGS - QUERY] -", `Caching...`);
-      await redis.hset(cacheKey, { [page]: data });
+      await redis.hset(cacheKey, { [page]: renamedData });
 
-      return data;
+      return renamedData;
     } catch (error) {
       if (error instanceof HTTPException) {
         throw error;

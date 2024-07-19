@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+    previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model spottings {
+    id              Int         @id @default(autoincrement())
+    date            DateTime
+    town            String
+    country         String
+    countryEmoji    String
+    imageUrl        String
+    sourceUrl       String
+    locationUrl     String?
+    company         String      @default("google")
+    createdAt       DateTime    @default(now())
+    updatedAt       DateTime    @updatedAt @default(now())
+    message_id      String
+    channel_id      BigInt
+    channel         channel     @relation(fields: [channel_id], references: [id])
+    width           Int?
+    height          Int?
+    
+    coordinates     String      @default("")
+    
+    @@index([id])
+}
+
+model channel {
+    id              BigInt      @id @unique
+    type            String
+    company         String      @default("google")
+    spottings       spottings[]
+    submissions     submissions[]
+}
+
+model submissions {
+    id                  Int         @id @default(autoincrement())
+    date                DateTime
+    town                String
+    country             String
+    imageUrl            String?
+    sourceUrl           String
+    locationUrl         String?
+    company             String      @default("google")
+    mode                String
+    message_id          BigInt
+    output_message_id   BigInt?
+    output_channel_id   BigInt?
+    channel             channel?     @relation(fields: [output_channel_id], references: [id])
+}
+
+// id: 4,
+// date: "February 1, 2024",
+// town: "Bogota, Colombia",
+// countryEmoji: "🇨🇴",
+// imageUrl:
+// sourceUrl: "#",
+// locationUrl: "https://example.com/location",

@@ -1,7 +1,6 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
-import { SQL, and, asc, desc, gte, ilike, like, lte } from "drizzle-orm";
-import { spottings } from "../db/schema";
+import { Prisma, PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
 import {
   buildCountryObject,
@@ -37,19 +36,23 @@ class MetadataController {
 
       // connect to database
       PotLogger("[METADATA - SERVICES] -", "Grabbing from DB...");
-      const sql = postgres(c.env.DATABASE_URL);
-      const db = drizzle(sql);
+      const pool = new Pool({ connectionString: c.env.DATABASE_URL });
+      const adapter = new PrismaPg(pool);
+      const prisma = new PrismaClient({ adapter });
 
       // query
-      const queryResult = await db
-        .selectDistinct({ services: spottings.company })
-        .from(spottings);
+      const queryResult = await prisma.spottings.findMany({
+        distinct: ["company"],
+        select: {
+          company: true,
+        },
+      });
 
       // post-query
       let result: ServicesList = [];
       queryResult.forEach((field) => {
-        let serviceName = capitalizeLetter(field.services);
-        result.push({ label: serviceName, value: field.services });
+        let serviceName = capitalizeLetter(field.company);
+        result.push({ label: serviceName, value: field.company });
       });
       result = orderServices(result);
 
@@ -84,17 +87,21 @@ class MetadataController {
 
       // connect to db
       PotLogger("[METADATA - COUNTRIES] -", "Grabbing from DB...");
-      const sql = postgres(c.env.DATABASE_URL);
-      const db = drizzle(sql);
+      const pool = new Pool({ connectionString: c.env.DATABASE_URL });
+      const adapter = new PrismaPg(pool);
+      const prisma = new PrismaClient({ adapter });
 
       // query
-      const queryResult = await db
-        .selectDistinct({
-          country_value: spottings.country,
-          country_emoji: spottings.countryEmoji,
-        })
-        .from(spottings)
-        .orderBy(asc(spottings.country));
+      const queryResult = await prisma.spottings.findMany({
+        distinct: ["country"],
+        select: {
+          country: true,
+          countryEmoji: true,
+        },
+        orderBy: {
+          country: "asc",
+        },
+      });
 
       // post-query
       const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
@@ -103,16 +110,16 @@ class MetadataController {
       queryResult.forEach((field) => {
         let buff: CountryMetadata = { label: "", value: "" };
 
-        if (field.country_value == "others") {
+        if (field.country == "others") {
           // build object for countries that are marked as others
           buff = buildCountryObject("others", OTHERS_EMOJI, "Others");
         } else {
           // build object for specific countries
-          const country_name = regionNames.of(field.country_value);
+          const country_name = regionNames.of(field.country);
           if (country_name) {
             buff = buildCountryObject(
-              field.country_value,
-              field.country_emoji,
+              field.country,
+              field.countryEmoji,
               country_name
             );
           }
@@ -139,20 +146,31 @@ class MetadataController {
   async getDateSpan(c: ContextType): Promise<DateSpanResult> {
     try {
       // connect to database
-      const sql = postgres(c.env.DATABASE_URL);
-      const db = drizzle(sql);
+      const pool = new Pool({ connectionString: c.env.DATABASE_URL });
+      const adapter = new PrismaPg(pool);
+      const prisma = new PrismaClient({ adapter });
 
       // query
-      const earliestDateResult = await db
-        .selectDistinct({ date: spottings.date })
-        .from(spottings)
-        .orderBy(asc(spottings.date))
-        .limit(1);
-      const newestDateResult = await db
-        .selectDistinct({ date: spottings.date })
-        .from(spottings)
-        .orderBy(desc(spottings.date))
-        .limit(1);
+      const earliestDateResult = await prisma.spottings.findMany({
+        distinct: ["date"],
+        select: {
+          date: true,
+        },
+        orderBy: {
+          date: "asc",
+        },
+        take: 1,
+      });
+      const newestDateResult = await prisma.spottings.findMany({
+        distinct: ["date"],
+        select: {
+          date: true,
+        },
+        orderBy: {
+          date: "desc",
+        },
+        take: 1,
+      });
 
       // post-query
       let result: DateSpanResult = {
@@ -176,41 +194,45 @@ class MetadataController {
   ): Promise<MonthList> {
     try {
       // grab from cache
-      const redis = Redis.fromEnv(c.env);
+      // const redis = Redis.fromEnv(c.env);
       const cacheKey = buildRedisKey(`months:${service}`, country, town);
-      PotLogger("[METADATA - MONTHS] -", "Grabbing from REDIS...", cacheKey);
+      // PotLogger("[METADATA - MONTHS] -", "Grabbing from REDIS...", cacheKey);
 
-      const cached_months: MonthList | null = await redis.hget(
-        cacheKey,
-        "data"
-      );
-      if (cached_months) {
-        return cached_months;
-      }
+      // const cached_months: MonthList | null = await redis.hget(
+      //   cacheKey,
+      //   "data"
+      // );
+      // if (cached_months) {
+      //   return cached_months;
+      // }
 
       // connect to database
       PotLogger("[METADATA - MONTHS] -", "Grabbing from DB...", cacheKey);
-      const sql = postgres(c.env.DATABASE_URL);
-      const db = drizzle(sql);
+      const pool = new Pool({ connectionString: c.env.DATABASE_URL });
+      const adapter = new PrismaPg(pool);
+      const prisma = new PrismaClient({ adapter });
 
-      const sqlConditions: SQL<unknown>[] = [lte(spottings.date, new Date())];
-      // add additional conditions if provided
-      if (service) {
-        sqlConditions.push(ilike(spottings.company, `%${service}%`));
-      }
-      if (country) {
-        sqlConditions.push(like(spottings.country, country));
-      }
-      if (town) {
-        sqlConditions.push(ilike(spottings.town, town ? `%${town}%` : "%%"));
-      }
-
-      // query
-      const queryResult = await db
-        .select({ date: spottings.date })
-        .from(spottings)
-        .where(and(...sqlConditions))
-        .orderBy(desc(spottings.date));
+      const sqlConditions: Prisma.spottingsWhereInput = {
+        date: {
+          lte: new Date(),
+        },
+        company: service
+          ? { contains: service, mode: Prisma.QueryMode.insensitive }
+          : undefined,
+        country: country ? { equals: country } : undefined,
+        town: town
+          ? { contains: town, mode: Prisma.QueryMode.insensitive }
+          : undefined,
+      };
+      const queryResult = await prisma.spottings.findMany({
+        select: {
+          date: true,
+        },
+        where: sqlConditions,
+        orderBy: {
+          date: "desc",
+        },
+      });
 
       if (queryResult.length == 0) {
         throw new HTTPException(404, { message: "Not Found" });
@@ -259,8 +281,8 @@ class MetadataController {
 
       // cache
       // FORMAT: MONTHS:SERVICE
-      PotLogger("[METADATA - MONTHS] -", `Caching...`);
-      await redis.hset(cacheKey, { data });
+      // PotLogger("[METADATA - MONTHS] -", `Caching...`);
+      // await redis.hset(cacheKey, { data });
 
       return data;
     } catch (error) {

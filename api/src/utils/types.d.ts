@@ -32,7 +32,7 @@ type MonthList = Array<MonthMetadata>;
 // this is returned by the https backend
 interface SpottingMetadata {
   id: string;
-  date: string;
+  date: Date;
   country: string;
   country_emoji: string;
   town: string;
@@ -40,8 +40,8 @@ interface SpottingMetadata {
   source: string;
   location: string | null;
   image: string;
-  width: number;
-  height: number;
+  width: number | null;
+  height: number | null;
 }
 type SpottingsID = [SpottingMetadata]; // only for redis
 type SpottingsArray = Array<SpottingMetadata>;

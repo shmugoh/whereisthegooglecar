@@ -3,19 +3,26 @@
   "scripts": {
     "dev": "wrangler dev src/index.ts",
     "deploy": "wrangler deploy --minify src/index.ts",
+    "db:push": "bunx dotenv -e .dev.vars -- prisma db push",
+    "db:studio": "bunx dotenv -e .dev.vars -- prisma studio",
     "db:generate": "drizzle-kit generate --dialect=postgresql --schema=./src/db/schema.ts --out=./drizzle",
     "db:migrate": "bun ./src/db/migrate.ts"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^5.17.0",
+    "@prisma/client": "5.17.0",
     "@upstash/redis": "^1.32.0",
+    "dotenv": "^16.4.5",
     "drizzle-orm": "^0.31.4",
     "hono": "^4.4.12",
     "pg": "^8.12.0",
     "postgres": "^3.4.4",
+    "prisma": "^5.17.0",
     "superjson": "^2.2.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240529.0",
+    "dotenv-cli": "^7.4.2",
     "drizzle-kit": "^0.22.8",
     "wrangler": "^3.57.2"
   }
