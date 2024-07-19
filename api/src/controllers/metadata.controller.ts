@@ -194,17 +194,17 @@ class MetadataController {
   ): Promise<MonthList> {
     try {
       // grab from cache
-      // const redis = Redis.fromEnv(c.env);
+      const redis = Redis.fromEnv(c.env);
       const cacheKey = buildRedisKey(`months:${service}`, country, town);
-      // PotLogger("[METADATA - MONTHS] -", "Grabbing from REDIS...", cacheKey);
+      PotLogger("[METADATA - MONTHS] -", "Grabbing from REDIS...", cacheKey);
 
-      // const cached_months: MonthList | null = await redis.hget(
-      //   cacheKey,
-      //   "data"
-      // );
-      // if (cached_months) {
-      //   return cached_months;
-      // }
+      const cached_months: MonthList | null = await redis.hget(
+        cacheKey,
+        "data"
+      );
+      if (cached_months) {
+        return cached_months;
+      }
 
       // connect to database
       PotLogger("[METADATA - MONTHS] -", "Grabbing from DB...", cacheKey);
@@ -280,9 +280,9 @@ class MetadataController {
       });
 
       // cache
-      // FORMAT: MONTHS:SERVICE
-      // PotLogger("[METADATA - MONTHS] -", `Caching...`);
-      // await redis.hset(cacheKey, { data });
+      // FORMAT: MONTHS: SERVICE;
+      PotLogger("[METADATA - MONTHS] -", `Caching...`);
+      await redis.hset(cacheKey, { data });
 
       return data;
     } catch (error) {

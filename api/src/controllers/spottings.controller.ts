@@ -95,20 +95,23 @@ class SpottingsController {
     cache: boolean
   ): Promise<SpottingsArray> {
     try {
-      // grab from cache
-      const redis = Redis.fromEnv(c.env);
       const cacheKey = buildRedisKey(
         `${service}:${month}:${year}`,
         country,
         town
       );
-      PotLogger("[METADATA - MONTHS] -", "Grabbing from REDIS...", cacheKey);
-      const cached_month: SpottingsArray | null = await redis.hget(
-        cacheKey,
-        `${page}`
-      );
-      if (cached_month) {
-        return cached_month;
+
+      // grab from cache
+      if (cache) {
+        const redis = Redis.fromEnv(c.env);
+        PotLogger("[METADATA - MONTHS] -", "Grabbing from REDIS...", cacheKey);
+        const cached_month: SpottingsArray | null = await redis.hget(
+          cacheKey,
+          `${page}`
+        );
+        if (cached_month) {
+          return cached_month;
+        }
       }
 
       // connect to database
@@ -179,8 +182,11 @@ class SpottingsController {
         throw new HTTPException(404, { message: "Not Found" });
       }
 
-      PotLogger("[SPOTTINGS - QUERY] -", `Caching...`);
-      await redis.hset(cacheKey, { [page]: renamedData });
+      if (cache) {
+        const redis = Redis.fromEnv(c.env);
+        PotLogger("[SPOTTINGS - QUERY] -", `Caching...`);
+        await redis.hset(cacheKey, { [page]: renamedData });
+      }
 
       return renamedData;
     } catch (error) {
