@@ -30,10 +30,13 @@ export const Search = () => {
   // Dropdown Hook
   const [open, setOpen] = useState(false);
 
-  // prettier-ignore
-  const { data: services } = useSWR<ServicesList>('/metadata/services', fetcher);
-  // prettier-ignore
-  const { data: countries } = useSWR<CountriesList>('/metadata/countries', fetcher);
+  const { data: services } = useSWR<ServicesList>("/metadata/services", fetcher, {
+    revalidateOnFocus: false,
+  });
+
+  const { data: countries } = useSWR<CountriesList>("/metadata/countries", fetcher, {
+    revalidateOnFocus: false,
+  });
 
   // Initialize Router
   const router = useRouter();
@@ -71,9 +74,7 @@ export const Search = () => {
           className="h-full w-full gap-2 border bg-primary-foreground lg:flex lg:w-9 lg:border-0 lg:bg-inherit lg:px-0"
         >
           <SearchIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all" />
-          <span className="inline-flex w-full text-muted-foreground lg:hidden">
-            Search...
-          </span>
+          <span className="inline-flex w-full text-muted-foreground lg:hidden">Search...</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -140,12 +141,7 @@ export const Search = () => {
                 <div className="flex items-center gap-2 p-2">
                   <SearchIcon className="h-4 w-4 text-gray-500" />
                   <FormControl>
-                    <Input
-                      className="font-semibold"
-                      id="name"
-                      placeholder="Search by Town"
-                      {...field}
-                    />
+                    <Input className="font-semibold" id="name" placeholder="Search by Town" {...field} />
                   </FormControl>
                 </div>
               )}
