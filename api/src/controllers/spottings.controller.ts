@@ -96,7 +96,7 @@ class SpottingsController {
     cache: boolean
   ): Promise<SpottingsArray> {
     try {
-      const cacheKey = `${service}:${month}:${year}`;
+      const cacheKey = `spottings:${service}:${month}:${year}`;
 
       // grab from cache
       if (cache && ((!town && !country) || !town || !country)) {
