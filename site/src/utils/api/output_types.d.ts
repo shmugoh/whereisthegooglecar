@@ -44,3 +44,18 @@ interface SpottingMetadata {
 }
 type SpottingsID = [SpottingMetadata]; // only for redis
 type SpottingsArray = Array<SpottingMetadata>;
+
+/* Forms */
+interface presign_s3_output {
+  url: string;
+  key: string;
+
+  // only appears on error
+  code?: number;
+  message?: string;
+}
+
+interface form_output {
+  code: number;
+  message: string;
+}

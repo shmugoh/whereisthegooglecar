@@ -3,11 +3,9 @@ import { LocationButton, SourceButton, TextBluePrint } from "./output";
 import { ImagePreview } from "~/components/layout/entry/image";
 // import EditDialog from "../form/edit";
 import ServiceBadge from "./service_badge";
+import EditDialog from "../form/edit";
 
-export const PageComponent = (props: {
-  data: SpottingMetadata;
-  dateFormatted: string;
-}) => {
+export const PageComponent = (props: { data: SpottingMetadata; dateFormatted: string }) => {
   return (
     <div className="flex flex-col items-center gap-4">
       {/* Top Title */}
@@ -20,32 +18,23 @@ export const PageComponent = (props: {
         <div className="flex w-full gap-4">
           <ServiceBadge service={props.data.service} />
 
-          <TextBluePrint
-            text={props.data.town}
-            size="lg"
-            className="w-full text-right md:text-left"
-          />
+          <TextBluePrint text={props.data.town} size="lg" className="w-full text-right md:text-left" />
         </div>
         <div className="flex w-full justify-end gap-4 md:w-fit md:flex-row md:justify-normal">
           <SourceButton url={props.data.source} size="lg" />
 
-          {props.data.location && (
-            <LocationButton url={props.data.location} size="lg" />
-          )}
+          {props.data.location && <LocationButton url={props.data.location} size="lg" />}
 
-          {/* <EditDialog
+          <EditDialog
             size="lg"
             date={new Date(props.data.date)}
             town={props.data.town}
-            country={props.data.countryEmoji}
-            source={props.data.sourceUrl}
-            location={props.data.locationUrl ?? undefined}
-            service={
-              props.data.company.charAt(0).toUpperCase() +
-              props.data.company.slice(1)
-            }
-            id={props.data.message_id}
-          /> */}
+            country={props.data.country_emoji}
+            source={props.data.source}
+            location={props.data.location ?? undefined}
+            service={props.data.service.charAt(0).toUpperCase() + props.data.service.slice(1)}
+            id={props.data.id}
+          />
         </div>
       </div>
 

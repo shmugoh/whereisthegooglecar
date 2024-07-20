@@ -46,7 +46,7 @@ interface SpottingMetadata {
 type SpottingsID = [SpottingMetadata]; // only for redis
 type SpottingsArray = Array<SpottingMetadata>;
 
-/* Forms */
+/* Input - Forms */
 interface presignS3 {
   cf_turnstile_token: string;
   checksum: string;
@@ -68,4 +68,15 @@ interface FormSchema {
 
   // edit only
   id?: string;
+}
+
+/* Output - Forms */
+interface presign_s3_output {
+  url: string;
+  key: string;
+}
+
+interface form_output {
+  code: number;
+  message: string;
 }

@@ -60,7 +60,10 @@ async function validateTurnstile(c: ContextType, token: string) {
 }
 
 class FormController {
-  async presignS3(c: ContextType, props: presignS3) {
+  async presignS3(
+    c: ContextType,
+    props: presignS3
+  ): Promise<presign_s3_output | form_output> {
     try {
       // prettier-ignore
       const turnstile_response = await validateTurnstile(c, props.cf_turnstile_token);
@@ -71,7 +74,7 @@ class FormController {
       throw new HTTPException(500, { message: "Internal Server Error" });
     }
 
-    if (ALLOWED_FILE_TYPES.includes(props.fileType)) {
+    if (!ALLOWED_FILE_TYPES.includes(props.fileType)) {
       throw new HTTPException(415, { message: "File Type not allowed." });
     }
     if (props.fileSize > MAX_FILE_SIZE) {
@@ -121,7 +124,7 @@ class FormController {
     }
   }
 
-  async submitForm(c: ContextType, input: FormSchema) {
+  async submitForm(c: ContextType, input: FormSchema): Promise<form_output> {
     // verify cloudflare turnstile captcha
     // prettier-ignore
     const turnstile_response = validateTurnstile(c, input.cf_turnstile_token);
@@ -132,7 +135,7 @@ class FormController {
     try {
       // create webhook embed
       const embed = generateEmbed({
-        date: input.date,
+        date: new Date(input.date),
         country: input.country,
         town: input.town,
         source: input.source,
@@ -159,12 +162,12 @@ class FormController {
     } catch (e) {
       // return http error if something went wrong
       throw new HTTPException(500, {
-        message: `Something went wrong while uploading your image. Please try again.`,
+        message: `Something went wrong while uploading your image. Please try again. ${e}`,
       });
     }
   }
 
-  async editForm(c: ContextType, input: FormSchema) {
+  async editForm(c: ContextType, input: FormSchema): Promise<form_output> {
     // verify cloudflare turnstile captcha
     // prettier-ignore
     const turnstile_response = validateTurnstile(c, input.cf_turnstile_token);
@@ -175,7 +178,7 @@ class FormController {
     try {
       // create webhook embed
       const embed = generateEmbed({
-        date: input.date,
+        date: new Date(input.date),
         country: input.country,
         town: input.town,
         source: input.source,

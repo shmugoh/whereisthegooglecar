@@ -5,24 +5,12 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { AspectRatio } from "~/components/ui/aspect-ratio";
 import { Calendar } from "~/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 
 import { type z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "~/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";
 import { addDays, format } from "date-fns";
 import { formSchema } from "~/utils/formSchema";
 
@@ -32,13 +20,14 @@ import { IoCloudUploadOutline } from "react-icons/io5";
 import { cn } from "~/lib/utils";
 import Image from "next/image";
 import { TurnstileWidget } from "~/components/turnstile-captcha";
-import { api } from "~/utils/api";
+import useSWRMutation from "swr/mutation";
 import { computeSHA256 } from "~/utils/sha256";
 import { env } from "~/env";
 import SuccessPage from "./success";
 import { SubmitButton } from "./button";
 import { ErrorMessage } from "./error";
 import { CustomCaption } from "../calendar";
+import { presignPaload, submitPayload } from "~/utils/api/swrFetcher";
 
 export default function SubmitForm() {
   // form configuration
@@ -47,9 +36,9 @@ export default function SubmitForm() {
     defaultValues: { id: "" },
   });
 
-  // POST
-  const submitMutation = api.form.submitForm.useMutation({});
-  const signedURLMutation = api.form.presign_s3.useMutation({});
+  // POST Payloads
+  const submitTrigger = useSWRMutation("/form/submit", submitPayload);
+  const signedURLTrigger = useSWRMutation("/form/presign-s3", presignPaload);
 
   // image uploading
   const [blobImage, setBlobImage] = useState<string | undefined>();
@@ -64,6 +53,7 @@ export default function SubmitForm() {
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
 
   // on submitting form
+  // on submitting form
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (imageFile) {
       // disable button and remove error message
@@ -71,33 +61,26 @@ export default function SubmitForm() {
       setIsLoading(true);
 
       // grab values
-      const {
-        date,
-        country,
-        town,
-        source,
-        location,
-        service,
-        cf_turnstile_token,
-        id,
-      } = values;
+      const { date, country, town, source, location, service, cf_turnstile_token, id } = values;
 
       // get signed url
       setLoadingMesasge("Uploading Image...");
       const imageChecksum = await computeSHA256(imageFile);
 
       try {
-        const signedURLResponse = await signedURLMutation.mutateAsync({
+        const signedURLResponse = await signedURLTrigger.trigger({
+          cf_turnstile_token: cf_turnstile_token,
+          checksum: imageChecksum,
           fileSize: imageFile.size,
           fileType: imageFile.type,
-          checksum: imageChecksum,
-          cf_turnstile_token: cf_turnstile_token,
         });
 
+        console.log(signedURLResponse);
+
         // if aws signs url
-        if (signedURLResponse.message.url && signedURLResponse.message.key) {
+        if (signedURLResponse.url && signedURLResponse.key) {
           // upload image to s3
-          await fetch(signedURLResponse.message.url, {
+          await fetch(signedURLResponse.url, {
             method: "PUT",
             headers: {
               "Content-Type": imageFile.type,
@@ -106,11 +89,11 @@ export default function SubmitForm() {
           });
 
           // generate image url
-          const imageUrl = `${env.NEXT_PUBLIC_CDN_URL}/${signedURLResponse.message.key}`;
+          const imageUrl = `${env.NEXT_PUBLIC_CDN_URL}/${signedURLResponse.key}`;
 
           // submit webhook
           setLoadingMesasge("Submitting Form...");
-          const webhook_response = await submitMutation.mutateAsync({
+          const webhook_response = await submitTrigger.trigger({
             date: date,
             country: country,
             town: town,
@@ -129,8 +112,7 @@ export default function SubmitForm() {
         }
       } catch (e) {
         setIsLoading(false);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        setErrorMessage(e.message as string);
+        setErrorMessage(e as string);
       }
     }
   }
@@ -181,10 +163,9 @@ export default function SubmitForm() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormLabel>
-            If you saw a Street View car, whether it was parked or driving,
-            whether it was recently or a long time ago, then feel free to
-            contribute by submitting the sighting here. Our contributors will
-            review the submission and add it to our database if it is valid.
+            If you saw a Street View car, whether it was parked or driving, whether it was recently or a long time ago,
+            then feel free to contribute by submitting the sighting here. Our contributors will review the submission
+            and add it to our database if it is valid.
           </FormLabel>
 
           {/* Date */}
@@ -199,16 +180,9 @@ export default function SubmitForm() {
                     <FormControl>
                       <Button
                         variant={"outline"}
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground",
-                        )}
+                        className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
                       >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
+                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>
@@ -218,9 +192,7 @@ export default function SubmitForm() {
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
+                      disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
                       initialFocus
                       fromYear={2006}
                       toDate={addDays(new Date(), 0)}
@@ -254,10 +226,7 @@ export default function SubmitForm() {
                     onFileUpload(file);
                   }}
                 >
-                  <AspectRatio
-                    className="mx-auto content-center rounded-md border border-dashed p-2"
-                    ratio={21 / 7}
-                  >
+                  <AspectRatio className="mx-auto content-center rounded-md border border-dashed p-2" ratio={21 / 7}>
                     <Input
                       type="file"
                       id="file"
@@ -269,9 +238,7 @@ export default function SubmitForm() {
                     {blobImage === undefined ? (
                       <div className="flex flex-col items-center justify-center space-y-4">
                         <IoCloudUploadOutline className="h-10 w-10 md:h-16 md:w-16" />
-                        <p className="text-sm leading-7 md:text-base">
-                          Drag an image here or click to upload.
-                        </p>
+                        <p className="text-sm leading-7 md:text-base">Drag an image here or click to upload.</p>
                       </div>
                     ) : (
                       <Image
@@ -332,15 +299,11 @@ export default function SubmitForm() {
               <FormItem>
                 <FormLabel>Source</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="https://twitter.com/aiaddict1/status/1758281981509640247"
-                    {...field}
-                  />
+                  <Input placeholder="https://twitter.com/aiaddict1/status/1758281981509640247" {...field} />
                 </FormControl>
                 <FormDescription>
-                  Source of where the sighting was found. Could be either a
-                  website link, social media post, or your name if you were the
-                  one who spotted it.
+                  Source of where the sighting was found. Could be either a website link, social media post, or your
+                  name if you were the one who spotted it.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -354,14 +317,10 @@ export default function SubmitForm() {
               <FormItem>
                 <FormLabel>Location (Optional)</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="https://maps.app.goo.gl/5D5CK4LcDdmH9Fmr8"
-                    {...field}
-                  />
+                  <Input placeholder="https://maps.app.goo.gl/5D5CK4LcDdmH9Fmr8" {...field} />
                 </FormControl>
                 <FormDescription>
-                  Location of where the sighting was taken. Must be a website
-                  link, preferrably a Google Maps link.
+                  Location of where the sighting was taken. Must be a website link, preferrably a Google Maps link.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -378,8 +337,7 @@ export default function SubmitForm() {
                   <Input placeholder="Google" {...field} />
                 </FormControl>
                 <FormDescription>
-                  Service that the vehicle sighted associated with. Leave blank
-                  if unknown.
+                  Service that the vehicle sighted associated with. Leave blank if unknown.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -391,11 +349,7 @@ export default function SubmitForm() {
             name="cf_turnstile_token"
             render={({ field }) => (
               <FormItem>
-                <TurnstileWidget
-                  setToken={(token) =>
-                    form.setValue("cf_turnstile_token", token)
-                  }
-                />
+                <TurnstileWidget setToken={(token) => form.setValue("cf_turnstile_token", token)} />
                 <FormMessage />
               </FormItem>
             )}
