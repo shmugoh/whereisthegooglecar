@@ -3,7 +3,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
 import { buildCountryObject, capitalizeLetter } from "../utils/strings";
-import { orderServices } from "../utils/arrays";
+import { orderServices, sortCountriesByLabel } from "../utils/arrays";
 import {
   ContextType,
   OTHERS_EMOJI,
@@ -96,9 +96,6 @@ class MetadataController {
           country: true,
           countryEmoji: true,
         },
-        orderBy: {
-          country: "asc",
-        },
       });
 
       // post-query
@@ -128,6 +125,9 @@ class MetadataController {
           data.push(buff);
         }
       });
+
+      // sort country
+      data = sortCountriesByLabel(data);
 
       // cache to redis
       PotLogger("[METADATA - COUNTRIES] -", "Caching to REDIS...");

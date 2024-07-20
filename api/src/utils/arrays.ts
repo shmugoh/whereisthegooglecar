@@ -16,3 +16,15 @@ export function orderServices(
 ) {
   return unsortedServices.sort(compareServices);
 }
+
+export function sortCountriesByLabel(countries: CountriesList): CountriesList {
+  return countries.sort((a, b) => {
+    const labelA = a.label.split(" - ")[1];
+    const labelB = b.label.split(" - ")[1];
+
+    if (labelA === "Others") return 1;
+    if (labelB === "Others") return -1;
+
+    return labelA.localeCompare(labelB);
+  });
+}
