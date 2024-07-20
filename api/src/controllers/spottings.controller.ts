@@ -6,6 +6,7 @@ import { ContextType, PAGINATION_TAKE, PotLogger } from "../utils/constants";
 // TODO: distribute this context script-wide
 import { Redis } from "@upstash/redis/cloudflare";
 import { HTTPException } from "hono/http-exception";
+import { capitalizeLetter } from "../utils/strings";
 
 class SpottingsController {
   async getById(c: ContextType, id: string): Promise<SpottingMetadata> {
@@ -61,7 +62,7 @@ class SpottingsController {
         country: data.country,
         country_emoji: data.countryEmoji,
         town: data.town,
-        service: data.company,
+        service: capitalizeLetter(data.company),
         source: data.sourceUrl,
         location: data.locationUrl,
         image: data.imageUrl,
@@ -134,7 +135,9 @@ class SpottingsController {
           : undefined,
         country: country ? { equals: country } : undefined,
         company: service
-          ? { contains: service, mode: Prisma.QueryMode.insensitive }
+          ? service === "others_rest"
+            ? { notIn: ["google", "apple", "yandex"] }
+            : { contains: service, mode: Prisma.QueryMode.insensitive }
           : undefined,
       };
 
@@ -168,7 +171,7 @@ class SpottingsController {
         date: item.date,
         country: item.country,
         country_emoji: item.countryEmoji,
-        service: item.company,
+        service: capitalizeLetter(item.company),
         town: item.town,
         source: item.sourceUrl,
         location: item.locationUrl,

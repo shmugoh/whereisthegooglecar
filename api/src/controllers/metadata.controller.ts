@@ -223,7 +223,9 @@ class MetadataController {
           lte: new Date(),
         },
         company: service
-          ? { contains: service, mode: Prisma.QueryMode.insensitive }
+          ? service === "others_rest"
+            ? { notIn: ["google", "apple", "yandex"] }
+            : { contains: service, mode: Prisma.QueryMode.insensitive }
           : undefined,
         country: country ? { equals: country } : undefined,
         town: town
