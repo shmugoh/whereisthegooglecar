@@ -6,7 +6,7 @@ type cardProps = {
   image: string;
   source: string;
   location?: string;
-  company?: string;
+  service?: string;
   width: number;
   height: number;
 };

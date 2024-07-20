@@ -1,22 +1,11 @@
 import Link from "next/link";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 
 import { TopText } from "~/components/layout/entry/topText";
-import {
-  LocationButton,
-  SourceButton,
-  TextBluePrint,
-} from "~/components/layout/entry/output";
+import { LocationButton, SourceButton, TextBluePrint } from "~/components/layout/entry/output";
 import { ImagePreview } from "~/components/layout/entry/image";
 import { CardSkeleton, HomeSkeleton } from "~/components/layout/entry/skeleton";
 
@@ -50,9 +39,7 @@ export const SpottingCard = (props: cardProps) => {
         <CardHeader>
           <CardTitle>
             <div className="flex w-full flex-row justify-between gap-20">
-              <h2 className="flex items-center justify-start text-3xl font-semibold">
-                {date}
-              </h2>
+              <h2 className="flex items-center justify-start text-3xl font-semibold">{date}</h2>
 
               <div className="flex items-center justify-end">
                 <span
@@ -70,7 +57,7 @@ export const SpottingCard = (props: cardProps) => {
           <CardDescription className="flex items-center justify-between gap-2 break-words">
             <TextBluePrint text={props.town} size="base" />
 
-            <ServiceBadge service={props.company} className="h-fit" />
+            <ServiceBadge service={props.service} className="h-fit" />
           </CardDescription>
         </CardHeader>
         <CardContent className="hidden lg:block">
@@ -90,9 +77,7 @@ export const SpottingCard = (props: cardProps) => {
         <CardFooter className="flex justify-between">
           <div className="flex gap-2">
             <SourceButton url={props.source} size="sm" />
-            {props.location && (
-              <LocationButton url={props.location} size="sm" />
-            )}
+            {props.location && <LocationButton url={props.location} size="sm" />}
           </div>
           <div className="flex items-center md:w-1/3">
             <Button className="flex h-full w-full items-center" asChild>
@@ -126,14 +111,12 @@ export const CardSet = (props: cardSetProps) => {
             image={item.image}
             source={item.source}
             location={item.location}
-            company={props.showCompany ? item.company : undefined}
+            service={props.showCompany ? item.service : undefined}
             width={item.width}
             height={item.height}
           />
         ))}
-        {props.showSkeleton === true
-          ? Array.from({ length: 6 }, (_, i) => <CardSkeleton key={i} />)
-          : null}
+        {props.showSkeleton === true ? Array.from({ length: 6 }, (_, i) => <CardSkeleton key={i} />) : null}
       </div>
     </div>
   );
