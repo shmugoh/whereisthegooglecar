@@ -75,11 +75,13 @@ class SpottingsController {
 
       // return
       return renamed_data;
-    } catch (error) {
-      if (error instanceof HTTPException) {
-        throw error;
+    } catch (e) {
+      if (e instanceof HTTPException) {
+        throw e;
       }
-      throw new HTTPException(500, { message: "Internal Server Error" });
+      throw new HTTPException(500, {
+        message: `Internal Server Error: ${JSON.stringify(e)}`,
+      });
     }
   }
 
@@ -188,11 +190,13 @@ class SpottingsController {
       }
 
       return renamedData;
-    } catch (error) {
-      if (error instanceof HTTPException) {
-        throw error;
+    } catch (e) {
+      if (e instanceof HTTPException) {
+        throw e;
       }
-      throw new HTTPException(500, { message: `Internal Server Error` });
+      throw new HTTPException(500, {
+        message: `Internal Server Error: ${JSON.stringify(e)}`,
+      });
     }
   }
 }

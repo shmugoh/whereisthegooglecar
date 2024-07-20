@@ -71,7 +71,9 @@ class FormController {
         throw new HTTPException(403, { message: "Invalid Turnstile Token" });
       }
     } catch (e) {
-      throw new HTTPException(500, { message: "Internal Server Error" });
+      throw new HTTPException(500, {
+        message: `Internal Server Error: ${JSON.stringify(e)}`,
+      });
     }
 
     if (!ALLOWED_FILE_TYPES.includes(props.fileType)) {
@@ -119,7 +121,9 @@ class FormController {
     } catch (e) {
       // return http error if something went wrong
       throw new HTTPException(500, {
-        message: `Something went wrong while uploading your image. Please try again.`,
+        message: `Something went wrong while uploading your image: ${JSON.stringify(
+          e
+        )}.`,
       });
     }
   }
@@ -162,7 +166,7 @@ class FormController {
     } catch (e) {
       // return http error if something went wrong
       throw new HTTPException(500, {
-        message: `Something went wrong while uploading your image. Please try again. ${e}`,
+        message: `Something went wrong while submitting: ${JSON.stringify(e)}`,
       });
     }
   }
@@ -201,10 +205,12 @@ class FormController {
         code: webhookResponse.status,
         message: webhookResponse.statusText,
       };
-    } catch {
+    } catch (e) {
       // return http error if something went wrong
       throw new HTTPException(500, {
-        message: `Something went wrong while submiting your form. Please try again.`,
+        message: `Something went wrong while submiting your form: ${JSON.stringify(
+          e
+        )}`,
       });
     }
   }

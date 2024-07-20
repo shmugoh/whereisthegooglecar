@@ -61,9 +61,11 @@ class MetadataController {
 
       // return
       return result;
-    } catch (error) {
-      PotLogger("[METADATA - SERVICES] -", `ERROR: `, `${error}`);
-      throw new HTTPException(500, { message: "Internal Server Error" });
+    } catch (e) {
+      PotLogger("[METADATA - SERVICES] -", `ERROR: `, `${JSON.stringify(e)}`);
+      throw new HTTPException(500, {
+        message: `Internal Server Error: ${JSON.stringify(e)}`,
+      });
     }
   }
 
@@ -133,9 +135,11 @@ class MetadataController {
 
       // return
       return data;
-    } catch (error) {
-      PotLogger("[METADATA - COUNTRIES] -", `ERROR: `, `${error}`);
-      throw new HTTPException(500, { message: "Internal Server Error" });
+    } catch (e) {
+      PotLogger("[METADATA - COUNTRIES] -", `ERROR: `, `${JSON.stringify(e)}`);
+      throw new HTTPException(500, {
+        message: `Internal Server Error: ${JSON.stringify(e)}`,
+      });
     }
   }
 
@@ -176,8 +180,10 @@ class MetadataController {
 
       // return
       return result;
-    } catch (error) {
-      throw new HTTPException(500, { message: "Internal Server Error" });
+    } catch (e) {
+      throw new HTTPException(500, {
+        message: `Internal Server Error: ${JSON.stringify(e)}`,
+      });
     }
   }
 
@@ -289,11 +295,13 @@ class MetadataController {
       }
 
       return data;
-    } catch (error) {
-      if (error instanceof HTTPException) {
-        throw error;
+    } catch (e) {
+      if (e instanceof HTTPException) {
+        throw e;
       }
-      throw new HTTPException(500, { message: "Internal Server Error" });
+      throw new HTTPException(500, {
+        message: `Internal Server Error: ${JSON.stringify(e)}`,
+      });
     }
   }
 }
