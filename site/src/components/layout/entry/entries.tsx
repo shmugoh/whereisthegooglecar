@@ -1,18 +1,9 @@
 import InfiniteScroll from "react-infinite-scroll-component";
-import {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  type MutableRefObject,
-} from "react";
+import { useState, useEffect, useRef, useCallback, type MutableRefObject } from "react";
 import { axiosInstance as axios } from "~/utils/api/swrFetcher";
 
 import { CardSet } from "~/components/layout/entry/card";
-import {
-  PageNavigation,
-  MobilePageNavigation,
-} from "~/components/layout/pagination";
+import { PageNavigation, MobilePageNavigation } from "~/components/layout/pagination";
 
 import { useRouter } from "next/router";
 import Error from "~/pages/_error";
@@ -41,14 +32,8 @@ export function BaseEntriesPage(props: BaseEntriesPageProps) {
   return (
     <div className="flex w-full flex-col justify-between gap-4 md:min-h-[730px]">
       <div className="justify-start">
-        <PageNavigation
-          length={props.months.length}
-          activeIndex={props.activeIndex}
-        />
-        <MobilePageNavigation
-          length={props.months.length}
-          activeIndex={props.activeIndex}
-        />
+        <PageNavigation length={props.months.length} activeIndex={props.activeIndex} />
+        <MobilePageNavigation length={props.months.length} activeIndex={props.activeIndex} />
       </div>
 
       <InfiniteScroll
@@ -69,14 +54,8 @@ export function BaseEntriesPage(props: BaseEntriesPageProps) {
       </InfiniteScroll>
 
       <div className="justify-end">
-        <PageNavigation
-          length={props.months.length}
-          activeIndex={props.activeIndex}
-        />
-        <MobilePageNavigation
-          length={props.months.length}
-          activeIndex={props.activeIndex}
-        />
+        <PageNavigation length={props.months.length} activeIndex={props.activeIndex} />
+        <MobilePageNavigation length={props.months.length} activeIndex={props.activeIndex} />
       </div>
     </div>
   );
@@ -107,10 +86,7 @@ export default function EntriesPage(props: EntriesPageProps) {
   // fetch data
   const fetchData = useCallback(async () => {
     // clear current date if date is not the same && continue fetching is false
-    if (
-      previousMonth.current !== activeMonth.current &&
-      continueFetching == false
-    ) {
+    if (previousMonth.current !== activeMonth.current && continueFetching == false) {
       // console.log("activeMonth not the same... clearing all data!");
       setCardSets([]); // clear current data
     }
@@ -139,16 +115,11 @@ export default function EntriesPage(props: EntriesPageProps) {
 
     const QueryString = buildURLParams(commonData);
 
-    const response = await axios.get<SpottingsArray>(
-      `/spottings/search?${QueryString}`,
-    );
+    const response = await axios.get<SpottingsArray>(`/spottings/search?${QueryString}`);
     // build parameters
     const data = response.data;
 
-    if (
-      availablePages.current > activePage.current &&
-      availablePages.current !== 0
-    ) {
+    if (availablePages.current > activePage.current && availablePages.current !== 0) {
       // console.log("not full. fetching more data!");
       setContinueFetching(true);
       previousMonth.current = activeMonth.current;
@@ -163,10 +134,7 @@ export default function EntriesPage(props: EntriesPageProps) {
       const uniqueMessageIds = new Set<string>();
 
       // remove duplicates and/or un-matching cards
-      const result = mergedCardSets.filter(function (
-        this: Set<string>,
-        card: SpottingMetadata,
-      ) {
+      const result = mergedCardSets.filter(function (this: Set<string>, card: SpottingMetadata) {
         // check if card date matches with activeMonth.current
         const cardDate = new Date(card.date);
         const cardMonth = cardDate.getUTCMonth();
@@ -201,12 +169,16 @@ export default function EntriesPage(props: EntriesPageProps) {
           searchQueryData.country = props.country;
         }
       }
+
+      // if not coming from cache, add caching parameters
+      if (!props.search && (!props.town ?? !props.country)) {
+        searchQueryData.cache = true;
+      }
+
       // build parameters
       const QueryString = buildURLParams(searchQueryData);
 
-      const response = await axios.get<MonthList>(
-        `/metadata/available-months?${QueryString}`,
-      );
+      const response = await axios.get<MonthList>(`/metadata/available-months?${QueryString}`);
       const data = response.data;
 
       setMonths(data);
@@ -237,10 +209,7 @@ export default function EntriesPage(props: EntriesPageProps) {
 
     if (months.length !== 0) {
       // checks if query is within range
-      if (
-        Number(router.query.page) > months.length ||
-        Number(router.query.page) < 1
-      ) {
+      if (Number(router.query.page) > months.length || Number(router.query.page) < 1) {
         setError(404);
         return;
       }
@@ -263,12 +232,7 @@ export default function EntriesPage(props: EntriesPageProps) {
   }, [router.query.page, months]);
 
   if (error !== 200) {
-    return (
-      <Error
-        statusCode={error}
-        message={error === 404 ? "No data found" : null}
-      />
-    );
+    return <Error statusCode={error} message={error === 404 ? "No data found" : null} />;
   }
 
   return (
