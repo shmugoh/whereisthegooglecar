@@ -7,10 +7,8 @@ import { convertDate } from "~/utils/date";
 import { env } from "~/env";
 import { axiosInstance } from "~/utils/api/swrFetcher";
 
-export const runtime = "experimental-edge";
-
 export default function Page(
-  props: InferGetServerSidePropsType<typeof getServerSideProps>,
+  props: InferGetServerSidePropsType<typeof getStaticProps>,
 ) {
   if (props.data) {
     // format date
@@ -73,8 +71,16 @@ export default function Page(
   }
 }
 
+export const getStaticPaths = async () => {
+  // fallback: 'blocking' will generate not-yet-generated pages on-demand
+  return {
+    fallback: "blocking",
+    paths: [],
+  };
+};
+
 // prettier-ignore
-export const getServerSideProps = async ({params}: { params: { id: string };}) => {
+export const getStaticProps  = async ({params}: { params: { id: string };}) => {
   // get id from query
   const id_query = params.id;
   if (id_query) {
@@ -85,6 +91,7 @@ export const getServerSideProps = async ({params}: { params: { id: string };}) =
       if (data) {
         return {
           props: { data },
+          revalidate: 60,
         };
       }
     } catch (error) {
