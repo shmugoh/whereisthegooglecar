@@ -2,11 +2,7 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
-import {
-  buildCountryObject,
-  buildRedisKey,
-  capitalizeLetter,
-} from "../utils/strings";
+import { buildCountryObject, capitalizeLetter } from "../utils/strings";
 import { orderServices } from "../utils/arrays";
 import {
   ContextType,
@@ -193,17 +189,21 @@ class MetadataController {
     cache: Boolean
   ): Promise<MonthList> {
     try {
+      const cacheKey = `months:${service}`;
+
       // grab from cache
       const redis = Redis.fromEnv(c.env);
-      const cacheKey = buildRedisKey(`months:${service}`, country, town);
-      PotLogger("[METADATA - MONTHS] -", "Grabbing from REDIS...", cacheKey);
+      if (cache && ((!town && !country) || !town || !country)) {
+        // protect from other entries
 
-      const cached_months: MonthList | null = await redis.hget(
-        cacheKey,
-        "data"
-      );
-      if (cached_months) {
-        return cached_months;
+        PotLogger("[METADATA - MONTHS] -", "Grabbing from REDIS...", cacheKey);
+        const cached_months: MonthList | null = await redis.hget(
+          cacheKey,
+          "data"
+        );
+        if (cached_months) {
+          return cached_months;
+        }
       }
 
       // connect to database
@@ -281,8 +281,12 @@ class MetadataController {
 
       // cache
       // FORMAT: MONTHS: SERVICE;
-      PotLogger("[METADATA - MONTHS] -", `Caching...`);
-      await redis.hset(cacheKey, { data });
+      if (cache && ((!town && !country) || !town || !country)) {
+        // protect from other entries
+
+        PotLogger("[METADATA - MONTHS] -", `Caching...`);
+        await redis.hset(cacheKey, { data });
+      }
 
       return data;
     } catch (error) {

@@ -6,7 +6,6 @@ import { ContextType, PAGINATION_TAKE, PotLogger } from "../utils/constants";
 // TODO: distribute this context script-wide
 import { Redis } from "@upstash/redis/cloudflare";
 import { HTTPException } from "hono/http-exception";
-import { buildRedisKey } from "../utils/strings";
 
 class SpottingsController {
   async getById(c: ContextType, id: string): Promise<SpottingMetadata> {
@@ -95,14 +94,12 @@ class SpottingsController {
     cache: boolean
   ): Promise<SpottingsArray> {
     try {
-      const cacheKey = buildRedisKey(
-        `${service}:${month}:${year}`,
-        country,
-        town
-      );
+      const cacheKey = `${service}:${month}:${year}`;
 
       // grab from cache
-      if (cache) {
+      if (cache && ((!town && !country) || !town || !country)) {
+        // protect from other entries
+
         const redis = Redis.fromEnv(c.env);
         PotLogger("[METADATA - MONTHS] -", "Grabbing from REDIS...", cacheKey);
         const cached_month: SpottingsArray | null = await redis.hget(
@@ -182,7 +179,9 @@ class SpottingsController {
         throw new HTTPException(404, { message: "Not Found" });
       }
 
-      if (cache) {
+      if (cache && ((!town && !country) || !town || !country)) {
+        // protect from other entries
+
         const redis = Redis.fromEnv(c.env);
         PotLogger("[SPOTTINGS - QUERY] -", `Caching...`);
         await redis.hset(cacheKey, { [page]: renamedData });
@@ -193,7 +192,7 @@ class SpottingsController {
       if (error instanceof HTTPException) {
         throw error;
       }
-      throw new HTTPException(500, { message: "Internal Server Error" });
+      throw new HTTPException(500, { message: `Internal Server Error` });
     }
   }
 }
