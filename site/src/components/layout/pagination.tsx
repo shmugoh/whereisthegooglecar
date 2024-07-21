@@ -115,13 +115,11 @@ export function PageNavigation(props: PaginationProps) {
               )}
 
             {/* ellipsis before the last three */}
-            {i === props.activeIndex + 2 &&
-              i < props.length - 3 &&
-              props.length >= 11 && (
-                <PaginationItem>
-                  <PaginationEllipsis />
-                </PaginationItem>
-              )}
+            {i === props.activeIndex + 2 && i < props.length - 3 && props.length >= 11 && (
+              <PaginationItem>
+                <PaginationEllipsis />
+              </PaginationItem>
+            )}
 
             {/* shows last three items */}
             {i >= props.length - 3 && props.length >= 11 && (
@@ -150,11 +148,12 @@ export function PageNavigation(props: PaginationProps) {
 }
 
 export function MobilePageNavigation(props: PaginationProps) {
+  const router = useRouter();
+
   if (props.length === 0) {
     return <></>; // skeleton is already loaded in desktop pagination; too lazy to implement it with the proper css checks
   }
 
-  const router = useRouter();
   const previousHref =
     props.activeIndex !== 1
       ? {
