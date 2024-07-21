@@ -26,10 +26,8 @@ model spottings {
     message_id      String
     channel_id      BigInt
     channel         channel     @relation(fields: [channel_id], references: [id])
-    width           Int?
-    height          Int?
-    
-    coordinates     String      @default("")
+    width           Int
+    height          Int
     
     @@index([id])
 }

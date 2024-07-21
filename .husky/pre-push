@@ -2,7 +2,7 @@
 SITE_PROJECT_PATH="site"
 cd "$SITE_PROJECT_PATH" || { echo "Failed to enter SITE directory"; exit 1; }
 
-bun run lint --quiet
+bun run lint
 LINT_STATUS=$?
 
 # Go back to root

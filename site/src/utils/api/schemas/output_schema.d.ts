@@ -38,8 +38,8 @@ interface SpottingMetadata {
   source: string;
   location: string | null;
   image: string;
-  width: number | null;
-  height: number | null;
+  width: number;
+  height: number;
 }
 type SpottingsID = [SpottingMetadata]; // only for redis
 type SpottingsArray = Array<SpottingMetadata>;
