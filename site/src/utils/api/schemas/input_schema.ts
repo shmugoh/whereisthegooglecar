@@ -28,8 +28,9 @@ export const SearchSchema = z
       return true;
     },
     {
-      message: "Incompatible parameters. Town and Country must be omitted if cache is enabled.",
-    },
+      message:
+        "Incompatible parameters. Town and Country must be omitted if cache is enabled.",
+    }
   );
 
 // ID
@@ -57,8 +58,9 @@ export const AvailableMonthsSchema = z
       return true;
     },
     {
-      message: "Incompatible parameters. Town and Country must be omitted if cache is enabled.",
-    },
+      message:
+        "Incompatible parameters. Town and Country must be omitted if cache is enabled.",
+    }
   );
 
 /* Form */
@@ -72,9 +74,13 @@ export const PresignSchema = z.object({
 
 // Schema for FormSchema
 export const FormSchema = z.object({
-  country: z.string().min(4, { message: "Country must be at least 4 characters" }),
+  country: z
+    .string()
+    .min(4, { message: "Country must be at least 4 characters" }),
   town: z.string().min(1, { message: "Town must at least have 1 character" }),
-  source: z.string().min(4, { message: "Source must be at least 4 characters" }),
+  source: z
+    .string()
+    .min(4, { message: "Source must be at least 4 characters" }),
   location: z.string().url().or(z.literal("")).optional(),
   date: z.string().transform((val) => new Date(Date.parse(val))), // this will be changed soon
   service: z.string().default("Others"),

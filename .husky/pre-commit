@@ -1,0 +1,3 @@
+cp -u "$(ls -t site/src/utils/api/schemas/* | head -n1)" ./api/src/utils/schemas/ && cp -u "$(ls -t api/src/utils/schemas/* | head -n1)" ./site/src/utils/api/schemas/
+git add site/src/utils/api/schemas/*
+git add api/src/utils/schemas/*
