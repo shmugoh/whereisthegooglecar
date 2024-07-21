@@ -31,14 +31,6 @@ const config = withPlausibleProxy({
       },
     ],
   },
-
-  // ignoring these until i patch them out
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
 });
 
 export default config;
