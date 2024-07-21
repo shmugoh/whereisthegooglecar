@@ -3,6 +3,7 @@
 
 generator client {
     provider = "prisma-client-js"
+    previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -25,8 +26,8 @@ model spottings {
     message_id      String
     channel_id      BigInt
     channel         channel     @relation(fields: [channel_id], references: [id])
-    width           Int?
-    height          Int?
+    width           Int
+    height          Int
     
     @@index([id])
 }

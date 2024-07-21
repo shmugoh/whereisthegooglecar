@@ -14,37 +14,26 @@ import {
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Calendar } from "~/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 
 import type { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "~/components/ui/form";
-import { formSchema } from "../../../utils/formSchema";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";
 
 import { cn } from "~/lib/utils";
 import { addDays, format } from "date-fns";
-import { CalendarIcon, PencilIcon, PencilLineIcon } from "lucide-react";
+import { CalendarIcon, PencilLineIcon } from "lucide-react";
 
 import { TurnstileWidget } from "~/components/turnstile-captcha";
-import { api } from "~/utils/api";
 import { SubmitButton } from "./button";
 import { ErrorMessage } from "./error";
 import { SUCCESS_DESCRIPTION, SUCCESS_TITLE } from "./success";
 import { CustomCaption } from "../calendar";
-import { ScrollArea } from "~/components/ui/scroll-area";
+
+import useSWRMutation from "swr/mutation";
+import { editPayload } from "~/utils/api/swrFetcher";
+import { FormSchema } from "~/utils/api/schemas/input_schema";
 
 type EditDialogProps = {
   size: "sm" | "lg";
@@ -60,7 +49,7 @@ type EditDialogProps = {
 export default function EditDialog(props: EditDialogProps) {
   const { toast } = useToast();
 
-  const editMutation = api.form.editForm.useMutation({});
+  const editTrigger = useSWRMutation("/form/edit", editPayload);
 
   // loading & error states
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -71,8 +60,8 @@ export default function EditDialog(props: EditDialogProps) {
   const [open, setOpen] = useState(false);
 
   // form default settings
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
     defaultValues: {
       country: props.country,
       town: props.town,
@@ -86,34 +75,12 @@ export default function EditDialog(props: EditDialogProps) {
   });
 
   // on submitting
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof FormSchema>) {
     setIsLoading(true);
-
-    const {
-      date,
-      country,
-      town,
-      source,
-      location,
-      service,
-      cf_turnstile_token,
-      id,
-      image,
-    } = values;
 
     try {
       // make call
-      const webhook_response = await editMutation.mutateAsync({
-        date: date,
-        country: country,
-        town: town,
-        source: source,
-        location: location,
-        service: service,
-        cf_turnstile_token: cf_turnstile_token,
-        id: id,
-        image: image,
-      });
+      const webhook_response = await editTrigger.trigger(values);
 
       // set success page
       if (webhook_response.code == 200 || 201 || 204) {
@@ -125,7 +92,7 @@ export default function EditDialog(props: EditDialogProps) {
     } catch (e) {
       setIsLoading(false);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      setErrorMessage(e.message as string);
+      setErrorMessage(e as string);
     }
   }
 
@@ -145,9 +112,8 @@ export default function EditDialog(props: EditDialogProps) {
             <DialogHeader>
               <DialogTitle>Edit Sighting</DialogTitle>
               <DialogDescription>
-                If you believe the spotting data is incorrect, you can request
-                to edit it using the form below. One of our contributors will
-                review your request and make the necessary changes.
+                If you believe the spotting data is incorrect, you can request to edit it using the form below. One of
+                our contributors will review your request and make the necessary changes.
               </DialogDescription>
             </DialogHeader>
 
@@ -163,16 +129,9 @@ export default function EditDialog(props: EditDialogProps) {
                       <FormControl>
                         <Button
                           variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground",
-                          )}
+                          className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
                         >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
+                          {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
                       </FormControl>
@@ -180,11 +139,12 @@ export default function EditDialog(props: EditDialogProps) {
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) =>
-                          date > new Date() || date < new Date("1900-01-01")
-                        }
+                        selected={field.value ? new Date(field.value) : undefined}
+                        onSelect={(day) => {
+                          const isoString = day ? day.toISOString() : undefined;
+                          field.onChange(isoString);
+                        }}
+                        disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
                         initialFocus
                         numberOfMonths={1}
                         fromYear={2006}
@@ -206,10 +166,7 @@ export default function EditDialog(props: EditDialogProps) {
                 <FormItem>
                   <FormLabel>Town</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder={props.town ?? "San Jose, California, USA"}
-                      {...field}
-                    />
+                    <Input placeholder={props.town ?? "San Jose, California, USA"} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -224,10 +181,7 @@ export default function EditDialog(props: EditDialogProps) {
                 <FormItem>
                   <FormLabel>Country</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder={props.country ?? "United States"}
-                      {...field}
-                    />
+                    <Input placeholder={props.country ?? "United States"} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -258,17 +212,13 @@ export default function EditDialog(props: EditDialogProps) {
                   <FormLabel>Source</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder={
-                        props.source ??
-                        "https://twitter.com/aiaddict1/status/1758281981509640247"
-                      }
+                      placeholder={props.source ?? "https://twitter.com/aiaddict1/status/1758281981509640247"}
                       {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    Source of where the sighting was found. Could be either a
-                    website link, social media post, or your name if you were
-                    the one who spotted it.
+                    Source of where the sighting was found. Could be either a website link, social media post, or your
+                    name if you were the one who spotted it.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -283,17 +233,10 @@ export default function EditDialog(props: EditDialogProps) {
                 <FormItem>
                   <FormLabel>Location (Optional)</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder={
-                        props.location ??
-                        "https://maps.app.goo.gl/5D5CK4LcDdmH9Fmr8"
-                      }
-                      {...field}
-                    />
+                    <Input placeholder={props.location ?? "https://maps.app.goo.gl/5D5CK4LcDdmH9Fmr8"} {...field} />
                   </FormControl>
                   <FormDescription>
-                    Location of where the sighting was taken. Must be a website
-                    link, preferrably a Google Maps link.
+                    Location of where the sighting was taken. Must be a website link, preferrably a Google Maps link.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -306,23 +249,16 @@ export default function EditDialog(props: EditDialogProps) {
               name="cf_turnstile_token"
               render={({ field }) => (
                 <FormItem>
-                  <TurnstileWidget
-                    setToken={(token) =>
-                      form.setValue("cf_turnstile_token", token)
-                    }
-                  />
+                  <TurnstileWidget setToken={(token) => form.setValue("cf_turnstile_token", token)} />
                   <FormMessage />
                 </FormItem>
               )}
             />
 
             <DialogFooter>
-              <SubmitButton
-                isLoading={isLoading}
-                loadingMessage={loadingMessage}
-              />
-              <ErrorMessage errorMessage={errorMessage} />
+              <SubmitButton isLoading={isLoading} loadingMessage={loadingMessage} />
             </DialogFooter>
+            <ErrorMessage errorMessage={errorMessage} />
           </form>
         </Form>
       </DialogContent>

@@ -1,10 +1,9 @@
 import Head from "next/head";
 
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import { SWRConfig } from "swr";
 import PlausibleProvider from "next-plausible";
 
 import { type AppType } from "next/app";
-import { api } from "~/utils/api";
 
 import "~/styles/globals.css";
 import { Inter as FontSans } from "next/font/google";
@@ -89,13 +88,12 @@ const MyApp: AppType = ({ Component, pageProps }) => {
               />
             </div>
             <Foot />
-          </div>{" "}
+          </div>
           <Toaster />
-          <SpeedInsights />
         </ThemeProvider>
       </PlausibleProvider>
     </>
   );
 };
 
-export default api.withTRPC(MyApp);
+export default MyApp;

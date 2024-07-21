@@ -1,0 +1,18 @@
+# Run Lint
+SITE_PROJECT_PATH="site"
+cd "$SITE_PROJECT_PATH" || { echo "Failed to enter SITE directory"; exit 1; }
+
+bun run lint
+LINT_STATUS=$?
+
+# Go back to root
+cd - 
+
+# Deploy Wrangler
+API_PROJECT_PATH="api"
+cd "$API_PROJECT_PATH" || { echo "Failed to enter API directory"; exit 1; }
+
+bunx wrangler deploy --minify --keep-vars
+DEPLOY_STATUS=$?
+
+exit 0

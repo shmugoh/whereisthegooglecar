@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,8 +16,8 @@ import { Form, FormControl, FormField } from "~/components/ui/form";
 import { DropdownBox } from "~/components/layout/combobox";
 
 import { SearchIcon, FilterIcon, FlagIcon } from "lucide-react";
-
-import { api } from "~/utils/api";
+import useSWR from "swr";
+import { fetcher } from "~/utils/api/swrFetcher";
 
 // define form schema
 const formSchema = z.object({
@@ -30,19 +30,13 @@ export const Search = () => {
   // Dropdown Hook
   const [open, setOpen] = useState(false);
 
-  // Grab Services
-  const services =
-    api.grab.grabServices.useQuery(undefined, {
-      refetchOnMount: false,
-      refetchOnWindowFocus: false,
-    }).data ?? [];
+  const { data: services } = useSWR<ServicesList>("/metadata/services", fetcher, {
+    revalidateOnFocus: false,
+  });
 
-  // Grab Countries
-  const countries =
-    api.grab.grabCountries.useQuery(undefined, {
-      refetchOnMount: false,
-      refetchOnWindowFocus: false,
-    }).data ?? [];
+  const { data: countries } = useSWR<CountriesList>("/metadata/countries", fetcher, {
+    revalidateOnFocus: false,
+  });
 
   // Initialize Router
   const router = useRouter();
@@ -80,9 +74,7 @@ export const Search = () => {
           className="h-full w-full gap-2 border bg-primary-foreground lg:flex lg:w-9 lg:border-0 lg:bg-inherit lg:px-0"
         >
           <SearchIcon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all" />
-          <span className="inline-flex w-full text-muted-foreground lg:hidden">
-            Search...
-          </span>
+          <span className="inline-flex w-full text-muted-foreground lg:hidden">Search...</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -103,7 +95,7 @@ export const Search = () => {
                           <DropdownBox
                             name="Service"
                             label="Service"
-                            values={services}
+                            values={services ?? []}
                             value={field.value}
                             onChange={field.onChange}
                           />
@@ -127,7 +119,7 @@ export const Search = () => {
                           <DropdownBox
                             name="Country"
                             label="Country"
-                            values={countries}
+                            values={countries ?? []}
                             value={field.value}
                             onChange={field.onChange}
                           />
@@ -149,12 +141,7 @@ export const Search = () => {
                 <div className="flex items-center gap-2 p-2">
                   <SearchIcon className="h-4 w-4 text-gray-500" />
                   <FormControl>
-                    <Input
-                      className="font-semibold"
-                      id="name"
-                      placeholder="Search by Town"
-                      {...field}
-                    />
+                    <Input className="font-semibold" id="name" placeholder="Search by Town" {...field} />
                   </FormControl>
                 </div>
               )}

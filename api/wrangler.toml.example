@@ -1,0 +1,14 @@
+name = "whereisthegooglecar-api"
+compatibility_date = "2023-12-01"
+# compatibility_flags = [ "nodejs_compat" ]
+
+node_compat = true
+
+main = "src/index.ts"
+route = "https://api.whereisthegooglecar.com/"
+account_id = "ID"
+
+[vars]
+PRISMA_CLIENT_FORCE_WASM=1
+CORS_ORIGIN="https://whereisthegooglecar.com"
+CSRF_ORIGIN="whereisthegooglecar.com"

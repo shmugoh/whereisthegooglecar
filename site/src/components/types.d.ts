@@ -1,13 +1,12 @@
 type cardProps = {
   id: number;
-  message_id: string;
   date: string;
   town: string;
-  countryEmoji: string;
-  imageUrl: string;
-  sourceUrl: string;
-  locationUrl?: string;
-  company?: string;
+  country_emoji: string;
+  image: string;
+  source: string;
+  location?: string;
+  service?: string;
   width: number;
   height: number;
 };
@@ -26,15 +25,11 @@ type pageProps = {
     date: string;
     town: string;
     country: string;
-    countryEmoji: string;
-    imageUrl: string;
-    sourceUrl: string;
-    locationUrl: string | null;
+    country_emoji: string;
+    image: string;
+    source: string;
+    location: string | null;
     company: string;
-    createdAt: string;
-    updatedAt: string;
-    message_id: string;
-    channel_id: string;
     width: number;
     height: number;
   };

@@ -1,6 +1,5 @@
 import Image from "next/image";
 import errorImage from "~/../public/404.png";
-import { useToast } from "~/components/ui/use-toast";
 
 export const SUCCESS_TITLE = "Thank you!";
 export const SUCCESS_DESCRIPTION =

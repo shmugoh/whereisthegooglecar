@@ -29,46 +29,29 @@ export function Foot() {
             <div className="flex flex-col items-center md:items-baseline">
               <p className="text-background-foreground font-bold leading-7">
                 © VirtualStreets |{" "}
-                <Link
-                  href="/privacy-policy"
-                  className="font-medium text-primary underline underline-offset-4"
-                >
+                <Link href="/privacy-policy" className="font-medium text-primary underline underline-offset-4">
                   Privacy Policy
                 </Link>{" "}
                 |{" "}
-                <Link
-                  href="/about"
-                  className="font-medium text-primary underline underline-offset-4"
-                >
+                <Link href="/about" className="font-medium text-primary underline underline-offset-4">
                   About
                 </Link>
               </p>
               <p className="text-background-foreground leading-7">
-                All trademarks and pictures are property of their respective
-                owners.
+                All trademarks and pictures are property of their respective owners.
               </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-4">
-            {links.map(({ href, text, icon }, index) => (
+            {links.map(({ href, icon }, index) => (
               <React.Fragment key={index}>
                 <a href={href} className="relative flex space-x-2">
-                  {text && (
-                    <p className="text-background-foreground flex font-medium underline underline-offset-4">
-                      {text}
-                    </p>
-                  )}
                   {React.cloneElement(icon, {
                     className: "hover:-rotate-6 hover:scale-125",
                   })}
                 </a>
-                {index < links.length - 1 && (
-                  <Separator
-                    className="h-8 bg-secondary"
-                    orientation="vertical"
-                  />
-                )}
+                {index < links.length - 1 && <Separator className="h-8 bg-secondary" orientation="vertical" />}
               </React.Fragment>
             ))}
           </div>

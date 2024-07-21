@@ -13,7 +13,7 @@ export const TopText = (props: propsTopText) => {
   return (
     <div className={"flex flex-col gap-2 " + (props.className ?? "")}>
       <Separator />
-      <div className="textContainer flex justify-normal justify-center md:flex-nowrap">
+      <div className="textContainer flex justify-normal md:flex-nowrap">
         <h1 className="w-full scroll-m-20 text-left text-4xl font-extrabold leading-[normal] md:text-5xl">
           {props.title}
         </h1>

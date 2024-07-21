@@ -1,22 +1,11 @@
 import Link from "next/link";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 
 import { TopText } from "~/components/layout/entry/topText";
-import {
-  LocationButton,
-  SourceButton,
-  TextBluePrint,
-} from "~/components/layout/entry/output";
+import { LocationButton, SourceButton, TextBluePrint } from "~/components/layout/entry/output";
 import { ImagePreview } from "~/components/layout/entry/image";
 import { CardSkeleton, HomeSkeleton } from "~/components/layout/entry/skeleton";
 
@@ -50,14 +39,12 @@ export const SpottingCard = (props: cardProps) => {
         <CardHeader>
           <CardTitle>
             <div className="flex w-full flex-row justify-between gap-20">
-              <h2 className="flex items-center justify-start text-3xl font-semibold">
-                {date}
-              </h2>
+              <h2 className="flex items-center justify-start text-3xl font-semibold">{date}</h2>
 
               <div className="flex items-center justify-end">
                 <span
                   dangerouslySetInnerHTML={{
-                    __html: twemoji.parse(props.countryEmoji, {
+                    __html: twemoji.parse(props.country_emoji, {
                       folder: "svg",
                       ext: ".svg",
                     }),
@@ -70,29 +57,27 @@ export const SpottingCard = (props: cardProps) => {
           <CardDescription className="flex items-center justify-between gap-2 break-words">
             <TextBluePrint text={props.town} size="base" />
 
-            <ServiceBadge service={props.company} className="h-fit" />
+            <ServiceBadge service={props.service} className="h-fit" />
           </CardDescription>
         </CardHeader>
         <CardContent className="hidden lg:block">
           <ImagePreview
-            url={`${env.NEXT_PUBLIC_CDN_URL}/${props.imageUrl}`}
+            url={`${props.image}`}
             alt={`Picture of a Google Car spotted in ${props.town} on ${date}.`}
             ratio={16 / 9}
           />
         </CardContent>
         <CardContent className="lg:hidden">
           <ImagePreview
-            url={`${env.NEXT_PUBLIC_CDN_URL}/${props.imageUrl}`}
+            url={`${props.image}`}
             alt={`Picture of a Google Car spotted in ${props.town} on ${date}.`}
             ratio={props.width / props.height}
           />
         </CardContent>
         <CardFooter className="flex justify-between">
           <div className="flex gap-2">
-            <SourceButton url={props.sourceUrl} size="sm" />
-            {props.locationUrl && (
-              <LocationButton url={props.locationUrl} size="sm" />
-            )}
+            <SourceButton url={props.source} size="sm" />
+            {props.location && <LocationButton url={props.location} size="sm" />}
           </div>
           <div className="flex items-center md:w-1/3">
             <Button className="flex h-full w-full items-center" asChild>
@@ -114,26 +99,24 @@ export const CardSet = (props: cardSetProps) => {
 
   return (
     <div className="flex w-full flex-col gap-4">
-      <TopText title={monthNames[props.month]} right={props.year} />
+      <TopText title={monthNames[props.month]!} right={props.year} />
       <div className="flex flex-wrap items-center justify-center gap-x-16 gap-y-6">
         {props.info.map((item: cardProps) => (
           <SpottingCard
-            id={item.message_id}
+            id={item.id}
             key={item.id}
             date={item.date}
             town={item.town}
-            countryEmoji={item.countryEmoji}
-            imageUrl={item.imageUrl}
-            sourceUrl={item.sourceUrl}
-            locationUrl={item.locationUrl}
-            company={props.showCompany ? item.company : undefined}
+            country_emoji={item.country_emoji}
+            image={item.image}
+            source={item.source}
+            location={item.location}
+            service={props.showCompany ? item.service : undefined}
             width={item.width}
             height={item.height}
           />
         ))}
-        {props.showSkeleton === true
-          ? Array.from({ length: 6 }, (_, i) => <CardSkeleton key={i} />)
-          : null}
+        {props.showSkeleton === true ? Array.from({ length: 6 }, (_, i) => <CardSkeleton key={i} />) : null}
       </div>
     </div>
   );

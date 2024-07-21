@@ -1,0 +1,14 @@
+CORS_ORIGIN=http://localhost:3000
+CSRF_ORIGIN=localhost:3000
+
+DATABASE_URL="postgresql://postgres:password@localhost:5432/whereisthegooglecar"
+UPSTASH_REDIS_REST_URL="http://192.168.80.74:8079"
+UPSTASH_REDIS_REST_TOKEN="example_token"
+
+CF_TURNSTILE_KEY="1x0000000000000000000000000000000AA"
+AWS_S3_BUCKET_NAME="whereisthegooglecar-cdn"
+AWS_S3_BUCKET_REGION="us-east-1"
+AWS_S3_ACCESS_KEY="ACCESS_KEY"
+AWS_S3_SECRET_ACCESS_KEY="SECRET_ACCESS_KEY"
+
+DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/GUILD_ID/TOKEN"
