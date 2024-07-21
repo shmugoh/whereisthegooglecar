@@ -15,7 +15,15 @@
 !.gitignore
 !.compose.yaml
 
+# Git Hook Files
+!.husky/**/*
+!package.json
+# last one is for husky hooks
+
 # Markdown Files
 !*.md
 !LICENSE
+
+# Misc
 .vercel
+/node_modules
