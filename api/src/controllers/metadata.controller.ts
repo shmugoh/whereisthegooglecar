@@ -15,6 +15,9 @@ import {
 import { Redis } from "@upstash/redis/cloudflare";
 import { HTTPException } from "hono/http-exception";
 
+import { z } from "zod";
+import { AvailableMonthsSchema } from "../utils/schemas/input_schema";
+
 class MetadataController {
   async getServices(c: ContextType): Promise<ServicesList> {
     try {
@@ -189,11 +192,10 @@ class MetadataController {
 
   async getAvailableMonths(
     c: ContextType,
-    service: string,
-    country: string,
-    town: string,
-    cache: Boolean
+    data: z.infer<typeof AvailableMonthsSchema>
   ): Promise<MonthList> {
+    const { service, country, town, cache } = data;
+
     try {
       const cacheKey = `months:${service}`;
 

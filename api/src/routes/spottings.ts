@@ -1,31 +1,50 @@
 import { Hono } from "hono";
 import { spottingsController } from "../controllers/spottings.controller";
 import { Env } from "../utils/constants";
+import { SearchIDSchema, SearchSchema } from "../utils/schemas/input_schema";
+import { validator } from "hono/validator";
+import { HTTPException } from "hono/http-exception";
 
 const app = new Hono<{ Bindings: Env }>();
 
-app.get("/search", async (c) => {
-  const { country, town, service, month, year, cache, page } = c.req.query();
+app.get(
+  "/search",
 
-  const result = await spottingsController.getByQuery(
-    c,
-    country,
-    town,
-    service ? service.toLowerCase() : service,
-    Number(month),
-    Number(year),
-    Number(page),
-    Boolean(cache)
-  );
+  // Validate Schema
+  validator("query", (value, c) => {
+    const parsed = SearchSchema.safeParse(value);
+    if (!parsed.success) {
+      throw new HTTPException(400, { message: "Invalid Parameters" });
+    }
+    return parsed.data;
+  }),
 
-  return c.json(result);
-});
+  // Handle Request
+  async (c) => {
+    const data = c.req.valid("query");
+    const result = await spottingsController.getByQuery(c, data);
+    return c.json(result);
+  }
+);
 
-app.get("/:id", async (c) => {
-  const { id } = c.req.param();
-  const result = await spottingsController.getById(c, id);
+app.get(
+  "/:id",
 
-  return c.json(result);
-});
+  // Validate Schema
+  validator("param", (value, c) => {
+    const parsed = SearchIDSchema.safeParse(value);
+    if (!parsed.success) {
+      throw new HTTPException(400, { message: "Invalid Parameters" });
+    }
+    return parsed.data;
+  }),
+
+  // Handle Request
+  async (c) => {
+    const data = c.req.valid("param");
+    const result = await spottingsController.getById(c, data);
+    return c.json(result);
+  }
+);
 
 export default app;

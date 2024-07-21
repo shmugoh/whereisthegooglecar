@@ -1,6 +1,9 @@
 import { Hono } from "hono";
 import { metadataController } from "../controllers/metadata.controller";
 import { Env } from "../utils/constants";
+import { validator } from "hono/validator";
+import { AvailableMonthsSchema } from "../utils/schemas/input_schema";
+import { HTTPException } from "hono/http-exception";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -19,18 +22,24 @@ app.get("/date-span", async (c) => {
   return c.json(data);
 });
 
-app.get("/available-months", async (c) => {
-  const { service, country, town, cache } = c.req.query();
+app.get(
+  "/available-months",
 
-  const data = await metadataController.getAvailableMonths(
-    c,
-    service,
-    country,
-    town,
-    Boolean(cache)
-  );
+  // Validate Schema
+  validator("query", (value, c) => {
+    const parsed = AvailableMonthsSchema.safeParse(value);
+    if (!parsed.success) {
+      throw new HTTPException(400, { message: "Invalid Parameters" });
+    }
+    return parsed.data;
+  }),
+  async (c) => {
+    const data = c.req.valid("query");
 
-  return c.json(data);
-});
+    const result = await metadataController.getAvailableMonths(c, data);
+
+    return c.json(result);
+  }
+);
 
 export default app;

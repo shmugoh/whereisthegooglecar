@@ -9,8 +9,10 @@ import {
 } from "../utils/constants";
 import { Redis } from "@upstash/redis/cloudflare";
 import { HTTPException } from "hono/http-exception";
-
 import { generateEmbed } from "../utils/form/embed_webhook";
+
+import { PresignSchema, FormSchema } from "../utils/schemas/input_schema";
+import { z } from "zod";
 
 async function validateTurnstile(c: ContextType, token: string) {
   // initiate redis
@@ -62,7 +64,7 @@ async function validateTurnstile(c: ContextType, token: string) {
 class FormController {
   async presignS3(
     c: ContextType,
-    props: presignS3
+    props: z.infer<typeof PresignSchema>
   ): Promise<presign_s3_output | form_output> {
     try {
       // prettier-ignore
@@ -128,7 +130,10 @@ class FormController {
     }
   }
 
-  async submitForm(c: ContextType, input: FormSchema): Promise<form_output> {
+  async submitForm(
+    c: ContextType,
+    input: z.infer<typeof FormSchema>
+  ): Promise<form_output> {
     // verify cloudflare turnstile captcha
     // prettier-ignore
     const turnstile_response = validateTurnstile(c, input.cf_turnstile_token);
@@ -171,7 +176,10 @@ class FormController {
     }
   }
 
-  async editForm(c: ContextType, input: FormSchema): Promise<form_output> {
+  async editForm(
+    c: ContextType,
+    input: z.infer<typeof FormSchema>
+  ): Promise<form_output> {
     // verify cloudflare turnstile captcha
     // prettier-ignore
     const turnstile_response = validateTurnstile(c, input.cf_turnstile_token);

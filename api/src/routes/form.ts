@@ -2,32 +2,69 @@ import { Hono } from "hono";
 import { formController } from "../controllers/form.controller";
 import { validator } from "hono/validator";
 import { Env } from "../utils/constants";
+import { FormSchema, PresignSchema } from "../utils/schemas/input_schema";
+import { HTTPException } from "hono/http-exception";
 
 const app = new Hono<{ Bindings: Env }>();
 
-// TODO: implement validation: https://hono.dev/docs/guides/validation#with-zod
+app.post(
+  "/submit",
 
-app.post("/submit", async (c) => {
-  const body: FormSchema = await c.req.json();
+  // Validate Schema
+  validator("json", (value, c) => {
+    const parsed = FormSchema.safeParse(value);
+    if (!parsed.success) {
+      throw new HTTPException(400, { message: "Invalid Parameters" });
+    }
+    return parsed.data;
+  }),
 
-  const result = await formController.submitForm(c, body);
+  // Handle Request
+  async (c) => {
+    const body = c.req.valid("json");
+    const result = await formController.submitForm(c, body);
+    return c.json(result);
+  }
+);
 
-  return c.json(result);
-});
-app.post("/edit", async (c) => {
-  const body: FormSchema = await c.req.json();
+app.post(
+  "/edit",
 
-  const result = await formController.editForm(c, body);
+  // Validate Schema
+  validator("json", (value, c) => {
+    const parsed = FormSchema.safeParse(value);
+    if (!parsed.success) {
+      throw new HTTPException(400, { message: "Invalid Parameters" });
+    }
+    return parsed.data;
+  }),
 
-  return c.json(result);
-});
+  // Handle Request
+  async (c) => {
+    const body = c.req.valid("json");
+    const result = await formController.editForm(c, body);
+    return c.json(result);
+  }
+);
 
-app.post("/presign-s3", async (c) => {
-  const body: presignS3 = await c.req.json();
+app.post(
+  "/presign-s3",
 
-  const result = await formController.presignS3(c, body);
+  // Validate Schema
+  validator("json", (value, c) => {
+    const parsed = PresignSchema.safeParse(value);
+    if (!parsed.success) {
+      throw new HTTPException(400, { message: "Invalid Parameters" });
+    }
+    return parsed.data;
+  }),
 
-  return c.json(result);
-});
+  // Handle Request
+  async (c) => {
+    const body = await c.req.valid("json");
+    const result = await formController.presignS3(c, body);
+    return c.json(result);
+  }
+);
 
 export default app;

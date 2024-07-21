@@ -8,8 +8,16 @@ import { Redis } from "@upstash/redis/cloudflare";
 import { HTTPException } from "hono/http-exception";
 import { capitalizeLetter } from "../utils/strings";
 
+import { z } from "zod";
+import { SearchIDSchema, SearchSchema } from "../utils/schemas/input_schema";
+
 class SpottingsController {
-  async getById(c: ContextType, id: string): Promise<SpottingMetadata> {
+  async getById(
+    c: ContextType,
+    data: z.infer<typeof SearchIDSchema>
+  ): Promise<SpottingMetadata> {
+    const { id } = data;
+
     try {
       // check if in cache
       PotLogger("[SPOTTINGS - ID] -", `Grabbing spottings:${id} from cache...`);
@@ -88,14 +96,10 @@ class SpottingsController {
 
   async getByQuery(
     c: ContextType,
-    country: string,
-    town: string,
-    service: string,
-    month: number,
-    year: number,
-    page: number,
-    cache: boolean
+    data: z.infer<typeof SearchSchema>
   ): Promise<SpottingsArray> {
+    const { country, town, service, month, year, page, cache } = data;
+
     try {
       const cacheKey = `spottings:${service}:${month}:${year}`;
 
