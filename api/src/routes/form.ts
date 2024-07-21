@@ -14,7 +14,9 @@ app.post(
   validator("json", (value, c) => {
     const parsed = FormSchema.safeParse(value);
     if (!parsed.success) {
-      throw new HTTPException(400, { message: "Invalid Parameters" });
+      throw new HTTPException(400, {
+        message: `Invalid Parameters: ${JSON.stringify(parsed.error.issues)}`,
+      });
     }
     return parsed.data;
   }),
@@ -34,7 +36,9 @@ app.post(
   validator("json", (value, c) => {
     const parsed = FormSchema.safeParse(value);
     if (!parsed.success) {
-      throw new HTTPException(400, { message: "Invalid Parameters" });
+      throw new HTTPException(400, {
+        message: `Invalid Parameters: ${JSON.stringify(parsed.error.issues)}`,
+      });
     }
     return parsed.data;
   }),
@@ -54,7 +58,9 @@ app.post(
   validator("json", (value, c) => {
     const parsed = PresignSchema.safeParse(value);
     if (!parsed.success) {
-      throw new HTTPException(400, { message: "Invalid Parameters" });
+      throw new HTTPException(400, {
+        message: `Invalid Parameters: ${JSON.stringify(parsed.error.issues)}`,
+      });
     }
     return parsed.data;
   }),

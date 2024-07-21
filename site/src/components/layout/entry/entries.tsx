@@ -9,6 +9,9 @@ import { useRouter } from "next/router";
 import Error from "~/pages/_error";
 import { buildURLParams } from "~/utils/api/url_params";
 
+import { z } from "zod";
+import { AvailableMonthsSchema, SearchSchema } from "~/utils/api/schemas/input_schema";
+
 type EntriesPageProps = {
   company: string | undefined;
   country?: string | undefined;
@@ -92,10 +95,11 @@ export default function EntriesPage(props: EntriesPageProps) {
     }
 
     // normal queries & search queries have the same 4 fundamental variables to query
-    const commonData: SearchInput = {
+    const commonData: z.infer<typeof SearchSchema> = {
       month: activeMonth.current.getUTCMonth() + 1,
       year: activeMonth.current.getUTCFullYear(),
       page: activePage.current,
+      cache: false,
     };
     if (props.company) {
       commonData.service = props.company;
@@ -158,7 +162,10 @@ export default function EntriesPage(props: EntriesPageProps) {
 
   const grabMonths = useCallback(async () => {
     try {
-      const searchQueryData: SearchMonthInput = { service: props.company };
+      const searchQueryData: z.infer<typeof AvailableMonthsSchema> = {
+        service: props.company,
+        cache: false,
+      };
 
       // if coming from search, add additional parameters
       if (props.search) {

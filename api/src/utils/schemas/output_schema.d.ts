@@ -30,7 +30,7 @@ type MonthList = Array<MonthMetadata>;
 /* Spottings */
 interface SpottingMetadata {
   id: string;
-  date: Date;
+  date: string; // hono is passing prisma's date as an ISO-String
   country: string;
   country_emoji: string;
   town: string;

@@ -20,7 +20,6 @@ import type { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";
-import { formSchema } from "../../../utils/formSchema";
 
 import { cn } from "~/lib/utils";
 import { addDays, format } from "date-fns";
@@ -34,6 +33,7 @@ import { CustomCaption } from "../calendar";
 
 import useSWRMutation from "swr/mutation";
 import { editPayload } from "~/utils/api/swrFetcher";
+import { FormSchema } from "~/utils/api/schemas/input_schema";
 
 type EditDialogProps = {
   size: "sm" | "lg";
@@ -60,8 +60,8 @@ export default function EditDialog(props: EditDialogProps) {
   const [open, setOpen] = useState(false);
 
   // form default settings
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
     defaultValues: {
       country: props.country,
       town: props.town,
@@ -75,24 +75,12 @@ export default function EditDialog(props: EditDialogProps) {
   });
 
   // on submitting
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof FormSchema>) {
     setIsLoading(true);
-
-    const { date, country, town, source, location, service, cf_turnstile_token, id, image } = values;
 
     try {
       // make call
-      const webhook_response = await editTrigger.trigger({
-        date: date,
-        country: country,
-        town: town,
-        source: source,
-        location: location,
-        service: service,
-        cf_turnstile_token: cf_turnstile_token,
-        id: id,
-        image: image,
-      });
+      const webhook_response = await editTrigger.trigger(values);
 
       // set success page
       if (webhook_response.code == 200 || 201 || 204) {
@@ -151,8 +139,11 @@ export default function EditDialog(props: EditDialogProps) {
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
+                        selected={field.value ? new Date(field.value) : undefined}
+                        onSelect={(day) => {
+                          const isoString = day ? day.toISOString() : undefined;
+                          field.onChange(isoString);
+                        }}
                         disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
                         initialFocus
                         numberOfMonths={1}

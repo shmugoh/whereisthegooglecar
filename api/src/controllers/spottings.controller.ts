@@ -66,7 +66,7 @@ class SpottingsController {
       // pos-query (final changes)
       renamed_data = {
         id: data.message_id,
-        date: data.date,
+        date: data.date.toISOString(),
         country: data.country,
         country_emoji: data.countryEmoji,
         town: data.town,
@@ -172,7 +172,7 @@ class SpottingsController {
       // Rename fields in the result
       const renamedData = data.map((item) => ({
         id: item.message_id,
-        date: item.date,
+        date: item.date.toISOString(),
         country: item.country,
         country_emoji: item.countryEmoji,
         service: capitalizeLetter(item.company),

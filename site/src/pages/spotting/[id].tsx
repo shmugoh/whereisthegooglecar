@@ -1,15 +1,16 @@
 import React from "react";
 import { NextSeo } from "next-seo";
-import { GetServerSideProps, type InferGetServerSidePropsType } from "next";
+import { type InferGetServerSidePropsType } from "next";
 
 import { PageComponent } from "~/components/layout/entry/page";
 import { convertDate } from "~/utils/date";
 import { env } from "~/env";
 import { axiosInstance } from "~/utils/api/swrFetcher";
 
-export default function Page(
-  props: InferGetServerSidePropsType<typeof getStaticProps>,
-) {
+import { type z } from "zod";
+import { type SearchIDSchema } from "~/utils/api/schemas/input_schema";
+
+export default function Page(props: InferGetServerSidePropsType<typeof getStaticProps>) {
   if (props.data) {
     // format date
     const dateFormatted = convertDate(props.data.date);
@@ -26,8 +27,7 @@ export default function Page(
         default:
           return (
             // capitalize first letter
-            props.data.service.charAt(0).toUpperCase() +
-            props.data.service.slice(1)
+            props.data.service.charAt(0).toUpperCase() + props.data.service.slice(1)
           );
       }
     })();
@@ -79,15 +79,14 @@ export const getStaticPaths = async () => {
   };
 };
 
-// prettier-ignore
-export const getStaticProps  = async ({params}: { params: { id: string };}) => {
+export const getStaticProps = async ({ params }: { params: z.infer<typeof SearchIDSchema> }) => {
   // get id from query
   const id_query = params.id;
   if (id_query) {
     try {
       const response = await axiosInstance.get<SpottingMetadata>(`/spottings/${id_query}`);
       const data: SpottingMetadata = response.data;
-      
+
       if (data) {
         return {
           props: { data },
@@ -98,11 +97,11 @@ export const getStaticProps  = async ({params}: { params: { id: string };}) => {
       console.error(error);
       return {
         notFound: true,
-      }
+      };
     }
   }
 
   return {
     notFound: true,
   };
-}
+};

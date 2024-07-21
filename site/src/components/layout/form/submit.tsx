@@ -12,7 +12,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";
 import { addDays, format } from "date-fns";
-import { formSchema } from "~/utils/formSchema";
+import { type PresignSchema, FormSchema } from "~/utils/api/schemas/input_schema";
 
 import { CalendarIcon } from "lucide-react";
 import { IoCloudUploadOutline } from "react-icons/io5";
@@ -31,8 +31,8 @@ import { presignPaload, submitPayload } from "~/utils/api/swrFetcher";
 
 export default function SubmitForm() {
   // form configuration
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
     defaultValues: { id: "" },
   });
 
@@ -53,29 +53,27 @@ export default function SubmitForm() {
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
 
   // on submitting form
-  // on submitting form
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof FormSchema>) {
     if (imageFile) {
       // disable button and remove error message
       setErrorMessage(null);
       setIsLoading(true);
-
-      // grab values
-      const { date, country, town, source, location, service, cf_turnstile_token, id } = values;
 
       // get signed url
       setLoadingMesasge("Uploading Image...");
       const imageChecksum = await computeSHA256(imageFile);
 
       try {
-        const signedURLResponse = await signedURLTrigger.trigger({
-          cf_turnstile_token: cf_turnstile_token,
+        // check payload input with zod before submitting
+        const signedURLPayload: z.infer<typeof PresignSchema> = {
+          cf_turnstile_token: values.cf_turnstile_token,
           checksum: imageChecksum,
           fileSize: imageFile.size,
           fileType: imageFile.type,
-        });
+        };
 
-        console.log(signedURLResponse);
+        // submit s3 payload
+        const signedURLResponse = await signedURLTrigger.trigger(signedURLPayload);
 
         // if aws signs url
         if (signedURLResponse.url && signedURLResponse.key) {
@@ -89,21 +87,11 @@ export default function SubmitForm() {
           });
 
           // generate image url
-          const imageUrl = `${env.NEXT_PUBLIC_CDN_URL}/${signedURLResponse.key}`;
+          values.image = `${env.NEXT_PUBLIC_CDN_URL}/${signedURLResponse.key}`;
 
-          // submit webhook
+          // submit webhook payload
           setLoadingMesasge("Submitting Form...");
-          const webhook_response = await submitTrigger.trigger({
-            date: date,
-            country: country,
-            town: town,
-            source: source,
-            location: location,
-            service: service,
-            image: imageUrl,
-            cf_turnstile_token: cf_turnstile_token,
-            id: id,
-          });
+          const webhook_response = await submitTrigger.trigger(values);
 
           // set success page
           if (webhook_response.code == 200 || 201 || 204) {
@@ -190,8 +178,11 @@ export default function SubmitForm() {
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
+                      selected={field.value ? new Date(field.value) : undefined}
+                      onSelect={(day) => {
+                        const isoString = day ? day.toISOString() : undefined;
+                        field.onChange(isoString);
+                      }}
                       disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
                       initialFocus
                       fromYear={2006}

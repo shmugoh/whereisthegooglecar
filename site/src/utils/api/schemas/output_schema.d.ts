@@ -28,10 +28,9 @@ interface MonthMetadata {
 type MonthList = Array<MonthMetadata>;
 
 /* Spottings */
-// this is returned by the https backend
 interface SpottingMetadata {
   id: string;
-  date: string;
+  date: string; // hono is passing prisma's date as an ISO-String
   country: string;
   country_emoji: string;
   town: string;
@@ -39,8 +38,8 @@ interface SpottingMetadata {
   source: string;
   location: string | null;
   image: string;
-  width: number;
-  height: number;
+  width: number | null;
+  height: number | null;
 }
 type SpottingsID = [SpottingMetadata]; // only for redis
 type SpottingsArray = Array<SpottingMetadata>;
@@ -49,10 +48,6 @@ type SpottingsArray = Array<SpottingMetadata>;
 interface presign_s3_output {
   url: string;
   key: string;
-
-  // only appears on error
-  code?: number;
-  message?: string;
 }
 
 interface form_output {
