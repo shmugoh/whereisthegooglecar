@@ -41,7 +41,6 @@ interface SpottingMetadata {
   width: number;
   height: number;
 }
-type SpottingsID = [SpottingMetadata]; // only for redis
 type SpottingsArray = Array<SpottingMetadata>;
 
 type SpottingsArrayID = { id: string; date: string }[];
