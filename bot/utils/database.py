@@ -194,7 +194,7 @@ class DatabaseManager:
         '''
         Clears the cache for a specific spotting message.
         '''
-        self.redis.hdel(f"spotting:{id}", "data")
+        self.redis.hdel(f"spottings:{id}", "renamed_data")
 
     def generate_cache_month(self, date: datetime) -> str:
         """
