@@ -184,7 +184,7 @@ class DatabaseManager:
             service = "others_rest"
         
         # delete all available months from cache
-        self.redis.hdel(f"months:{service}", "months")
+        self.redis.hdel(f"months:{service}", "data")
         
         # delete month from cache
         self.redis.delete(f"spottings:{service}:{date}")
