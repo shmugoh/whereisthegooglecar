@@ -1,18 +1,41 @@
-# Run Lint
-SITE_PROJECT_PATH="site"
-cd "$SITE_PROJECT_PATH" || { echo "Failed to enter SITE directory"; exit 1; }
+#!/bin/bash
 
-bun run lint
-LINT_STATUS=$?
+# Check if the current branch is 'main'
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "$CURRENT_BRANCH" != "main" ]; then
+  echo "Not on 'main' branch. Skipping lint and deploy."
+  exit 0
+fi
 
-# Go back to root
-cd - 
+# Check if there are changes in the 'site' folder
+if ! git diff --quiet HEAD~1 HEAD -- site; then
+  # Enter SITE directory
+  SITE_PROJECT_PATH="site"
+  cd "$SITE_PROJECT_PATH" || { echo "Failed to enter SITE directory"; exit 1; }
+
+  # Run Lint
+  bun run lint
+  LINT_STATUS=$?
+
+  # Go back to root
+  cd - 
+
+  exit 0
+fi
 
 # Deploy Wrangler
-API_PROJECT_PATH="api"
-cd "$API_PROJECT_PATH" || { echo "Failed to enter API directory"; exit 1; }
+# Check if there are changes in the 'api' folder
+if ! git diff --quiet HEAD~1 HEAD -- api; then
+  # Enter API directory
+  API_PROJECT_PATH="api"
+  cd "$API_PROJECT_PATH" || { echo "Failed to enter API directory"; exit 1; }
 
-bunx wrangler deploy --minify --keep-vars
-DEPLOY_STATUS=$?
+  # Deploy Wrangler
+  bunx wrangler deploy --minify --keep-vars
+  DEPLOY_STATUS=$?
 
+  exit 0
+fi
+
+# If no changes in 'api', exit without doing anything
 exit 0
