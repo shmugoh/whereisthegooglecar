@@ -15,50 +15,51 @@ import { PresignSchema, FormSchema } from "../utils/schemas/input_schema";
 import { z } from "zod";
 
 async function validateTurnstile(c: ContextType, token: string) {
-  // initiate redis
-  const redis = Redis.fromEnv(c.env);
+  try {
+    // initiate redis
+    const redis = Redis.fromEnv(c.env);
 
-  // revalidates TTL (removes old tokens)
-  const now = Math.floor(Date.now() / 1000);
-  await redis.zremrangebyscore(
-    "turnstile_tokens",
-    Number.NEGATIVE_INFINITY,
-    now
-  );
+    // revalidates TTL (removes old tokens)
+    const min = 0;
+    const max = Math.floor(Date.now() / 1000);
+    await redis.zremrangebyscore("turnstile_tokens", min, max);
 
-  // check if token is still available in the sorted set
-  const turnstile_cache = await redis.zscore("turnstile_tokens", token);
-  if (turnstile_cache == 1) {
-    return true;
-  }
+    // check if token is still available in the sorted set
+    const turnstile_cache = await redis.zscore("turnstile_tokens", token);
+    if (turnstile_cache == 1) {
+      return true;
+    }
 
-  // build form data
-  const formData = new FormData();
-  formData.append("secret", c.env.CF_TURNSTILE_KEY);
-  formData.append("response", token);
+    // build form data
+    const formData = new FormData();
+    formData.append("secret", c.env.CF_TURNSTILE_KEY);
+    formData.append("response", token);
 
-  // build url & request
-  const url = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
-  const response = await fetch(url, {
-    body: formData,
-    method: "POST",
-  });
-
-  // get response
-  const response_body = (await response.json()) as any;
-  if (response_body.success) {
-    // calculate TTL
-    const now = Math.floor(Date.now() / 1000); // current time in seconds
-    const expirationTime = now + TTL_EXPIRATION; // expiration time
-    await redis.zadd("turnstile_tokens", {
-      score: expirationTime,
-      member: token,
+    // build url & request
+    const url = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+    const response = await fetch(url, {
+      body: formData,
+      method: "POST",
     });
 
-    return true;
-  }
+    // get response
+    const response_body = (await response.json()) as any;
+    if (response_body.success) {
+      // calculate TTL
+      const now = Math.floor(Date.now() / 1000); // current time in seconds
+      const expirationTime = now + TTL_EXPIRATION; // expiration time
+      await redis.zadd("turnstile_tokens", {
+        score: expirationTime,
+        member: token,
+      });
 
-  return false;
+      return true;
+    }
+
+    return false;
+  } catch (e) {
+    throw e;
+  }
 }
 
 class FormController {
