@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
@@ -81,9 +79,9 @@ export const SpottingCard = (props: cardProps) => {
           </div>
           <div className="flex items-center md:w-1/3">
             <Button className="flex h-full w-full items-center" asChild>
-              <Link prefetch={false} href={`/spotting/${props.id}`}>
-                Info
-              </Link>
+              <a target="_blank" href={`/spotting/${props.id}`}>
+                Open
+              </a>
             </Button>
           </div>
         </CardFooter>

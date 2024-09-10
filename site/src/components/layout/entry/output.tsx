@@ -1,27 +1,16 @@
 import React from "react";
-import Link from "next/link";
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { cn } from "~/lib/utils";
 
-const ButtonBluePrint = (props: {
-  type: string;
-  url: string;
-  size: "sm" | "lg";
-}) => {
+const ButtonBluePrint = (props: { type: string; url: string; size: "sm" | "lg" }) => {
   if (!isUrl(props.url)) {
     let text;
 
     if (props.type === "Source") {
       text = (
         <div className="flex flex-row gap-2">
-          <p className="text-left font-bold [&[align=center]]:text-center [&[align=right]]:text-right">
-            Submitted by:
-          </p>
+          <p className="text-left font-bold [&[align=center]]:text-center [&[align=right]]:text-right">Submitted by:</p>
           {/* font-medium text-primary underline underline-offset-4 */}
           <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold [&[align=center]]:text-center">
             {props.url}
@@ -43,27 +32,19 @@ const ButtonBluePrint = (props: {
   }
 
   return (
-    <Link
+    <a
       href={props.url}
       className={`text-${props.size} font-medium text-primary underline underline-offset-4 hover:cursor-pointer hover:text-primary/80`}
+      target="_blank"
     >
       {props.type}
-    </Link>
+    </a>
   );
 };
 
-export const TextBluePrint = (props: {
-  text: string;
-  size: "base" | "lg";
-  className?: string;
-}) => {
+export const TextBluePrint = (props: { text: string; size: "base" | "lg"; className?: string }) => {
   return (
-    <div
-      className={cn(
-        `text-${props.size} font-regular text-slate-600 dark:text-slate-300`,
-        props.className,
-      )}
-    >
+    <div className={cn(`text-${props.size} font-regular text-slate-600 dark:text-slate-300`, props.className)}>
       {props.text}
     </div>
   );
